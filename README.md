@@ -30,5 +30,5 @@ For a development installation (requires npm),
     $ git clone https://github.com/matplotlib/jupyter-matplotlib.git
     $ cd jupyter-matplotlib
     $ pip install -e .
-    $ jupyter nbextension install --py --symlink --user ipympl
-    $ jupyter nbextension enable --py --user ipympl
+    $ jupyter nbextension install --py --symlink --sys-prefix ipympl
+    $ jupyter nbextension enable --py --sys-prefix ipympl
