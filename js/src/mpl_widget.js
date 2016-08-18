@@ -143,12 +143,6 @@ mpl.figure.prototype._key_event_extra = function(event, name) {
     // Check for shift+enter
     if (event.shiftKey && event.which == 13) {
         this.canvas_div.blur();
-        event.shiftKey = false;
-        // Send a "J" for go to next cell
-        event.which = 74;
-        event.keyCode = 74;
-        manager.command_mode();
-        manager.handle_keydown(event);
     }
 }
 
