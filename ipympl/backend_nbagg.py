@@ -209,7 +209,7 @@ class FigureManagerNbAgg(FigureManagerWebAgg):
             self.canvas.draw_idle()
 
     def destroy(self):
-        self._send_event('close')
+        self.canvas.close()
 
 
 def new_figure_manager(num, *args, **kwargs):
