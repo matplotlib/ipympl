@@ -125,7 +125,7 @@ mpl.figure.prototype._init_canvas = function() {
 
     var canvas_div = $('<div/>');
 
-    canvas_div.attr('style', 'position: relative; clear: both; outline: 0');
+    canvas_div.attr('style', 'position: relative; clear: both;');
 
     function canvas_keyboard_event(event) {
         event.stopPropagation();
@@ -141,7 +141,7 @@ mpl.figure.prototype._init_canvas = function() {
 
     var canvas = $('<canvas/>');
     canvas.addClass('mpl-canvas');
-    canvas.attr('style', "left: 0; top: 0; z-index: 0; outline: 0")
+    canvas.attr('style', "left: 0; top: 0; z-index: 0; ")
 
     this.canvas = canvas[0];
     this.context = canvas[0].getContext("2d");
