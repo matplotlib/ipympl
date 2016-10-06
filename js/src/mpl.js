@@ -128,6 +128,8 @@ mpl.figure.prototype._init_canvas = function() {
     canvas_div.attr('style', 'position: relative; clear: both; outline: 0');
 
     function canvas_keyboard_event(event) {
+        event.stopPropagation();
+        event.preventDefault();
         return fig.key_event(event, event['data']);
     }
 
@@ -225,13 +227,6 @@ mpl.figure.prototype._init_canvas = function() {
     $(this.rubberband_canvas).bind("contextmenu",function(e){
         return false;
     });
-
-    function set_focus () {
-        canvas.focus();
-        canvas_div.focus();
-    }
-
-    window.setTimeout(set_focus, 100);
 }
 
 mpl.figure.prototype._init_toolbar = function() {

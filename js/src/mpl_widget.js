@@ -58,9 +58,6 @@ mpl.figure.prototype.handle_close = function(fig, msg) {
     var width = fig.canvas.width/mpl.ratio
     fig.root.unbind('remove')
 
-    // Re-enable the keyboard manager in Jupyter - without this line, in FF,
-    // the notebook keyboard shortcuts fail.
-    Jupyter.keyboard_manager.enable()
     fig.close_ws(fig, msg);
 }
 
@@ -127,23 +124,11 @@ mpl.figure.prototype._root_extra_style = function(el){
 }
 
 mpl.figure.prototype._canvas_extra_style = function(el){
-    // this is important to make the div 'focusable
+    // this is important to make the div 'focusable'
     el.attr('tabindex', 0)
-    // reach out to Jupyter and tell the keyboard manager to turn it's self
-    // off when our div gets focus
-
-    Jupyter.notebook.keyboard_manager.register_events(el);
 }
 
 mpl.figure.prototype._key_event_extra = function(event, name) {
-    var manager = Jupyter.notebook.keyboard_manager;
-    if (!manager)
-        manager = Jupyter.keyboard_manager;
-
-    // Check for shift+enter
-    if (event.shiftKey && event.which == 13) {
-        this.canvas_div.blur();
-    }
 }
 
 mpl.figure.prototype.handle_save = function(fig, msg) {
