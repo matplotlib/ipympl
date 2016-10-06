@@ -1,5 +1,16 @@
 var version = require('./package.json').version;
 
+
+// Build JupyterLab extension
+var buildExtension = require('jupyterlab-extension-builder/lib/builder').buildExtension;
+buildExtension({
+  name: 'ipympl',
+  entry: './src/labplugin',
+  outputDir: '../ipympl/staticlab',
+});
+
+
+
 // Custom webpack loaders are generally the same for all webpack bundles, hence
 // stored in a separate local variable.
 var loaders = [
