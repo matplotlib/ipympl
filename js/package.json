@@ -10,7 +10,8 @@
     "url": "https://github.com/matplotlib/jupyter-matplotlib.git"
   },
   "scripts": {
-    "prepublish": "webpack",
+      "prepublish": "webpack",
+      "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
