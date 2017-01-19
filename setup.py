@@ -131,7 +131,7 @@ setup_args = {
     ],
     'install_requires': [
         'ipywidgets>=5.1.5',
-        'matplotlib>=2.0.0b3',
+        'matplotlib>=2.0.0',
         'six',
     ],
     'packages': find_packages(),
