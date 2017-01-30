@@ -10,7 +10,7 @@ Matplotlib Jupyter Extension.
 This repository contains code for the Matplotlib Jupyter widget, stripped out
 of the main matplotlib repository.
 
-It requires matplotlib 2.0.0b3 or more recent.
+It requires matplotlib 2.0.0 or more recent.
 
 The goal of this project is to separate developement of the Jupyter integration
 (future versions of notebook and Jupyter Lab) from the calendar of the releases
@@ -19,7 +19,12 @@ of the main matplotlib repository.
 Installation
 ------------
 
-To install use pip:
+To install `ipympl` with conda:
+
+    $ conda install ipympl -c conda-forge
+
+
+To install `ipympl` with pip:
 
     $ pip install ipympl
     $ jupyter nbextension enable --py --sys-prefix ipympl
