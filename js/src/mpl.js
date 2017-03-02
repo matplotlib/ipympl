@@ -109,12 +109,9 @@ mpl.figure.prototype._init_header = function() {
     this.header = titletext[0];
 }
 
-
-
 mpl.figure.prototype._canvas_extra_style = function(canvas_div) {
 
 }
-
 
 mpl.figure.prototype._root_extra_style = function(canvas_div) {
 
@@ -160,18 +157,8 @@ mpl.figure.prototype._init_canvas = function() {
 
     var pass_mouse_events = true;
 
-    canvas_div.resizable({
-        start: function(event, ui) {
-            pass_mouse_events = false;
-        },
-        resize: function(event, ui) {
-            fig.request_resize(ui.size.width, ui.size.height);
-        },
-        stop: function(event, ui) {
-            pass_mouse_events = true;
-            fig.request_resize(ui.size.width, ui.size.height);
-        },
-    });
+    // TODO: on resize event
+    // fig.request_resize(width, height);
 
     function mouse_event_fn(event) {
         if (pass_mouse_events)

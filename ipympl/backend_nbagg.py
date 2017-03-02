@@ -52,7 +52,6 @@ class Show(ShowBase):
 
 show = Show()
 
-
 def draw_if_interactive():
     import matplotlib._pylab_helpers as pylab_helpers
 
@@ -60,7 +59,6 @@ def draw_if_interactive():
         manager = pylab_helpers.Gcf.get_active()
         if manager is not None:
             manager.show()
-
 
 def connection_info():
     """
@@ -122,8 +120,15 @@ class NavigationIPy(NavigationToolbar2WebAgg):
 
 
 class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
-    _view_module = Unicode("jupyter-matplotlib", sync=True)
+
+    _model_module = Unicode('jupyter-matplotlib', sync=True)
+    _model_module_version = Unicode('^0.0.2', sync=True)
+    _model_name = Unicode('MPLCanvasModel', sync=True)
+
+    _view_module = Unicode('jupyter-matplotlib', sync=True)
+    _view_module_version = Unicode('^0.0.2', sync=True)
     _view_name = Unicode('MPLCanvasView', sync=True)
+
     _toolbar_items = List(sync=True)
     _closed = Bool(True)
     _id = Unicode('', sync=True)
