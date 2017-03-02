@@ -7,6 +7,7 @@ node_modules/
 
 # Compiled javascript
 ipympl/static/
+ipympl/staticlab/
 
 # OS X
 .DS_Store

@@ -1,1 +1,2 @@
 recursive-include ipympl/static *.*
+include LICENSE

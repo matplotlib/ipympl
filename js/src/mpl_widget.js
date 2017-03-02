@@ -1,15 +1,30 @@
 var widgets = require('jupyter-js-widgets');
 var mpl = require('./mpl.js');
+var _ = require('underscore');
 var $ = require('jquery');
 require('jquery-ui');
+
+var version = require('../package.json').version;
+
+var MPLCanvasModel = widgets.DOMWidgetModel.extend({
+    defaults: function() {
+        return _.extend(widgets.WidgetModel.prototype.defaults(), {
+            _model_name: 'MPLCanvasModel',
+            _view_name: 'MPLCanvasView',
+            _model_module: 'jupyter-matplotlib',
+            _view_module: 'jupyter-matplotlib',
+            _model_module_version: '^'+ version,
+            _view_module_version: '^' + version
+        });
+    }
+});
+
 
 var MPLCanvasView = widgets.DOMWidgetView.extend({
 
     render: function() {
         var that = this;
-
         var id = this.model.get('_id');
-
         var element = this.$el;
 
         this.ws_proxy = this.comm_websocket_adapter(this.model.comm);
@@ -51,7 +66,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         };
         return ws;
     }
-
 });
 
 mpl.figure.prototype.handle_close = function(fig, msg) {
@@ -87,7 +101,7 @@ mpl.figure.prototype._init_toolbar = function() {
         return fig.toolbar_button_onmouseover(event['data']);
     }
 
-    for(var toolbar_ind in mpl.toolbar_items){
+    for(var toolbar_ind in mpl.toolbar_items) {
         var name = mpl.toolbar_items[toolbar_ind][0];
         var tooltip = mpl.toolbar_items[toolbar_ind][1];
         var image = mpl.toolbar_items[toolbar_ind][2];
@@ -116,14 +130,14 @@ mpl.figure.prototype._init_toolbar = function() {
     titlebar.prepend(buttongrp);
 }
 
-mpl.figure.prototype._root_extra_style = function(el){
+mpl.figure.prototype._root_extra_style = function(el) {
     var fig = this
     el.on("remove", function(){
-    fig.close_ws(fig, {});
+        fig.close_ws(fig, {});
     });
 }
 
-mpl.figure.prototype._canvas_extra_style = function(el){
+mpl.figure.prototype._canvas_extra_style = function(el) {
     // this is important to make the div 'focusable'
     el.attr('tabindex', 0)
 }
@@ -136,5 +150,6 @@ mpl.figure.prototype.handle_save = function(fig, msg) {
 }
 
 module.exports = {
+    MPLCanvasModel: MPLCanvasModel,
     MPLCanvasView: MPLCanvasView
 }

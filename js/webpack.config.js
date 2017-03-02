@@ -6,6 +6,19 @@ var loaders = [
     { test: /\.json$/, loader: 'json-loader' },
 ];
 
+var buildExtension = require('@jupyterlab/extension-builder/lib/builder').buildExtension;
+
+buildExtension({
+    name: 'jupyter-matplotlib',
+    entry: './src/labplugin',
+    outputDir: '../ipympl/staticlab',
+    useDefaultLoaders: false,
+    config: {
+        module: {
+            loaders: loaders
+        }
+    }
+});
 
 module.exports = [
     {// Notebook extension
@@ -59,7 +72,7 @@ module.exports = [
             filename: 'index.js',
             path: './dist/',
             libraryTarget: 'amd',
-            publicPath: 'https://npmcdn.com/jupyter-matplotlib@' + version + '/dist/'
+            publicPath: 'https://unpkg.com/jupyter-matplotlib@' + version + '/dist/'
         },
         devtool: 'source-map',
         module: {
