@@ -126,7 +126,7 @@ mpl.figure.prototype._init_toolbar = function() {
     button.click(function (evt) { fig.handle_close(fig, {}); } );
     button.mouseover('Stop Interaction', toolbar_mouse_event);
     buttongrp.append(button);
-    var titlebar = this.root.find($('.ui-dialog-titlebar'));
+    var titlebar = this.root.find('.ui-dialog-titlebar'));
     titlebar.prepend(buttongrp);
 }
 
