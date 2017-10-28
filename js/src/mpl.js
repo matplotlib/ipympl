@@ -282,7 +282,7 @@ mpl.figure.prototype._init_toolbar = function() {
     nav_element.append(fmt_picker_span);
     this.format_dropdown = fmt_picker[0];
 
-    for (var ind in ["png", "jpg"]) {
+    for (var ind in mpl.extensions) {
         var fmt = mpl.extensions[ind];
         var option = $(
             '<option/>', {selected: fmt === mpl.default_extension}).html(fmt);
