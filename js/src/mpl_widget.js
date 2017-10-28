@@ -20,20 +20,6 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
 });
 
 
-function open_data_uri_window(url) {
-   // Open a new window with a data uri
-   // https://stackoverflow.com/a/45585922
-   var html = '<html>' +
-    '<style>html, body { padding: 0; margin: 0; } iframe { width: 100%; height: 100%; border: 0;}  </style>' +
-    '<body>' +
-    '<iframe type="image/png" src="' + url + '"></iframe>' +
-    '</body></html>';
-    var a = window.open("about:blank", "Matplotib Widget");
-    a.document.write(html);
-    a.document.close();
-}
-
-
 var MPLCanvasView = widgets.DOMWidgetView.extend({
 
     render: function() {
@@ -44,7 +30,12 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         this.ws_proxy = this.comm_websocket_adapter(this.model.comm);
 
         function ondownload(figure, format) {
-            open_data_uri_window(figure.imageObj.src);
+           var save = document.createElement('a');
+           save.href = figure.imageObj.src;
+           save.download = figure.header.textContent + '.png';
+           document.body.appendChild(save);
+           save.click();
+           document.body.removeChild(save);
         }
 
         mpl.toolbar_items = this.model.get('_toolbar_items')
