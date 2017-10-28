@@ -44,9 +44,6 @@ mpl.figure = function(figure_id, websocket, ondownload, parent_element) {
         }
     }
 
-    this.imageObj = new Image();
-    this.imageObj.className = 'mpl-imageObj';
-
     this.context = undefined;
     this.message = undefined;
     this.canvas = undefined;
@@ -65,32 +62,20 @@ mpl.figure = function(figure_id, websocket, ondownload, parent_element) {
     this._init_header(this);
     this._init_canvas(this);
     this._init_toolbar(this);
+    this._init_image(this);
+
 
     var fig = this;
 
     this.waiting = false;
 
     this.ws.onopen =  function () {
-            fig.send_message("supports_binary", {value: fig.supports_binary});
-            fig.send_message("send_image_mode", {});
-            if (mpl.ratio != 1) {
-                fig.send_message("set_dpi_ratio", {'dpi_ratio': mpl.ratio});
-            }
-            fig.send_message("refresh", {});
+        fig.send_message("supports_binary", {value: fig.supports_binary});
+        fig.send_message("send_image_mode", {});
+        if (mpl.ratio != 1) {
+            fig.send_message("set_dpi_ratio", {'dpi_ratio': mpl.ratio});
         }
-
-    this.imageObj.onload = function() {
-            if (fig.image_mode == 'full') {
-                // Full images could contain transparency (where diff images
-                // almost always do), so we need to clear the canvas so that
-                // there is no ghosting.
-                fig.context.clearRect(0, 0, fig.canvas.width, fig.canvas.height);
-            }
-            fig.context.drawImage(fig.imageObj, 0, 0);
-        };
-
-    this.imageObj.onunload = function() {
-        this.ws.close();
+        fig.send_message("refresh", {});
     }
 
     this.ws.onmessage = this._make_on_message_function(this);
@@ -216,6 +201,30 @@ mpl.figure.prototype._init_canvas = function() {
         return false;
     });
 }
+
+
+mpl.figure.prototype._init_image = function() {
+    var fig = this;
+    this.imageObj_div = $('<img/>');
+    this.imageObj_div.hide();
+    this.imageObj = this.imageObj_div[0];
+
+    this.root.append(this.imageObj_div);
+    this.imageObj.onload = function() {
+        if (fig.image_mode == 'full') {
+            // Full images could contain transparency (where diff images
+            // almost always do), so we need to clear the canvas so that
+            // there is no ghosting.
+            fig.context.clearRect(0, 0, fig.canvas.width, fig.canvas.height);
+        }
+        fig.context.drawImage(fig.imageObj, 0, 0);
+    };
+
+    this.imageObj.onunload = function() {
+        fig.ws.close();
+    }
+}
+
 
 mpl.figure.prototype._init_toolbar = function() {
     var fig = this;

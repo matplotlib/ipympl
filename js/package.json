@@ -14,7 +14,8 @@
     "clean": "rimraf dist/",
     "postinstall": "npm run clean && npm run build",
     "prepack": "npm run postinstall",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "webpack --watch"
   },
   "jupyterlab": {
     "extension": "src/labplugin"

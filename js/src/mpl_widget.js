@@ -88,13 +88,13 @@ mpl.figure.prototype.toggle_interaction = function(fig, msg) {
     if (visible) {
         fig.toolbar.hide();
         fig.canvas_div.hide();
-        fig.root.append(fig.imageObj);
+        fig.imageObj_div.show();
         fig.imageObj.style.width = fig.canvas.style.width;
         fig.imageObj.style.height = fig.canvas.style.height;
     } else {
         fig.toolbar.show();
         fig.canvas_div.show();
-        fig.root.remove('.mpl-imageObj');
+        fig.imageObj_div.hide();
     }
 }
 
