@@ -1,6 +1,6 @@
-var widgets = require('jupyter-js-widgets');
+var widgets = require('@jupyter-widgets/base');
+var _ = require('lodash');
 var mpl = require('./mpl.js');
-var _ = require('underscore');
 var $ = require('jquery');
 require('jquery-ui');
 
@@ -20,6 +20,20 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
 });
 
 
+function open_data_uri_window(url) {
+   // Open a new window with a data uri
+   // https://stackoverflow.com/a/45585922
+   var html = '<html>' +
+    '<style>html, body { padding: 0; margin: 0; } iframe { width: 100%; height: 100%; border: 0;}  </style>' +
+    '<body>' +
+    '<iframe type="image/png" src="' + url + '"></iframe>' +
+    '</body></html>';
+    var a = window.open("about:blank", "Matplotib Widget");
+    a.document.write(html);
+    a.document.close();
+}
+
+
 var MPLCanvasView = widgets.DOMWidgetView.extend({
 
     render: function() {
@@ -30,7 +44,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         this.ws_proxy = this.comm_websocket_adapter(this.model.comm);
 
         function ondownload(figure, format) {
-            window.open(figure.imageObj.src);
+            open_data_uri_window(figure.imageObj.src);
         }
 
         mpl.toolbar_items = this.model.get('_toolbar_items')
@@ -68,30 +82,42 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
     }
 });
 
-mpl.figure.prototype.handle_close = function(fig, msg) {
-    var width = fig.canvas.width/mpl.ratio
-    fig.root.unbind('remove')
-
-    fig.close_ws(fig, msg);
+mpl.figure.prototype.toggle_interaction = function(fig, msg) {
+    // Toggle the interactivity of the figure.
+    var visible = fig.toolbar.is(':visible');
+    if (visible) {
+        fig.toolbar.hide();
+        fig.canvas_div.hide();
+        fig.root.append(fig.imageObj);
+        fig.imageObj.style.width = fig.canvas.style.width;
+        fig.imageObj.style.height = fig.canvas.style.height;
+    } else {
+        fig.toolbar.show();
+        fig.canvas_div.show();
+        fig.root.remove('.mpl-imageObj');
+    }
 }
+
 
 mpl.figure.prototype.close_ws = function(fig, msg){
     fig.send_message('closing', msg);
-    // fig.ws.close()
+    fig.ws.close()
 }
 
 mpl.figure.prototype.updated_canvas_event = function() {
     // Tell Jupyter that the notebook contents must change.
-    Jupyter.notebook.set_dirty(true);
+    if (window.Jupyter) {
+        Jupyter.notebook.set_dirty(true);
+    }
     this.send_message("ack", {});
 }
 
 mpl.figure.prototype._init_toolbar = function() {
     var fig = this;
 
-    var nav_element = $('<div/>')
-    nav_element.attr('style', 'width: 100%');
-    this.root.append(nav_element);
+    var toolbar = this.toolbar = $('<div/>')
+    toolbar.attr('style', 'width: 100%');
+    this.root.append(toolbar);
 
     // Define a callback function for later on.
     function toolbar_event(event) {
@@ -106,27 +132,28 @@ mpl.figure.prototype._init_toolbar = function() {
         var tooltip = mpl.toolbar_items[toolbar_ind][1];
         var image = mpl.toolbar_items[toolbar_ind][2];
         var method_name = mpl.toolbar_items[toolbar_ind][3];
-
         if (!name) { continue; };
 
         var button = $('<button class="btn btn-default" href="#" title="' + name + '"><i class="fa ' + image + ' fa-lg"></i></button>');
+        button.attr('style', 'outline:none');
         button.click(method_name, toolbar_event);
         button.mouseover(tooltip, toolbar_mouse_event);
-        nav_element.append(button);
+        toolbar.append(button);
     }
 
     // Add the status bar.
     var status_bar = $('<span class="mpl-message" style="text-align:right; float: right;"/>');
-    nav_element.append(status_bar);
+    toolbar.append(status_bar);
     this.message = status_bar[0];
 
-    // Add the close button to the window.
+    // Add the stop interaction button to the window.
     var buttongrp = $('<div class="btn-group inline pull-right"></div>');
-    var button = $('<button class="btn btn-mini btn-primary" href="#" title="Stop Interaction"><i class="fa fa-power-off icon-remove icon-large"></i></button>');
-    button.click(function (evt) { fig.handle_close(fig, {}); } );
-    button.mouseover('Stop Interaction', toolbar_mouse_event);
+    var button = $('<button class="btn btn-mini btn-primary" href="#" title="Toggle Interaction"><i class="fa fa-power-off icon-remove icon-large"></i></button>');
+    button.attr('style', 'outline:none');
+    button.click(function (evt) { fig.toggle_interaction(fig, {}); } );
+    button.mouseover('Toggle Interaction', toolbar_mouse_event);
     buttongrp.append(button);
-    var titlebar = this.root.find('.ui-dialog-titlebar'));
+    var titlebar = this.root.find('.ui-dialog-titlebar');
     titlebar.prepend(buttongrp);
 }
 

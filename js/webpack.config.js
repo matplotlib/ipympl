@@ -1,24 +1,12 @@
+var path = require('path');
 var version = require('./package.json').version;
 
-// Custom webpack loaders are generally the same for all webpack bundles, hence
+// Custom webpack rules are generally the same for all webpack bundles, hence
 // stored in a separate local variable.
-var loaders = [
-    { test: /\.json$/, loader: 'json-loader' },
-];
+var rules = [
+    { test: /\.css$/, use: ['style-loader', 'css-loader']}
+]
 
-var buildExtension = require('@jupyterlab/extension-builder/lib/builder').buildExtension;
-
-buildExtension({
-    name: 'jupyter-matplotlib',
-    entry: './src/labplugin',
-    outputDir: '../ipympl/staticlab',
-    useDefaultLoaders: false,
-    config: {
-        module: {
-            loaders: loaders
-        }
-    }
-});
 
 module.exports = [
     {// Notebook extension
@@ -32,7 +20,7 @@ module.exports = [
         entry: './src/extension.js',
         output: {
             filename: 'extension.js',
-            path: '../ipympl/static',
+            path: path.resolve(__dirname, '..', 'ipympl', 'static'),
             libraryTarget: 'amd'
         }
     },
@@ -44,14 +32,14 @@ module.exports = [
         entry: './src/index.js',
         output: {
             filename: 'index.js',
-            path: '../ipympl/static',
+            path: path.resolve(__dirname, '..', 'ipympl', 'static'),
             libraryTarget: 'amd'
         },
         devtool: 'source-map',
         module: {
-            loaders: loaders
+            rules: rules
         },
-        externals: ['jupyter-js-widgets']
+        externals: ['@jupyter-widgets/base']
     },
     {// Embeddable jupyter-matplotlib bundle
      //
@@ -70,14 +58,14 @@ module.exports = [
         entry: './src/embed.js',
         output: {
             filename: 'index.js',
-            path: './dist/',
+            path: path.resolve(__dirname, 'dist'),
             libraryTarget: 'amd',
             publicPath: 'https://unpkg.com/jupyter-matplotlib@' + version + '/dist/'
         },
         devtool: 'source-map',
         module: {
-            loaders: loaders
+            rules: rules
         },
-        externals: ['jupyter-js-widgets']
+        externals: ['@jupyter-widgets/base']
     }
 ];

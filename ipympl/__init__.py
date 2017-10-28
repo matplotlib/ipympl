@@ -10,12 +10,6 @@ def _jupyter_nbextension_paths():
         'require': npm_pkg_name + '/extension'
     }]
 
-def _jupyter_labextension_paths():
-    return [{
-        'name': npm_pkg_name,
-        'src': 'staticlab'
-    }]
-
 import matplotlib
 
 matplotlib.use('module://ipympl.backend_nbagg')

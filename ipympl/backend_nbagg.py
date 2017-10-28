@@ -103,8 +103,7 @@ class NavigationIPy(NavigationToolbar2WebAgg):
                   _FONT_AWESOME_CLASSES[image_file], name_of_method)
                  for text, tooltip_text, image_file, name_of_method
                  in (NavigationToolbar2.toolitems +
-                     (('Download', 'Download plot', 'download', 'download'),
-                      ('Export', 'Export plot', 'export', 'export')))
+                     (('Download', 'Download plot', 'download', 'download'),))
                  if image_file in _FONT_AWESOME_CLASSES]
 
     def export(self):

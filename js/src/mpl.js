@@ -45,6 +45,7 @@ mpl.figure = function(figure_id, websocket, ondownload, parent_element) {
     }
 
     this.imageObj = new Image();
+    this.imageObj.className = 'mpl-imageObj';
 
     this.context = undefined;
     this.message = undefined;
@@ -122,7 +123,7 @@ mpl.figure.prototype._init_canvas = function() {
 
     var canvas_div = $('<div/>');
 
-    canvas_div.attr('style', 'position: relative; clear: both;');
+    canvas_div.attr('style', 'position: relative; clear: both; outline:none');
 
     function canvas_keyboard_event(event) {
         event.stopPropagation();

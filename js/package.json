@@ -11,18 +11,23 @@
   },
   "scripts": {
     "build": "webpack",
-    "prepublish": "npm run build",
+    "clean": "rimraf dist/",
+    "postinstall": "npm run clean && npm run build",
+    "prepack": "npm run postinstall",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "jupyterlab": {
+    "extension": "src/labplugin"
   },
   "devDependencies": {
     "json-loader": "^0.5.4",
-    "@jupyterlab/extension-builder": "^0.10.0",
-    "webpack": "^1.12.14"
+    "webpack": "^3.5.5",
+    "rimraf": "^2.6.1"
   },
   "dependencies": {
     "jquery": "^2.1.4",
-    "jupyter-js-widgets": "^2.1.4",
-    "@jupyterlab/nbwidgets": "^0.6.15",
-    "underscore": "^1.8.3"
+    "@jupyter-widgets/base": "^1.0.0",
+    "@jupyter-widgets/jupyterlab-manager": "^0.28.0",
+    "lodash": "^4.17.4"
   }
 }
