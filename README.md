@@ -39,4 +39,6 @@ For a development installation (requires npm),
     $ pip install -e .
     $ jupyter nbextension install --py --symlink --sys-prefix ipympl
     $ jupyter nbextension enable --py --sys-prefix ipympl
-    $ cd js && npm run watch
+    $ jupyter labextension link ./js
+    $ cd js && npm run watch  
+    $ # Launch jupyterlab as `jupyter lab --watch` in another terminal
