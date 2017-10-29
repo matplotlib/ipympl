@@ -127,14 +127,10 @@ setup_args = {
             'ipympl/static/extension.js',
             'ipympl/static/index.js',
             'ipympl/static/index.js.map',
-        ]),
-        ('share/jupyter/labextensions/jupyter-matplotlib', [
-            'ipympl/staticlab/jupyter-matplotlib.bundle.js',
-            'ipympl/staticlab/jupyter-matplotlib.bundle.js.manifest',
         ])
     ],
     'install_requires': [
-        'ipywidgets>=6.0.0',
+        'ipywidgets>=7.0.0',
         'matplotlib>=2.0.0',
         'six',
     ],

@@ -1,6 +1,9 @@
+import sys
+import matplotlib
 from ._version import version_info, __version__
 
 npm_pkg_name = 'jupyter-matplotlib'
+
 
 def _jupyter_nbextension_paths():
     return [{
@@ -10,12 +13,11 @@ def _jupyter_nbextension_paths():
         'require': npm_pkg_name + '/extension'
     }]
 
-def _jupyter_labextension_paths():
-    return [{
-        'name': npm_pkg_name,
-        'src': 'staticlab'
-    }]
 
-import matplotlib
+# Ensure that `widget` is not selected as the backend name by IPython,
+# which causes a UsageError.
+if 'IPython' in sys.modules:
+    from IPython.core.pylabtools import backend2gui
+    backend2gui['module://ipympl.backend_nbagg'] = 'ipympl'
 
 matplotlib.use('module://ipympl.backend_nbagg')

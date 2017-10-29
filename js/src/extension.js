@@ -3,7 +3,6 @@ if (window.require) {
         map: {
             "*" : {
                 "jupyter-matplotlib": "nbextensions/jupyter-matplotlib/index",
-                "jupyter-js-widgets": "nbextensions/jupyter-js-widgets/extension"
             }
         }
     });
