@@ -18,7 +18,6 @@ npm_path = os.pathsep.join([
 ])
 
 from distutils import log
-log.set_verbosity(log.DEBUG)
 log.info('setup.py entered')
 log.info('$PATH=%s' % os.environ['PATH'])
 
