@@ -67,6 +67,7 @@ class NPM(Command):
     targets = [
         os.path.join(here, 'ipympl', 'static', 'extension.js'),
         os.path.join(here, 'ipympl', 'static', 'index.js')
+        os.path.join(here, 'ipympl', 'static', 'package.json')
     ]
 
     def initialize_options(self):
@@ -126,6 +127,7 @@ setup_args = {
             'ipympl/static/extension.js',
             'ipympl/static/index.js',
             'ipympl/static/index.js.map',
+            'ipympl/static/package.json'
         ])
     ],
     'install_requires': [
