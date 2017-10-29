@@ -66,7 +66,7 @@ class NPM(Command):
 
     targets = [
         os.path.join(here, 'ipympl', 'static', 'extension.js'),
-        os.path.join(here, 'ipympl', 'static', 'index.js')
+        os.path.join(here, 'ipympl', 'static', 'index.js'),
         os.path.join(here, 'ipympl', 'static', 'package.json')
     ]
 
