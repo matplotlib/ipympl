@@ -22,14 +22,14 @@ Installation
 To install `ipympl` with conda:
 
     $ conda install ipympl -c conda-forge
-    $ jupyter labextension install matplotlib-jupyter
+    $ jupyter labextension install jupyter-matplotlib
 
 
 To install `ipympl` with pip:
 
     $ pip install ipympl
     $ jupyter nbextension enable --py --sys-prefix ipympl
-    $ jupyter labextension install matplotlib-jupyter
+    $ jupyter labextension install jupyter-matplotlib
 
 
 For a development installation (requires npm),
