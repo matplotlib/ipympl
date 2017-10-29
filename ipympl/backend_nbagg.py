@@ -3,14 +3,11 @@
 from base64 import b64encode
 import json
 import io
-from tempfile import mkdtemp
-import shutil
-import os
 import six
+import os
 from uuid import uuid4 as uuid
 
 from IPython.display import display, HTML
-from IPython import version_info
 
 from ipywidgets import DOMWidget
 from traitlets import Unicode, Bool, Float, List, Any
@@ -118,14 +115,19 @@ class NavigationIPy(NavigationToolbar2WebAgg):
         display(HTML(data))
 
 
+here = os.path.dirname(__file__)
+with open(os.path.join(here, 'static', 'package.json')) as fid:
+    js_version = json.load(fid)['version']
+
+
 class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
 
     _model_module = Unicode('jupyter-matplotlib', sync=True)
-    _model_module_version = Unicode('^0.0.2', sync=True)
+    _model_module_version = Unicode('^%s' % js_version, sync=True)
     _model_name = Unicode('MPLCanvasModel', sync=True)
 
     _view_module = Unicode('jupyter-matplotlib', sync=True)
-    _view_module_version = Unicode('^0.0.2', sync=True)
+    _view_module_version = Unicode('^%s' % js_version, sync=True)
     _view_name = Unicode('MPLCanvasView', sync=True)
 
     _toolbar_items = List(sync=True)

@@ -21,9 +21,10 @@
     "extension": "src/labplugin"
   },
   "devDependencies": {
+    "fs-extra": "^4.0.2",
     "json-loader": "^0.5.4",
-    "webpack": "^3.5.5",
-    "rimraf": "^2.6.1"
+    "rimraf": "^2.6.1",
+    "webpack": "^3.5.5"
   },
   "dependencies": {
     "jquery": "^2.1.4",
