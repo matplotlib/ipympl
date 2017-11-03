@@ -1,10 +1,10 @@
 var jupyter_matplotlib = require('./index');
 
-var jupyterlab_widgets = require('@jupyter-widgets/jupyterlab-manager');
+var jupyter_widgets = require('@jupyter-widgets/base');
 
 module.exports = {
     id: 'matplotlib-jupyter:main',
-    requires: [jupyterlab_widgets.INBWidgetExtension],
+    requires: [jupyterlab_widgets.IJupyterWidgetRegistry],
     activate: function(app, widgets) {
         widgets.registerWidget({
             name: 'jupyter-matplotlib',
