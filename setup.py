@@ -60,6 +60,22 @@ def update_package_data(distribution):
     build_py.finalize_options()
 
 
+def get_data_files():
+    """Get the data files for the package.
+    """
+    return [
+        ('share/jupyter/nbextensions/jupyter-matplotlib', [
+            'ipympl/static/extension.js',
+            'ipympl/static/index.js',
+            'ipympl/static/index.js.map',
+            'ipympl/static/package.json'
+        ]),
+        ('share/jupyter/lab/extensions', [
+            os.path.relpath(f, '.') for f in glob.glob(tar_path)
+        ])
+    ]
+
+
 class NPM(Command):
     description = 'install package.json dependencies using npm'
 
@@ -121,6 +137,8 @@ class NPM(Command):
                     msg += '\nnpm is required to build a development version of widgetsnbextension'
                 raise ValueError(msg)
 
+        self.distribution.data_files = get_data_files()
+
         # update package data in case this created new files
         update_package_data(self.distribution)
 
@@ -136,17 +154,7 @@ setup_args = {
     'long_description': LONG_DESCRIPTION,
     'License': 'BSD License',
     'include_package_data': True,
-    'data_files': [
-        ('share/jupyter/nbextensions/jupyter-matplotlib', [
-            'ipympl/static/extension.js',
-            'ipympl/static/index.js',
-            'ipympl/static/index.js.map',
-            'ipympl/static/package.json'
-        ]),
-        ('share/jupyter/lab/extensions', [
-            os.path.relpath(f, '.') for f in glob.glob(tar_path)
-        ])
-    ],
+    'data_files': get_data_files(),
     'install_requires': [
         'ipywidgets>=7.0.0',
         'matplotlib>=2.0.0',
