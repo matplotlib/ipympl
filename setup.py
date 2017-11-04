@@ -109,9 +109,7 @@ class NPM(Command):
             os.utime(self.node_modules, None)
 
         if self.should_run_npm_pack():
-            check_call(['npm', 'pack'], cwd=node_root, stdout=sys.stdout, stderr=sys.stderr)
-            target = glob.glob(pjoin(tar_path))[0]
-            shutil.move(target, pjoin(here, 'ipympl'))
+            check_call(['npm', 'pack', node_root], cwd=pjoin(here, 'ipympl'), stdout=sys.stdout, stderr=sys.stderr)
 
         files = glob.glob(tar_path)
         self.targets.append(tar_path if not files else files[0])
