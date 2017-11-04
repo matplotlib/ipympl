@@ -21,14 +21,13 @@ install:
 - conda config --set always_yes yes --set changeps1 no
 - conda update -q conda
 - conda info -a
-- conda install nodejs notebook
-- pip install selenium cookiecutter
+- conda install -c conda-forge nodejs notebook matplotlib ipywidgets
 - pip install --pre jupyterlab
+- pip install .
 script:
-- cookiecutter . --no-input
-- cd jupyterlab_myextension
-- jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build
-- jupyter labextension install .
-- jupyter lab clean
-- jupyter labextension link .
+- jupyter nbextension install --py --symlink --sys-prefix ipympl
+- jupyter nbextension enable --py --sys-prefix ipympl
+- jupyter labextension list | grep -q jupyter-matplotlib
+- jupyter labextension install @jupyter-widgets/jupyterlab-manager
 - python -m jupyterlab.selenium_check --NotebookApp.ip=127.0.0.1
+- jupyter labextension link js
