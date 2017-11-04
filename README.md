@@ -21,24 +21,32 @@ Installation
 
 To install `ipympl` with conda:
 
-    $ conda install ipympl -c conda-forge
-    $ jupyter labextension install matplotlib-jupyter
+    $ conda install -c conda-forge ipympl 
+    $ # If using the Notebook
+    $ conda install -c conda-forge widgetsnbextension
+    $ # If using JupyterLab
+    $ conda install nodejs
+    $ jupyter labextension install @jupyter-widgets/jupyterlab-manager
 
 
 To install `ipympl` with pip:
 
     $ pip install ipympl
+    $ # If using the Notebook
     $ jupyter nbextension enable --py --sys-prefix ipympl
-    $ jupyter labextension install matplotlib-jupyter
+    $ # If using JupyterLab
+    $ # Install nodejs: https://nodejs.org/en/download/
+    $ jupyter labextension install @jupyter-widgets/jupyterlab-manager
 
 
-For a development installation (requires npm),
+For a development installation (requires node),
 
     $ git clone https://github.com/matplotlib/jupyter-matplotlib.git
     $ cd jupyter-matplotlib
     $ pip install -e .
     $ jupyter nbextension install --py --symlink --sys-prefix ipympl
     $ jupyter nbextension enable --py --sys-prefix ipympl
+    $ jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build
     $ jupyter labextension link ./js
     $ cd js && npm run watch  
     $ # Launch jupyterlab as `jupyter lab --watch` in another terminal

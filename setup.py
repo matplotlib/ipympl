@@ -4,16 +4,19 @@ from setuptools.command.sdist import sdist
 from setuptools.command.build_py import build_py
 from setuptools.command.egg_info import egg_info
 from subprocess import check_call
+import glob
 import os
+import shutil
 import sys
-import platform
+from os.path import join as pjoin
 
 here = os.path.dirname(os.path.abspath(__file__))
-node_root = os.path.join(here, 'js')
-is_repo = os.path.exists(os.path.join(here, '.git'))
+node_root = pjoin(here, 'js')
+is_repo = os.path.exists(pjoin(here, '.git'))
+tar_path = pjoin(here, 'ipympl', '*.tgz')
 
 npm_path = os.pathsep.join([
-    os.path.join(node_root, 'node_modules', '.bin'),
+    pjoin(node_root, 'node_modules', '.bin'),
                 os.environ.get('PATH', os.defpath),
 ])
 
@@ -62,12 +65,12 @@ class NPM(Command):
 
     user_options = []
 
-    node_modules = os.path.join(node_root, 'node_modules')
+    node_modules = pjoin(node_root, 'node_modules')
 
     targets = [
-        os.path.join(here, 'ipympl', 'static', 'extension.js'),
-        os.path.join(here, 'ipympl', 'static', 'index.js'),
-        os.path.join(here, 'ipympl', 'static', 'package.json')
+        pjoin(here, 'ipympl', 'static', 'extension.js'),
+        pjoin(here, 'ipympl', 'static', 'index.js'),
+        pjoin(here, 'ipympl', 'static', 'package.json')
     ]
 
     def initialize_options(self):
@@ -80,13 +83,17 @@ class NPM(Command):
         try:
             check_call(['npm', '--version'])
             return True
-        except:
+        except Exception:
             return False
 
     def should_run_npm_install(self):
-        package_json = os.path.join(node_root, 'package.json')
         node_modules_exists = os.path.exists(self.node_modules)
-        return self.has_npm()
+        return self.has_npm() and not node_modules_exists
+
+    def should_run_npm_pack(self):
+        files = glob.glob(tar_path)
+        tarball_exists = len(files) > 0
+        return self.has_npm() and not tarball_exists
 
     def run(self):
         has_npm = self.has_npm()
@@ -101,6 +108,12 @@ class NPM(Command):
             check_call(['npm', 'install'], cwd=node_root, stdout=sys.stdout, stderr=sys.stderr)
             os.utime(self.node_modules, None)
 
+        if self.should_run_npm_pack():
+            check_call(['npm', 'pack', node_root], cwd=pjoin(here, 'ipympl'), stdout=sys.stdout, stderr=sys.stderr)
+
+        files = glob.glob(tar_path)
+        self.targets.append(tar_path if not files else files[0])
+
         for t in self.targets:
             if not os.path.exists(t):
                 msg = 'Missing file: %s' % t
@@ -111,8 +124,9 @@ class NPM(Command):
         # update package data in case this created new files
         update_package_data(self.distribution)
 
+
 version_ns = {}
-with open(os.path.join(here, 'ipympl', '_version.py')) as f:
+with open(pjoin(here, 'ipympl', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
 setup_args = {
@@ -128,6 +142,9 @@ setup_args = {
             'ipympl/static/index.js',
             'ipympl/static/index.js.map',
             'ipympl/static/package.json'
+        ]),
+        ('share/jupyter/lab/extensions', [
+            os.path.relpath(f, '.') for f in glob.glob(tar_path)
         ])
     ],
     'install_requires': [

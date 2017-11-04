@@ -1,2 +1,3 @@
 recursive-include ipympl/static *.*
+include ipympl/*.tgz
 include LICENSE
