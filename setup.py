@@ -91,7 +91,7 @@ class NPM(Command):
         return self.has_npm() and not node_modules_exists
 
     def should_run_npm_pack(self):
-        files = glob.glob()
+        files = glob.glob(tar_path)
         tarball_exists = len(files) > 0
         return self.has_npm() and not tarball_exists
 
@@ -110,7 +110,7 @@ class NPM(Command):
 
         if self.should_run_npm_pack():
             check_call(['npm', 'pack'], cwd=node_root, stdout=sys.stdout, stderr=sys.stderr)
-            target = glob.glob(pjoin(here, 'js', '*.tgz'))[0]
+            target = glob.glob(pjoin(tar_path))[0]
             shutil.move(target, pjoin(here, 'ipympl'))
 
         files = glob.glob(tar_path)
@@ -125,6 +125,7 @@ class NPM(Command):
 
         # update package data in case this created new files
         update_package_data(self.distribution)
+
 
 version_ns = {}
 with open(pjoin(here, 'ipympl', '_version.py')) as f:
