@@ -107,9 +107,7 @@ class NPM(Command):
         return self.has_npm() and not node_modules_exists
 
     def should_run_npm_pack(self):
-        files = glob.glob(tar_path)
-        tarball_exists = len(files) > 0
-        return self.has_npm() and not tarball_exists
+        return self.has_npm()
 
     def run(self):
         has_npm = self.has_npm()
