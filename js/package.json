@@ -18,7 +18,7 @@
     "watch": "webpack --watch"
   },
   "jupyterlab": {
-    "extension": "src/lab_plugin"
+    "extension": "src/lab_extension"
   },
   "devDependencies": {
     "fs-extra": "^4.0.2",
