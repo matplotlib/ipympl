@@ -1,7 +1,5 @@
-var MPLCanvasModel = require('./mpl_widget').MPLCanvasModel;
-var MPLCanvasView = require('./mpl_widget').MPLCanvasView;
 
-module.exports = {
-    MPLCanvasModel: MPLCanvasModel,
-    MPLCanvasView: MPLCanvasView
-}
+// Export widget models and views, and the npm package version number.
+module.exports = require('./mpl_widget.js');
+module.exports['version'] = require('../package.json').version;
+
