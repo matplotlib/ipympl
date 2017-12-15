@@ -16,6 +16,17 @@ The goal of this project is to separate developement of the Jupyter integration
 (future versions of notebook and Jupyter Lab) from the calendar of the releases
 of the main matplotlib repository.
 
+Example:
+
+```python
+%matplotlib widget
+import matplotlib.pyplot as plt
+
+plt.plot([0, 1, 2, 2])
+plt.show()
+```
+
+
 Installation
 ------------
 
