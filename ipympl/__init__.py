@@ -14,10 +14,4 @@ def _jupyter_nbextension_paths():
     }]
 
 
-# Ensure that `widget` is not selected as the backend name by IPython,
-# which causes a UsageError.
-if 'IPython' in sys.modules:
-    from IPython.core.pylabtools import backend2gui
-    backend2gui['module://ipympl.backend_nbagg'] = 'ipympl'
-
 matplotlib.use('module://ipympl.backend_nbagg')
