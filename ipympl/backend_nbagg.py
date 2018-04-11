@@ -237,7 +237,7 @@ def new_figure_manager_given_figure(num, figure):
         Gcf.destroy(num)
 
     canvas = FigureCanvasNbAgg(figure)
-    if rcParams['nbagg.transparent']:
+    if 'nbagg.transparent' in set(rcParams.keys()) and rcParams['nbagg.transparent']:
         figure.patch.set_alpha(0)
     manager = FigureManagerNbAgg(canvas, num)
 
