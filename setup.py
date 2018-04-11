@@ -6,7 +6,6 @@ from setuptools.command.egg_info import egg_info
 from subprocess import check_call
 import glob
 import os
-import shutil
 import sys
 from os.path import join as pjoin
 
@@ -17,7 +16,7 @@ tar_path = pjoin(here, 'ipympl', '*.tgz')
 
 npm_path = os.pathsep.join([
     pjoin(node_root, 'node_modules', '.bin'),
-                os.environ.get('PATH', os.defpath),
+            os.environ.get('PATH', os.defpath),
 ])
 
 from distutils import log
@@ -154,6 +153,7 @@ setup_args = {
     'include_package_data': True,
     'data_files': get_data_files(),
     'install_requires': [
+        'ipykernel>=4.7',
         'ipywidgets>=7.0.0',
         'matplotlib>=2.0.0',
         'six',
