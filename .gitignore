@@ -5,8 +5,9 @@ build/
 *.py[cod]
 node_modules/
 
-# Included Javascript
+# Generated Javascript
 ipympl/static/
+ipympl/staticlab/
 ipympl/*.tgz
 
 # OS X
