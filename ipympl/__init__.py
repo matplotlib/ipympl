@@ -1,9 +1,7 @@
 import sys
-import matplotlib
 from ._version import version_info, __version__
 
 npm_pkg_name = 'jupyter-matplotlib'
-
 
 def _jupyter_nbextension_paths():
     return [{
@@ -20,4 +18,8 @@ if 'IPython' in sys.modules:
     from IPython.core.pylabtools import backend2gui
     backend2gui['module://ipympl.backend_nbagg'] = 'ipympl'
 
-matplotlib.use('module://ipympl.backend_nbagg')
+# __init__.py is used by the nbextension installation.
+# Conda cannot have dependencies for post-link scripts.
+if 'matplotlib' in sys.modules:
+    import matplotlib
+    matplotlib.use('module://ipympl.backend_nbagg')
