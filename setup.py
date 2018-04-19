@@ -72,7 +72,8 @@ def get_data_files():
         ]),
         ('share/jupyter/lab/extensions', [
             os.path.relpath(f, '.') for f in glob.glob(tar_path)
-        ])
+        ]),
+        ('etc/jupyter/nbconfig/notebook.d' , ['jupyter-matplotlib.json'])
     ]
 
 
