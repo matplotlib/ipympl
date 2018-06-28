@@ -122,17 +122,17 @@ with open(os.path.join(here, 'static', 'package.json')) as fid:
 
 class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
 
-    _model_module = Unicode('jupyter-matplotlib', sync=True)
-    _model_module_version = Unicode('^%s' % js_version, sync=True)
-    _model_name = Unicode('MPLCanvasModel', sync=True)
+    _model_module = Unicode('jupyter-matplotlib').tag(sync=True)
+    _model_module_version = Unicode('^%s' % js_version).tag(sync=True)
+    _model_name = Unicode('MPLCanvasModel').tag(sync=True)
 
-    _view_module = Unicode('jupyter-matplotlib', sync=True)
-    _view_module_version = Unicode('^%s' % js_version, sync=True)
-    _view_name = Unicode('MPLCanvasView', sync=True)
+    _view_module = Unicode('jupyter-matplotlib').tag(sync=True)
+    _view_module_version = Unicode('^%s' % js_version).tag(sync=True)
+    _view_name = Unicode('MPLCanvasView').tag(sync=True)
 
-    _toolbar_items = List(sync=True)
+    _toolbar_items = List().tag(sync=True)
     _closed = Bool(True)
-    _id = Unicode('', sync=True)
+    _id = Unicode('').tag(sync=True)
 
     # Must declare the superclass private members.
     _png_is_old = Bool()
