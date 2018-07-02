@@ -12,9 +12,20 @@ of the main matplotlib repository.
 
 It requires matplotlib 2.0 or and ipywidgets 7.0 more recent.
 
-The goal of this project is to separate developement of the Jupyter integration
+The goal of this project is to separate development of the Jupyter integration
 (future versions of notebook and Jupyter Lab) from the calendar of the releases
 of the main matplotlib repository.
+
+Example:
+
+```python
+%matplotlib widget
+import matplotlib.pyplot as plt
+
+plt.plot([0, 1, 2, 2])
+plt.show()
+```
+
 
 Installation
 ------------
