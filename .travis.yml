@@ -23,7 +23,7 @@ install:
 - conda info -a
 - conda install -c conda-forge nodejs notebook matplotlib ipywidgets
 - pip install selenium
-- pip install --pre jupyterlab
+- pip install jupyterlab
 - pip install -v .
 script:
 - jupyter nbextension install --py --symlink --sys-prefix ipympl
