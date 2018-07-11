@@ -35,6 +35,7 @@ conda install -c conda-forge widgetsnbextension
 # If using JupyterLab
 conda install nodejs
 jupyter labextension install @jupyter-widgets/jupyterlab-manager
+jupyter labextension install jupyter-matplotlib
 ```
 
 To install `ipympl` with pip:
@@ -44,6 +45,7 @@ pip install ipympl
 # If using JupyterLab
 # Install nodejs: https://nodejs.org/en/download/
 jupyter labextension install @jupyter-widgets/jupyterlab-manager
+jupyter labextension install jupyter-matplotlib
 ```
 
 For a development installation (requires node),
