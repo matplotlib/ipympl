@@ -4,7 +4,8 @@ from base64 import b64encode
 import json
 import io
 
-from IPython.display import display, HTML
+from IPython.display import update_display, display, HTML
+from IPython import version_info as ipython_version_info
 
 from ipywidgets import DOMWidget, widget_serialization
 from traitlets import (
@@ -83,16 +84,8 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
     def export(self):
         buf = io.BytesIO()
         self.canvas.figure.savefig(buf, format='png', dpi='figure')
-        # Figure width in pixels
-        pwidth = (self.canvas.figure.get_figwidth() *
-                  self.canvas.figure.get_dpi())
-        # Scale size to match widget on HiDPI monitors.
-        if hasattr(self.canvas, 'device_pixel_ratio'):  # Matplotlib 3.5+
-            width = pwidth / self.canvas.device_pixel_ratio
-        else:
-            width = pwidth / self.canvas._dpi_ratio
-        data = "<img src='data:image/png;base64,{0}' width={1}/>"
-        data = data.format(b64encode(buf.getvalue()).decode('utf-8'), width)
+        data = "<img src='data:image/png;base64,{0}'/>"
+        data = data.format(b64encode(buf.getvalue()).decode('utf-8'))
         display(HTML(data))
 
     @default('toolitems')
@@ -204,9 +197,52 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     def send_binary(self, data):
         self.send({'data': '{"type": "binary"}'}, buffers=[data])
+        update_display(self, display_id='matplotlib_{0}'.format(self.figure.number))
 
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)
+
+    def _repr_mimebundle_(self, **kwargs):
+        if self._view_name is not None:
+            # now happens before the actual display call.
+            self._handle_displayed(**kwargs)
+            plaintext = repr(self)
+            if len(plaintext) > 110:
+                plaintext = plaintext[:110] + '…'
+            # The 'application/vnd.jupyter.widget-view+json' mimetype has not been registered yet.
+            # See the registration process and naming convention at
+            # http://tools.ietf.org/html/rfc6838
+            # and the currently registered mimetypes at
+            # http://www.iana.org/assignments/media-types/media-types.xhtml.
+
+            buf = io.BytesIO()
+            self.figure.savefig(buf, format='png', dpi='figure')
+            data = "<img src='data:image/png;base64,{0}'/>"
+            data = data.format(b64encode(buf.getvalue()).decode('utf-8'))
+
+            data = {
+                'text/plain': plaintext,
+                'text/html': data,
+                'application/vnd.jupyter.widget-view+json': {
+                    'version_major': 2,
+                    'version_minor': 0,
+                    'model_id': self._model_id
+                }
+            }
+            return data
+
+    def _ipython_display_(self, **kwargs):
+        """Called when `IPython.display.display` is called on a widget.
+
+        Note: if we are in IPython 6.1 or later, we return NotImplemented so
+        that _repr_mimebundle_ is used directly.
+        """
+        if ipython_version_info >= (6, 1):
+            raise NotImplementedError
+
+        data = self._repr_mimebundle_(**kwargs)
+        if data:
+            display(data, raw=True, display_id='matplotlib_{0}'.format(self.number))
 
     if matplotlib.__version__ < '3.4':
         # backport the Python side changes to match the js changes
