@@ -79,16 +79,14 @@ def connection_info():
 # Note: Version 3.2 and 4.x icons
 # http://fontawesome.io/3.2.1/icons/
 # http://fontawesome.io/
-# the `fa fa-xxx` part targets font-awesome 4, (IPython 3.x)
-# the icon-xxx targets font awesome 3.21 (IPython 2.x)
 _FONT_AWESOME_CLASSES = {
-    'home': 'fa fa-home icon-home',
-    'back': 'fa fa-arrow-left icon-arrow-left',
-    'forward': 'fa fa-arrow-right icon-arrow-right',
-    'zoom_to_rect': 'fa fa-square-o icon-check-empty',
-    'move': 'fa fa-arrows icon-move',
-    'download': 'fa fa-floppy-o icon-save',
-    'export': 'fa fa-file-picture-o icon-picture',
+    'home': 'fa fa-home',
+    'back': 'fa fa-arrow-left',
+    'forward': 'fa fa-arrow-right',
+    'zoom_to_rect': 'fa fa-square-o',
+    'move': 'fa fa-arrows',
+    'download': 'fa fa-floppy-o',
+    'export': 'fa fa-file-picture-o',
     None: None
 }
 
