@@ -84,14 +84,8 @@ mpl.figure = function(figure_id, websocket, ondownload, parent_element) {
 }
 
 mpl.figure.prototype._init_header = function() {
-    var titlebar = $(
-        '<div class="ui-dialog-titlebar ui-widget-header ui-corner-all ' +
-        'ui-helper-clearfix"/>');
-    var titletext = $(
-        '<div class="ui-dialog-title" style="width: 100%; ' +
-        'text-align: center; padding: 3px;"/>');
-    titlebar.append(titletext)
-    this.root.append(titlebar);
+    var titletext = $('<div style="width: 100%; text-align: center; padding: 3px;"/>');
+    this.root.append(titletext);
     this.header = titletext[0];
 }
 

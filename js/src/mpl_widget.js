@@ -106,9 +106,18 @@ mpl.figure.prototype.updated_canvas_event = function() {
 mpl.figure.prototype._init_toolbar = function() {
     var fig = this;
 
-    var toolbar = this.toolbar = $('<div/>')
-    toolbar.attr('style', 'width: 100%');
-    this.root.append(toolbar);
+    var toolbar_container = this.toolbar = $('<div class="jupyter-widgets widget-container widget-box widget-hbox"/>')
+    this.root.prepend(toolbar_container);
+
+    // Add the stop interaction button to the window.
+    var button = $('<button class="jupyter-widgets jupyter-button" href="#" title="Toggle Interaction"><i class="fa fa-bars"></i></button>');
+    button.attr('style', 'outline:none');
+    button.click(function (evt) { fig.toggle_interaction(fig, {}); } );
+    button.mouseover('Toggle Interaction', toolbar_mouse_event);
+    toolbar_container.append(button);
+
+    var toolbar = this.toolbar = $('<div class="jupyter-widgets widget-container widget-box widget-hbox"/>')
+    toolbar_container.append(toolbar);
 
     // Define a callback function for later on.
     function toolbar_event(event) {
@@ -125,7 +134,7 @@ mpl.figure.prototype._init_toolbar = function() {
         var method_name = mpl.toolbar_items[toolbar_ind][3];
         if (!name) { continue; };
 
-        var button = $('<button class="btn btn-default" href="#" title="' + name + '"><i class="fa ' + image + ' fa-lg"></i></button>');
+        var button = $('<button class="jupyter-widgets jupyter-button" href="#" title="' + name + '"><i class="fa ' + image + '"></i></button>');
         button.attr('style', 'outline:none');
         button.click(method_name, toolbar_event);
         button.mouseover(tooltip, toolbar_mouse_event);
@@ -136,16 +145,6 @@ mpl.figure.prototype._init_toolbar = function() {
     var status_bar = $('<span class="mpl-message" style="text-align:right; float: right;"/>');
     toolbar.append(status_bar);
     this.message = status_bar[0];
-
-    // Add the stop interaction button to the window.
-    var buttongrp = $('<div class="btn-group inline pull-right"></div>');
-    var button = $('<button class="btn btn-mini btn-primary" href="#" title="Toggle Interaction"><i class="fa fa-power-off icon-remove icon-large"></i></button>');
-    button.attr('style', 'outline:none');
-    button.click(function (evt) { fig.toggle_interaction(fig, {}); } );
-    button.mouseover('Toggle Interaction', toolbar_mouse_event);
-    buttongrp.append(button);
-    var titlebar = this.root.find('.ui-dialog-titlebar');
-    titlebar.prepend(buttongrp);
 }
 
 mpl.figure.prototype._root_extra_style = function(el) {
