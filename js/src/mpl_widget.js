@@ -27,7 +27,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         function ondownload(figure, format) {
            var save = document.createElement('a');
-           save.href = figure.imageObj.src;
+           save.href = figure.image.src;
            save.download = figure.header.textContent + '.png';
            document.body.appendChild(save);
            save.click();

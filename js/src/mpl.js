@@ -1,17 +1,12 @@
-/* Put everything inside the global mpl namespace */
-
-// Universal Module Definition
-(function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD
-        define(['jquery'], factory);
-    } else {
-        // Browser globals (root is window)
-        root.returnExports = factory(root.jQuery);
-    }
-}(this, function ($) {
-
 window.mpl = {};
+
+function offset(el) {
+    var boundingRect = el.getBoundingClientRect();
+    return {
+        top: boundingRect.top + document.body.scrollTop,
+        left: boundingRect.left + document.body.scrollLeft
+    }
+}
 
 
 mpl.figure = function(figure_id, websocket, ondownload, parent_element) {
@@ -40,11 +35,11 @@ mpl.figure = function(figure_id, websocket, ondownload, parent_element) {
 
     this.image_mode = 'full';
 
-    this.root = $('<div/>');
+    this.root = document.createElement('div');
     this._root_extra_style(this.root)
-    this.root.attr('style', 'display: inline-block');
+    this.root.setAttribute('style', 'display: inline-block');
 
-    $(parent_element).append(this.root);
+    parent_element.appendChild(this.root);
 
     this._init_header(this);
     this._init_canvas(this);
@@ -71,19 +66,19 @@ mpl.figure = function(figure_id, websocket, ondownload, parent_element) {
 }
 
 mpl.figure.prototype._init_header = function() {
-    var titletext = $('<div style="width: 100%; text-align: center; padding: 3px;"/>');
-    this.root.append(titletext);
-    this.header = titletext[0];
+    this.header = document.createElement('div');
+    this.header.setAttribute('style', 'width: 100%; text-align: center; padding: 3px;');
+    this.root.appendChild(this.header);
 }
 
 mpl.figure.prototype._canvas_extra_style = function(canvas_div) {
     // this is important to make the div 'focusable'
-    canvas_div.attr('tabindex', 0);
+    canvas_div.setAttribute('tabindex', 0);
 }
 
 mpl.figure.prototype._root_extra_style = function(canvas_div) {
     var fig = this;
-    canvas_div.on("remove", function(){
+    canvas_div.addEventListener('remove', function(){
         fig.close_ws(fig, {});
     });
 }
@@ -96,60 +91,59 @@ mpl.figure.prototype.close_ws = function(fig, msg){
 mpl.figure.prototype._init_canvas = function() {
     var fig = this;
 
-    var canvas_div = $('<div/>');
+    var canvas_div = document.createElement('div');
+    canvas_div.setAttribute('style', 'position: relative; clear: both; outline:none');
 
-    canvas_div.attr('style', 'position: relative; clear: both; outline:none');
-
-    function canvas_keyboard_event(event) {
-        event.stopPropagation();
-        event.preventDefault();
-        return fig.key_event(event, event['data']);
+    function on_keyboard_event_closure(name) {
+        return function(event) {
+            event.stopPropagation();
+            event.preventDefault();
+            return fig.key_event(event, name);
+        };
     }
 
-    canvas_div.keydown('key_press', canvas_keyboard_event);
-    canvas_div.keyup('key_release', canvas_keyboard_event);
-    this.canvas_div = canvas_div
-    this._canvas_extra_style(canvas_div)
-    this.root.append(canvas_div);
+    canvas_div.addEventListener('keydown', on_keyboard_event_closure('key_press'));
+    canvas_div.addEventListener('keyup', on_keyboard_event_closure('key_release'));
+    this.canvas_div = canvas_div;
+    this._canvas_extra_style(canvas_div);
+    this.root.appendChild(canvas_div);
 
-    var canvas = $('<canvas/>');
-    canvas.addClass('mpl-canvas');
-    canvas.attr('style', "left: 0; top: 0; z-index: 0; ")
+    var canvas = this.canvas = document.createElement('canvas');
+    canvas.classList.add('mpl-canvas');
+    canvas.setAttribute('style', "left: 0; top: 0; z-index: 0; ");
 
-    this.canvas = canvas[0];
-    this.context = canvas[0].getContext("2d");
+    this.context = canvas.getContext("2d");
 
     var backingStore = this.context.backingStorePixelRatio ||
-    this.context.webkitBackingStorePixelRatio ||
-    this.context.mozBackingStorePixelRatio ||
-    this.context.msBackingStorePixelRatio ||
-    this.context.oBackingStorePixelRatio ||
-    this.context.backingStorePixelRatio || 1;
+        this.context.webkitBackingStorePixelRatio ||
+        this.context.mozBackingStorePixelRatio ||
+        this.context.msBackingStorePixelRatio ||
+        this.context.oBackingStorePixelRatio ||
+        this.context.backingStorePixelRatio || 1;
 
     mpl.ratio = (window.devicePixelRatio || 1) / backingStore;
 
-    var rubberband = $('<canvas/>');
-    rubberband.attr('style', "position: absolute; left: 0; top: 0; z-index: 1;")
-
-    var pass_mouse_events = true;
+    var rubberband_canvas = this.rubberband_canvas = document.createElement('canvas');
+    rubberband_canvas.setAttribute('style', "position: absolute; left: 0; top: 0; z-index: 1;")
 
     // TODO: on resize event
     // fig.request_resize(width, height);
 
-    function mouse_event_fn(event) {
-        if (pass_mouse_events)
-            return fig.mouse_event(event, event['data']);
+    function on_mouse_event_closure(name) {
+        return function(event) {
+            return fig.mouse_event(event, name);
+        };
     }
 
-    rubberband.mousedown('button_press', mouse_event_fn);
-    rubberband.mouseup('button_release', mouse_event_fn);
+    rubberband_canvas.addEventListener('mousedown', on_mouse_event_closure('button_press'));
+    rubberband_canvas.addEventListener('mouseup', on_mouse_event_closure('button_release'));
     // Throttle sequential mouse events to 1 every 20ms.
-    rubberband.mousemove('motion_notify', mouse_event_fn);
+    rubberband_canvas.addEventListener('mousemove', on_mouse_event_closure('motion_notify'));
 
-    rubberband.mouseenter('figure_enter', mouse_event_fn);
-    rubberband.mouseleave('figure_leave', mouse_event_fn);
+    rubberband_canvas.addEventListener('mouseenter', on_mouse_event_closure('figure_enter'));
+    rubberband_canvas.addEventListener('mouseleave', on_mouse_event_closure('figure_leave'));
 
-    canvas_div.on("wheel", function (event) {
+    canvas_div.addEventListener('wheel', function (event) {
         event = event.originalEvent;
         event['data'] = 'scroll'
         if (event.deltaY < 0) {
@@ -160,26 +154,24 @@ mpl.figure.prototype._init_canvas = function() {
         mouse_event_fn(event);
     });
 
-    canvas_div.append(canvas);
-    canvas_div.append(rubberband);
+    canvas_div.appendChild(canvas);
+    canvas_div.appendChild(rubberband_canvas);
 
-    this.rubberband = rubberband;
-    this.rubberband_canvas = rubberband[0];
-    this.rubberband_context = rubberband[0].getContext("2d");
+    this.rubberband_context = rubberband_canvas.getContext("2d");
     this.rubberband_context.strokeStyle = "#000000";
 
     this._resize_canvas = function(width, height) {
         // Keep the size of the canvas, canvas container, and rubber band
         // canvas in synch.
-        canvas_div.css('width', width)
-        canvas_div.css('height', height)
+        canvas_div.style.width = width;
+        canvas_div.style.height = height;
 
-        canvas.attr('width', width * mpl.ratio);
-        canvas.attr('height', height * mpl.ratio);
-        canvas.attr('style', 'width: ' + width + 'px; height: ' + height + 'px;');
+        canvas.setAttribute('width', width * mpl.ratio);
+        canvas.setAttribute('height', height * mpl.ratio);
+        canvas.setAttribute('style', 'width: ' + width + 'px; height: ' + height + 'px;');
 
-        rubberband.attr('width', width);
-        rubberband.attr('height', height);
+        rubberband_canvas.setAttribute('width', width);
+        rubberband_canvas.setAttribute('height', height);
     }
 
     // Set the figure to an initial 600x600px, this will subsequently be updated
@@ -187,7 +179,7 @@ mpl.figure.prototype._init_canvas = function() {
     this._resize_canvas(600, 600);
 
     // Disable right mouse context menu.
-    $(this.rubberband_canvas).bind("contextmenu",function(e){
+    this.rubberband_canvas.addEventListener('contextmenu', function(e) {
         return false;
     });
 }
@@ -195,22 +187,21 @@ mpl.figure.prototype._init_canvas = function() {
 
 mpl.figure.prototype._init_image = function() {
     var fig = this;
-    this.imageObj_div = $('<img/>');
-    this.imageObj_div.hide();
-    this.imageObj = this.imageObj_div[0];
+    this.image = document.createElement('img');
+    this.image.style.display = 'none';
 
-    this.root.append(this.imageObj_div);
-    this.imageObj.onload = function() {
+    this.root.appendChild(this.image);
+    this.image.onload = function() {
         if (fig.image_mode == 'full') {
             // Full images could contain transparency (where diff images
             // almost always do), so we need to clear the canvas so that
             // there is no ghosting.
             fig.context.clearRect(0, 0, fig.canvas.width, fig.canvas.height);
         }
-        fig.context.drawImage(fig.imageObj, 0, 0);
+        fig.context.drawImage(fig.image, 0, 0);
     };
 
-    this.imageObj.onunload = function() {
+    this.image.onunload = function() {
         fig.ws.close();
     }
 }
@@ -219,26 +210,40 @@ mpl.figure.prototype._init_image = function() {
 mpl.figure.prototype._init_toolbar = function() {
     var fig = this;
 
-    var toolbar_container = this.toolbar = $('<div class="jupyter-widgets widget-container widget-box widget-hbox"/>')
+    var toolbar_container = this.toolbar = document.createElement('div');
+    toolbar_container.classList = 'jupyter-widgets widget-container widget-box widget-hbox';
     this.root.prepend(toolbar_container);
 
+    function on_click_closure(name) {
+        return function on_click() {
+            fig.toolbar_button_onclick(name);
+        };
+    }
+
+    function on_mouseover_closure(tooltip) {
+        return function on_mouseover() {
+            return fig.toolbar_button_onmouseover(tooltip);
+        };
+    }
+
     // Add the stop interaction button to the window.
-    var button = $('<button class="jupyter-widgets jupyter-button" href="#" title="Toggle Interaction"><i class="fa fa-bars"></i></button>');
-    button.attr('style', 'outline:none');
-    button.click(function (evt) { fig.toggle_interaction(fig, {}); } );
-    button.mouseover('Toggle Interaction', toolbar_mouse_event);
-    toolbar_container.append(button);
+    var button = document.createElement('button');
+    button.classList = 'jupyter-widgets jupyter-button';
+    button.setAttribute('href', '#');
+    button.setAttribute('title', 'Toggle Interaction');
+    button.setAttribute('style', 'outline:none');
+    button.addEventListener('click', function (evt) { fig.toggle_interaction(fig, {}); } );
+    button.addEventListener('mouseover', on_mouseover_closure('Toggle Interaction'));
 
-    var toolbar = this.toolbar = $('<div class="jupyter-widgets widget-container widget-box widget-hbox"/>')
-    toolbar_container.append(toolbar);
+    var icon = document.createElement('i');
+    icon.classList = 'fa fa-bars';
+    button.appendChild(icon);
 
-    // Define a callback function for later on.
-    function toolbar_event(event) {
-        return fig.toolbar_button_onclick(event['data']);
-    }
-    function toolbar_mouse_event(event) {
-        return fig.toolbar_button_onmouseover(event['data']);
-    }
+    toolbar_container.appendChild(button);
+
+    var toolbar = this.toolbar = document.createElement('div');
+    toolbar.classList = 'jupyter-widgets widget-container widget-box widget-hbox';
+    toolbar_container.appendChild(toolbar);
 
     for(var toolbar_ind in mpl.toolbar_items) {
         var name = mpl.toolbar_items[toolbar_ind][0];
@@ -247,32 +252,44 @@ mpl.figure.prototype._init_toolbar = function() {
         var method_name = mpl.toolbar_items[toolbar_ind][3];
         if (!name) { continue; };
 
-        var button = $('<button class="jupyter-widgets jupyter-button" href="#" title="' + name + '"><i class="fa ' + image + '"></i></button>');
-        button.attr('style', 'outline:none');
-        button.click(method_name, toolbar_event);
-        button.mouseover(tooltip, toolbar_mouse_event);
-        toolbar.append(button);
+        var button = document.createElement('button');
+        button.classList = 'jupyter-widgets jupyter-button';
+        button.setAttribute('href', '#');
+        button.setAttribute('title', name);
+        button.setAttribute('style', 'outline:none');
+        button.addEventListener('click', on_click_closure(method_name));
+        button.addEventListener('mouseover', on_mouseover_closure(tooltip));
+
+        var icon = document.createElement('i');
+        icon.classList = 'fa ' + image;
+        button.appendChild(icon);
+
+        toolbar.appendChild(button);
     }
 
     // Add the status bar.
-    var status_bar = $('<span class="mpl-message" style="text-align:right; float: right;"/>');
-    toolbar.append(status_bar);
-    this.message = status_bar[0];
+    var status_bar = document.createElement('span');
+    status_bar.classList = 'mpl-message';
+    status_bar.setAttribute('style', 'text-align:right; float: right;');
+    toolbar.appendChild(status_bar);
+    this.message = status_bar;
 }
 
 mpl.figure.prototype.toggle_interaction = function(fig, msg) {
     // Toggle the interactivity of the figure.
-    var visible = fig.toolbar.is(':visible');
+    var visible = fig.toolbar.style.display !== 'none';
     if (visible) {
-        fig.toolbar.hide();
-        fig.canvas_div.hide();
-        fig.imageObj_div.show();
-        fig.imageObj.style.width = fig.canvas.style.width;
-        fig.imageObj.style.height = fig.canvas.style.height;
+        console.log('hiding')
+        fig.toolbar.style.display = 'none';
+        fig.canvas_div.style.display = 'none';
+        fig.image.style.display = '';
+        fig.image.style.width = fig.canvas.style.width;
+        fig.image.style.height = fig.canvas.style.height;
     } else {
-        fig.toolbar.show();
-        fig.canvas_div.show();
-        fig.imageObj_div.hide();
+        console.log('display')
+        fig.toolbar.style.display = '';
+        fig.canvas_div.style.display = '';
+        fig.image.style.display = 'none';
     }
 }
 
@@ -387,19 +404,19 @@ mpl.figure.prototype._make_on_message_function = function(fig) {
             evt.data.type = "image/png";
 
             /* Free the memory for the previous frames */
-            if (fig.imageObj.src) {
+            if (fig.image.src) {
                 (window.URL || window.webkitURL).revokeObjectURL(
-                    fig.imageObj.src);
+                    fig.image.src);
             }
 
-            fig.imageObj.src = (window.URL || window.webkitURL).createObjectURL(
+            fig.image.src = (window.URL || window.webkitURL).createObjectURL(
                 evt.data);
             fig.updated_canvas_event();
             fig.waiting = false;
             return;
         }
         else if (typeof evt.data === 'string' && evt.data.slice(0, 21) == "data:image/png;base64") {
-            fig.imageObj.src = evt.data;
+            fig.image.src = evt.data;
             fig.updated_canvas_event();
             fig.waiting = false;
             return;
@@ -444,8 +461,9 @@ mpl.findpos = function(e) {
     // jQuery normalizes the pageX and pageY
     // pageX,Y are the mouse positions relative to the document
     // offset() returns the position of the element relative to the document
-    var x = e.pageX - $(targ).offset().left;
-    var y = e.pageY - $(targ).offset().top;
+    var targ_offset = offset(targ);
+    var x = e.pageX - targ_offset.left;
+    var y = e.pageY - targ_offset.top;
 
     return {"x": x, "y": y};
 };
@@ -520,7 +538,7 @@ mpl.figure.prototype.toolbar_button_onclick = function(name) {
     if (name == 'download') {
         this.handle_save(this, null);
     } else {
-        this.send_message("toolbar_button", {name: name});
+        this.send_message("toolbar_button", {'name': name});
     }
 };
 
@@ -528,6 +546,4 @@ mpl.figure.prototype.toolbar_button_onmouseover = function(tooltip) {
     this.message.textContent = tooltip;
 };
 
-return mpl;
-
-}));
+module.exports = mpl;
