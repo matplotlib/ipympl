@@ -21,7 +21,8 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
     render: function() {
         var that = this;
         var id = this.model.get('_id');
-        var element = this.$el;
+        var element = this.el;
+        element.classList.add('jupyter-widgets');
 
         this.ws_proxy = this.comm_websocket_adapter(this.model.comm);
 
@@ -38,13 +39,13 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         var fig = new mpl.figure(id, this.ws_proxy,
                                  ondownload,
-                                 element.get(0));
+                                 element);
 
         // Call onopen now - mpl needs it, as it is assuming we've passed it a real
         // web socket which is closed, not our websocket->open comm proxy.
         this.ws_proxy.onopen();
 
-        fig.parent_element = element.get(0);
+        fig.parent_element = element;
 
         // subscribe to incoming messages from the MPLCanvasWidget
         this.model.on('msg:custom', this.ws_proxy.onmessage, this);

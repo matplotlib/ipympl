@@ -67,7 +67,8 @@ mpl.figure = function(figure_id, websocket, ondownload, parent_element) {
 
 mpl.figure.prototype._init_header = function() {
     this.header = document.createElement('div');
-    this.header.setAttribute('style', 'width: 100%; text-align: center; padding: 3px;');
+    this.header.setAttribute('style', 'text-align: center;');
+    this.header.classList = 'jupyter-widgets widget-label';
     this.root.appendChild(this.header);
 }
 
@@ -268,9 +269,8 @@ mpl.figure.prototype._init_toolbar = function() {
     }
 
     // Add the status bar.
-    var status_bar = document.createElement('span');
-    status_bar.classList = 'mpl-message';
-    status_bar.setAttribute('style', 'text-align:right; float: right;');
+    var status_bar = document.createElement('div');
+    status_bar.classList = 'jupyter-widgets widget-label';
     toolbar.appendChild(status_bar);
     this.message = status_bar;
 }
