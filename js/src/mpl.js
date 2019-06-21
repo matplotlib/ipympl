@@ -287,7 +287,7 @@ mpl.figure.prototype.send_draw_message = function() {
 
 mpl.figure.prototype.handle_save = function(fig, msg) {
     var save = document.createElement('a');
-    save.href = fig.image.src;
+    save.href = fig.canvas.toDataURL();
     save.download = fig.header.textContent + '.png';
     document.body.appendChild(save);
     save.click();
