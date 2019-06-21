@@ -3,7 +3,6 @@
 from base64 import b64encode
 import json
 import io
-import six
 import os
 from uuid import uuid4 as uuid
 
@@ -172,14 +171,8 @@ class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
     def send_json(self, content):
         self.send({'data': json.dumps(content)})
 
-    def send_binary(self, blob):
-        # The comm is ascii, so we always send the image in base64
-        # encoded data URL form.
-        data = b64encode(blob)
-        if six.PY3:
-            data = data.decode('ascii')
-        data_uri = "data:image/png;base64,{0}".format(data)
-        self.send({'data': data_uri})
+    def send_binary(self, data):
+        self.send({'data': '{"type": "binary"}'}, buffers=[data])
 
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)

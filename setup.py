@@ -156,8 +156,7 @@ setup_args = {
     'install_requires': [
         'ipykernel>=4.7',
         'ipywidgets>=7.0.0',
-        'matplotlib>=2.0.0',
-        'six',
+        'matplotlib>=2.0.0'
     ],
     'packages': find_packages(),
     'zip_safe': False,
