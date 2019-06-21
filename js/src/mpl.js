@@ -125,17 +125,6 @@ mpl.figure.prototype._init_canvas = function() {
     rubberband_canvas.addEventListener('mouseenter', on_mouse_event_closure('figure_enter'));
     rubberband_canvas.addEventListener('mouseleave', on_mouse_event_closure('figure_leave'));
 
-    canvas_div.addEventListener('wheel', function (event) {
-        event = event.originalEvent;
-        event['data'] = 'scroll'
-        if (event.deltaY < 0) {
-            event.step = 1;
-        } else {
-            event.step = -1;
-        }
-        mouse_event_fn(event);
-    });
-
     canvas_div.appendChild(canvas);
     canvas_div.appendChild(rubberband_canvas);
 
