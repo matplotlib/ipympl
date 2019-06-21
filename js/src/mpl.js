@@ -279,17 +279,9 @@ mpl.figure.prototype.toggle_interaction = function(fig, msg) {
     // Toggle the interactivity of the figure.
     var visible = fig.toolbar.style.display !== 'none';
     if (visible) {
-        console.log('hiding')
         fig.toolbar.style.display = 'none';
-        fig.canvas_div.style.display = 'none';
-        fig.image.style.display = '';
-        fig.image.style.width = fig.canvas.style.width;
-        fig.image.style.height = fig.canvas.style.height;
     } else {
-        console.log('display')
         fig.toolbar.style.display = '';
-        fig.canvas_div.style.display = '';
-        fig.image.style.display = 'none';
     }
 }
 
