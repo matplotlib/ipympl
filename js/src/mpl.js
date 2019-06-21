@@ -372,35 +372,28 @@ mpl.figure.prototype.updated_canvas_event = function() {
 // A function to construct a web socket function for onmessage handling.
 // Called in the figure constructor.
 mpl.figure.prototype._make_on_message_function = function(fig) {
-    return function(evt) {
-        if (evt.data instanceof Blob) {
-            /* FIXME: We get "Resource interpreted as Image but
-             * transferred with MIME type text/plain:" errors on
-             * Chrome.  But how to set the MIME type?  It doesn't seem
-             * to be part of the websocket stream */
-            evt.data.type = "image/png";
-
-            /* Free the memory for the previous frames */
-            if (fig.image.src) {
-                (window.URL || window.webkitURL).revokeObjectURL(
-                    fig.image.src);
-            }
-
-            fig.image.src = (window.URL || window.webkitURL).createObjectURL(
-                evt.data);
-            fig.updated_canvas_event();
-            fig.waiting = false;
-            return;
-        }
-        else if (typeof evt.data === 'string' && evt.data.slice(0, 21) == "data:image/png;base64") {
-            fig.image.src = evt.data;
-            fig.updated_canvas_event();
-            fig.waiting = false;
-            return;
-        }
-
+    return function(evt, dataviews) {
         var msg = JSON.parse(evt.data);
         var msg_type = msg['type'];
+
+        if (msg_type == 'binary') {
+            var url_creator = window.URL || window.webkitURL;
+
+            var buffer = new Uint8Array(dataviews[0].buffer);
+            var blob = new Blob([buffer], {type: "image/png"});
+            var image_url = url_creator.createObjectURL(blob);
+
+            // Free the memory for the previous frames
+            if (fig.image.src) {
+                url_creator.revokeObjectURL(fig.image.src);
+            }
+
+            fig.image.src = image_url;
+            fig.updated_canvas_event();
+            fig.waiting = false;
+
+            return;
+        }
 
         // Call the  "handle_{type}" callback, which takes
         // the figure and JSON message as its only arguments.
