@@ -9,7 +9,8 @@ from uuid import uuid4 as uuid
 from IPython.display import display, HTML
 
 from ipywidgets import DOMWidget
-from traitlets import Unicode, Bool, Float, List, Any
+from ipywidgets.widgets.trait_types import bytes_serialization
+from traitlets import Unicode, Bool, Float, List, Any, Bytes
 
 from matplotlib import rcParams
 from matplotlib.figure import Figure
@@ -130,6 +131,7 @@ class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
     _toolbar_items = List().tag(sync=True)
     _closed = Bool(True)
     _id = Unicode('').tag(sync=True)
+    _data = Bytes().tag(sync=True, **bytes_serialization)
 
     # Must declare the superclass private members.
     _png_is_old = Bool()
@@ -172,7 +174,7 @@ class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
         self.send({'data': json.dumps(content)})
 
     def send_binary(self, data):
-        self.send({'data': '{"type": "binary"}'}, buffers=[data])
+        self._data = data
 
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)
