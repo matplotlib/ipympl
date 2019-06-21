@@ -267,13 +267,6 @@ mpl.figure.prototype.send_message = function(type, properties) {
     this.widget.send(JSON.stringify(properties));
 }
 
-mpl.figure.prototype.send_draw_message = function() {
-    if (!this.waiting) {
-        this.waiting = true;
-        this.widget.send(JSON.stringify({type: "draw", figure_id: this.id}));
-    }
-}
-
 mpl.figure.prototype.handle_save = function(fig, msg) {
     var save = document.createElement('a');
     save.href = fig.canvas.toDataURL();
@@ -343,7 +336,10 @@ mpl.figure.prototype.handle_message = function(fig, msg) {
 
 mpl.figure.prototype.handle_draw = function(fig, msg) {
     // Request the server to send over a new figure.
-    fig.send_draw_message();
+    if (!fig.waiting) {
+        fig.waiting = true;
+        fig.widget.send(JSON.stringify({type: "draw", figure_id: fig.id}));
+    }
 }
 
 mpl.figure.prototype.handle_image_mode = function(fig, msg) {
