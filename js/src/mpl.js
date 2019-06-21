@@ -9,22 +9,10 @@ function offset(el) {
 }
 
 
-mpl.figure = function(figure_id, websocket, ondownload, parent_element) {
+mpl.figure = function(figure_id, widget, toolbar_items) {
     this.id = figure_id;
-
-    this.ws = websocket;
-
-    this.supports_binary = (this.ws.binaryType != undefined);
-
-    if (!this.supports_binary) {
-        var warnings = document.getElementById("mpl-warnings");
-        if (warnings) {
-            warnings.style.display = 'block';
-            warnings.textContent = (
-                "This browser does not support binary websocket messages. " +
-                    "Performance may be slow.");
-        }
-    }
+    this.widget = widget;
+    this.toolbar_items = toolbar_items;
 
     this.context = undefined;
     this.message = undefined;
@@ -39,30 +27,23 @@ mpl.figure = function(figure_id, websocket, ondownload, parent_element) {
     this._root_extra_style(this.root)
     this.root.setAttribute('style', 'display: inline-block');
 
-    parent_element.appendChild(this.root);
+    widget.el.appendChild(this.root);
 
     this._init_header(this);
     this._init_canvas(this);
     this._init_toolbar(this);
     this._init_image(this);
 
-
-    var fig = this;
-
     this.waiting = false;
 
-    this.ws.onopen =  function () {
-        fig.send_message("supports_binary", {value: fig.supports_binary});
-        fig.send_message("send_image_mode", {});
-        if (mpl.ratio != 1) {
-            fig.send_message("set_dpi_ratio", {'dpi_ratio': mpl.ratio});
-        }
-        fig.send_message("refresh", {});
+    this.send_message("supports_binary", {value: true});
+    this.send_message("send_image_mode", {});
+    if (mpl.ratio != 1) {
+        this.send_message("set_dpi_ratio", {'dpi_ratio': mpl.ratio});
     }
+    this.send_message("refresh", {});
 
-    this.ws.onmessage = this._make_on_message_function(this);
-
-    this.ondownload = ondownload;
+    widget.model.on('msg:custom', this._make_on_message_function(this));
 }
 
 mpl.figure.prototype._init_header = function() {
@@ -80,13 +61,13 @@ mpl.figure.prototype._canvas_extra_style = function(canvas_div) {
 mpl.figure.prototype._root_extra_style = function(canvas_div) {
     var fig = this;
     canvas_div.addEventListener('remove', function(){
-        fig.close_ws(fig, {});
+        fig.close(fig, {});
     });
 }
 
-mpl.figure.prototype.close_ws = function(fig, msg){
+mpl.figure.prototype.close = function(fig, msg){
     fig.send_message('closing', msg);
-    fig.ws.close()
+    fig.widget.comm.close();
 }
 
 mpl.figure.prototype._init_canvas = function() {
@@ -203,7 +184,7 @@ mpl.figure.prototype._init_image = function() {
     };
 
     this.image.onunload = function() {
-        fig.ws.close();
+        fig.close();
     }
 }
 
@@ -246,11 +227,11 @@ mpl.figure.prototype._init_toolbar = function() {
     toolbar.classList = 'jupyter-widgets widget-container widget-box widget-hbox';
     toolbar_container.appendChild(toolbar);
 
-    for(var toolbar_ind in mpl.toolbar_items) {
-        var name = mpl.toolbar_items[toolbar_ind][0];
-        var tooltip = mpl.toolbar_items[toolbar_ind][1];
-        var image = mpl.toolbar_items[toolbar_ind][2];
-        var method_name = mpl.toolbar_items[toolbar_ind][3];
+    for(var toolbar_ind in this.toolbar_items) {
+        var name = this.toolbar_items[toolbar_ind][0];
+        var tooltip = this.toolbar_items[toolbar_ind][1];
+        var image = this.toolbar_items[toolbar_ind][2];
+        var method_name = this.toolbar_items[toolbar_ind][3];
         if (!name) { continue; };
 
         var button = document.createElement('button');
@@ -294,19 +275,23 @@ mpl.figure.prototype.request_resize = function(x_pixels, y_pixels) {
 mpl.figure.prototype.send_message = function(type, properties) {
     properties['type'] = type;
     properties['figure_id'] = this.id;
-    this.ws.send(JSON.stringify(properties));
+    this.widget.send(JSON.stringify(properties));
 }
 
 mpl.figure.prototype.send_draw_message = function() {
     if (!this.waiting) {
         this.waiting = true;
-        this.ws.send(JSON.stringify({type: "draw", figure_id: this.id}));
+        this.widget.send(JSON.stringify({type: "draw", figure_id: this.id}));
     }
 }
 
-
 mpl.figure.prototype.handle_save = function(fig, msg) {
-    fig.ondownload(fig, null);
+    var save = document.createElement('a');
+    save.href = fig.image.src;
+    save.download = fig.header.textContent + '.png';
+    document.body.appendChild(save);
+    save.click();
+    document.body.removeChild(save);
 }
 
 
@@ -387,7 +372,7 @@ mpl.figure.prototype.updated_canvas_event = function() {
 // A function to construct a web socket function for onmessage handling.
 // Called in the figure constructor.
 mpl.figure.prototype._make_on_message_function = function(fig) {
-    return function socket_on_message(evt) {
+    return function(evt) {
         if (evt.data instanceof Blob) {
             /* FIXME: We get "Resource interpreted as Image but
              * transferred with MIME type text/plain:" errors on
