@@ -1,16 +1,16 @@
 var utils = require('./utils.js');
 
-figure = function(figure_id, toolbar_items, widget) {
+figure = function(figure_id, widget) {
     this.id = figure_id;
-    this.toolbar_items = toolbar_items;
     this.widget = widget;
 
     this.context = undefined;
-    this.message = undefined;
     this.canvas = undefined;
     this.rubberband_canvas = undefined;
     this.rubberband_context = undefined;
     this.format_dropdown = undefined;
+    this.figure_label = undefined;
+    this.message = undefined;
 
     this.image_mode = 'full';
 
@@ -20,7 +20,6 @@ figure = function(figure_id, toolbar_items, widget) {
 
     this._init_header();
     this._init_canvas();
-    this._init_toolbar();
     this._init_image();
 
     this.waiting = false;
@@ -132,69 +131,6 @@ figure.prototype._init_image = function() {
     }
 };
 
-figure.prototype._init_toolbar = function() {
-    var toolbar_container = this.toolbar = document.createElement('div');
-    toolbar_container.classList = 'jupyter-widgets widget-container widget-box widget-hbox';
-    this.root.prepend(toolbar_container);
-
-    // Add the stop interaction button to the window.
-    var button = document.createElement('button');
-    button.classList = 'jupyter-widgets jupyter-button';
-    button.setAttribute('href', '#');
-    button.setAttribute('title', 'Toggle Interaction');
-    button.setAttribute('style', 'outline:none');
-    button.addEventListener('click', this.toggle_interaction.bind(this));
-    button.addEventListener('mouseover', this.toolbar_button_onmouseover('Toggle Interaction'));
-
-    var icon = document.createElement('i');
-    icon.classList = 'fa fa-bars';
-    button.appendChild(icon);
-
-    toolbar_container.appendChild(button);
-
-    var toolbar = this.toolbar = document.createElement('div');
-    toolbar.classList = 'jupyter-widgets widget-container widget-box widget-hbox';
-    toolbar_container.appendChild(toolbar);
-
-    for(var toolbar_ind in this.toolbar_items) {
-        var name = this.toolbar_items[toolbar_ind][0];
-        var tooltip = this.toolbar_items[toolbar_ind][1];
-        var image = this.toolbar_items[toolbar_ind][2];
-        var method_name = this.toolbar_items[toolbar_ind][3];
-        if (!name) { continue; };
-
-        var button = document.createElement('button');
-        button.classList = 'jupyter-widgets jupyter-button';
-        button.setAttribute('href', '#');
-        button.setAttribute('title', name);
-        button.setAttribute('style', 'outline:none');
-        button.addEventListener('click', this.toolbar_button_onclick(method_name));
-        button.addEventListener('mouseover', this.toolbar_button_onmouseover(tooltip));
-
-        var icon = document.createElement('i');
-        icon.classList = 'fa ' + image;
-        button.appendChild(icon);
-
-        toolbar.appendChild(button);
-    }
-
-    // Add the status bar.
-    var status_bar = document.createElement('div');
-    status_bar.classList = 'jupyter-widgets widget-label';
-    toolbar.appendChild(status_bar);
-    this.message = status_bar;
-};
-
-figure.prototype.toggle_interaction = function() {
-    // Toggle the interactivity of the figure.
-    var visible = this.toolbar.style.display !== 'none';
-    if (visible) {
-        this.toolbar.style.display = 'none';
-    } else {
-        this.toolbar.style.display = '';
-    }
-};
-
 figure.prototype.request_resize = function(x_pixels, y_pixels) {
     // Request matplotlib to resize the figure. Matplotlib will then trigger a resize in the client,
     // which will in turn request a refresh of the image.
@@ -253,7 +189,21 @@ figure.prototype.handle_rubberband = function(msg) {
 
 figure.prototype.handle_figure_label = function(msg) {
     // Updates the figure title.
-    this.header.textContent = msg['label'];
+    this.figure_label = msg['label'];
+    this.update_header();
+};
+
+figure.prototype.handle_message = function(msg) {
+    this.message = msg['message'];
+    this.update_header();
+};
+
+figure.prototype.update_header = function(msg) {
+    var header = this.figure_label;
+    if (this.message) {
+        header += ' (' + this.message + ')';
+    }
+    this.header.textContent = header;
 };
 
 figure.prototype.handle_cursor = function(msg) {
@@ -276,49 +226,41 @@ figure.prototype.handle_cursor = function(msg) {
     this.rubberband_canvas.style.cursor = cursor;
 };
 
-figure.prototype.handle_message = function(msg) {
-    this.message.textContent = msg['message'];
-};
-
 figure.prototype.handle_draw = function(msg) {
     // Request the server to send over a new figure.
     this.send_draw_message();
+};
+
+figure.prototype.handle_binary = function(msg, dataviews) {
+    var url_creator = window.URL || window.webkitURL;
+
+    var buffer = new Uint8Array(dataviews[0].buffer);
+    var blob = new Blob([buffer], {type: 'image/png'});
+    var image_url = url_creator.createObjectURL(blob);
+
+    // Free the memory for the previous frames
+    if (this.image.src) {
+        url_creator.revokeObjectURL(this.image.src);
+    }
+
+    this.image.src = image_url;
+
+    // Tell Jupyter that the notebook contents must change.
+    if (window.Jupyter) {
+        Jupyter.notebook.set_dirty(true);
+    }
+    this.send_message('ack');
+
+    this.waiting = false;
 };
 
 figure.prototype.handle_image_mode = function(msg) {
     this.image_mode = msg['mode'];
 };
 
-figure.prototype.updated_canvas_event = function() {
-    // Tell Jupyter that the notebook contents must change.
-    if (window.Jupyter) {
-        Jupyter.notebook.set_dirty(true);
-    }
-    this.send_message('ack');
-};
-
 figure.prototype.on_comm_message = function(evt, dataviews) {
     var msg = JSON.parse(evt.data);
     var msg_type = msg['type'];
-
-    if (msg_type == 'binary') {
-        var url_creator = window.URL || window.webkitURL;
-
-        var buffer = new Uint8Array(dataviews[0].buffer);
-        var blob = new Blob([buffer], {type: 'image/png'});
-        var image_url = url_creator.createObjectURL(blob);
-
-        // Free the memory for the previous frames
-        if (this.image.src) {
-            url_creator.revokeObjectURL(this.image.src);
-        }
-
-        this.image.src = image_url;
-        this.updated_canvas_event();
-        this.waiting = false;
-
-        return;
-    }
 
     // Call the  'handle_{type}' callback, which takes
     // the figure and JSON message as its only arguments.
@@ -331,7 +273,7 @@ figure.prototype.on_comm_message = function(evt, dataviews) {
 
     if (callback) {
         try {
-            callback(msg);
+            callback(msg, dataviews);
         } catch (e) {
             console.log('Exception inside the \'handler_' + msg_type + '\' callback:', e, e.stack, msg);
         }
@@ -395,24 +337,6 @@ figure.prototype.key_event = function(name) {
 
         fig.send_message(name, {key: value, guiEvent: utils.get_simple_keys(event)});
         return false;
-    };
-};
-
-figure.prototype.toolbar_button_onclick = function(name) {
-    var fig = this;
-    return function() {
-        if (name == 'download') {
-            fig.handle_save(fig);
-        } else {
-            fig.send_message('toolbar_button', {'name': name});
-        }
-    };
-};
-
-figure.prototype.toolbar_button_onmouseover = function(tooltip) {
-    var fig = this;
-    return function() {
-        fig.message.textContent = tooltip;
     };
 };
 
