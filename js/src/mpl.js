@@ -291,9 +291,6 @@ figure.prototype.handle_image_mode = function(msg) {
 
 figure.prototype.updated_canvas_event = function() {
     // Tell Jupyter that the notebook contents must change.
-    if (window.Jupyter) {
-        Jupyter.notebook.set_dirty(true);
-    }
     this.send_message('ack');
 };
 
