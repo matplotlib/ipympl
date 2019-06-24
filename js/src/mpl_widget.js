@@ -19,9 +19,12 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
 
 var MPLCanvasView = widgets.DOMWidgetView.extend({
     render: function() {
-        var fig = new mpl.figure(this.model.get('_id'), this, this.model.get('_toolbar_items'));
+        var id = this.model.get('_id');
+        var toolbar_items = this.model.get('_toolbar_items');
 
-        this.send(JSON.stringify({ type: 'initialized' }));
+        this.fig = new mpl.figure(id, toolbar_items, this);
+
+        this.el.appendChild(this.fig.root);
     }
 });
 
