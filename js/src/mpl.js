@@ -1,18 +1,9 @@
-window.mpl = {};
+var utils = require('./utils.js');
 
-function offset(el) {
-    var boundingRect = el.getBoundingClientRect();
-    return {
-        top: boundingRect.top + document.body.scrollTop,
-        left: boundingRect.left + document.body.scrollLeft
-    }
-}
-
-
-mpl.figure = function(figure_id, widget, toolbar_items) {
+figure = function(figure_id, toolbar_items, widget) {
     this.id = figure_id;
-    this.widget = widget;
     this.toolbar_items = toolbar_items;
+    this.widget = widget;
 
     this.context = undefined;
     this.message = undefined;
@@ -24,77 +15,46 @@ mpl.figure = function(figure_id, widget, toolbar_items) {
     this.image_mode = 'full';
 
     this.root = document.createElement('div');
-    this._root_extra_style(this.root)
+    this.root.addEventListener('remove', this.close.bind(this));
     this.root.setAttribute('style', 'display: inline-block');
 
-    widget.el.appendChild(this.root);
-
-    this._init_header(this);
-    this._init_canvas(this);
-    this._init_toolbar(this);
-    this._init_image(this);
+    this._init_header();
+    this._init_canvas();
+    this._init_toolbar();
+    this._init_image();
 
     this.waiting = false;
 
-    this.send_message("supports_binary", {value: true});
-    this.send_message("send_image_mode", {});
-    if (mpl.ratio != 1) {
-        this.send_message("set_dpi_ratio", {'dpi_ratio': mpl.ratio});
-    }
-    this.send_message("refresh", {});
+    this.send_message('send_image_mode');
+    this.send_message('refresh');
 
-    widget.model.on('msg:custom', this._make_on_message_function(this));
-}
+    widget.model.on('msg:custom', this.on_comm_message.bind(this));
 
-mpl.figure.prototype._init_header = function() {
+    this.send_message('initialized');
+};
+
+figure.prototype._init_header = function() {
     this.header = document.createElement('div');
     this.header.setAttribute('style', 'text-align: center;');
     this.header.classList = 'jupyter-widgets widget-label';
     this.root.appendChild(this.header);
-}
+};
 
-mpl.figure.prototype._canvas_extra_style = function(canvas_div) {
-    // this is important to make the div 'focusable'
-    canvas_div.setAttribute('tabindex', 0);
-}
-
-mpl.figure.prototype._root_extra_style = function(canvas_div) {
-    var fig = this;
-    canvas_div.addEventListener('remove', function(){
-        fig.close(fig, {});
-    });
-}
-
-mpl.figure.prototype.close = function(fig, msg){
-    fig.send_message('closing', msg);
-    fig.widget.comm.close();
-}
-
-mpl.figure.prototype._init_canvas = function() {
-    var fig = this;
-
-    var canvas_div = document.createElement('div');
+figure.prototype._init_canvas = function() {
+    var canvas_div = this.canvas_div = document.createElement('div');
     canvas_div.setAttribute('style', 'position: relative; clear: both; outline:none');
 
-    function on_keyboard_event_closure(name) {
-        return function(event) {
-            event.stopPropagation();
-            event.preventDefault();
-            return fig.key_event(event, name);
-        };
-    }
-
-    canvas_div.addEventListener('keydown', on_keyboard_event_closure('key_press'));
-    canvas_div.addEventListener('keyup', on_keyboard_event_closure('key_release'));
-    this.canvas_div = canvas_div;
-    this._canvas_extra_style(canvas_div);
+    canvas_div.addEventListener('keydown', this.key_event('key_press'));
+    canvas_div.addEventListener('keyup', this.key_event('key_release'));
+    // this is important to make the div 'focusable'
+    canvas_div.setAttribute('tabindex', 0);
     this.root.appendChild(canvas_div);
 
     var canvas = this.canvas = document.createElement('canvas');
     canvas.classList.add('mpl-canvas');
-    canvas.setAttribute('style', "left: 0; top: 0; z-index: 0; ");
+    canvas.setAttribute('style', 'left: 0; top: 0; z-index: 0; ');
 
-    this.context = canvas.getContext("2d");
+    this.context = canvas.getContext('2d');
 
     var backingStore = this.context.backingStorePixelRatio ||
         this.context.webkitBackingStorePixelRatio ||
@@ -103,33 +63,29 @@ mpl.figure.prototype._init_canvas = function() {
         this.context.oBackingStorePixelRatio ||
         this.context.backingStorePixelRatio || 1;
 
-    mpl.ratio = (window.devicePixelRatio || 1) / backingStore;
-
-    var rubberband_canvas = this.rubberband_canvas = document.createElement('canvas');
-    rubberband_canvas.setAttribute('style', "position: absolute; left: 0; top: 0; z-index: 1;")
-
-    // TODO: on resize event
-    // fig.request_resize(width, height);
-
-    function on_mouse_event_closure(name) {
-        return function(event) {
-            return fig.mouse_event(event, name);
-        };
+    var ratio = this.ratio = (window.devicePixelRatio || 1) / backingStore;
+    if (ratio != 1) {
+        this.send_message('set_dpi_ratio', {'dpi_ratio': ratio});
     }
 
-    rubberband_canvas.addEventListener('mousedown', on_mouse_event_closure('button_press'));
-    rubberband_canvas.addEventListener('mouseup', on_mouse_event_closure('button_release'));
-    // Throttle sequential mouse events to 1 every 20ms.
-    rubberband_canvas.addEventListener('mousemove', on_mouse_event_closure('motion_notify'));
+    var rubberband_canvas = this.rubberband_canvas = document.createElement('canvas');
+    rubberband_canvas.setAttribute('style', 'position: absolute; left: 0; top: 0; z-index: 1;');
 
-    rubberband_canvas.addEventListener('mouseenter', on_mouse_event_closure('figure_enter'));
-    rubberband_canvas.addEventListener('mouseleave', on_mouse_event_closure('figure_leave'));
+    // TODO: on resize event
+    // this.request_resize(width, height);
+
+    rubberband_canvas.addEventListener('mousedown', this.mouse_event('button_press'));
+    rubberband_canvas.addEventListener('mouseup', this.mouse_event('button_release'));
+    rubberband_canvas.addEventListener('mousemove', this.mouse_event('motion_notify'));
+
+    rubberband_canvas.addEventListener('mouseenter', this.mouse_event('figure_enter'));
+    rubberband_canvas.addEventListener('mouseleave', this.mouse_event('figure_leave'));
 
     canvas_div.appendChild(canvas);
     canvas_div.appendChild(rubberband_canvas);
 
-    this.rubberband_context = rubberband_canvas.getContext("2d");
-    this.rubberband_context.strokeStyle = "#000000";
+    this.rubberband_context = rubberband_canvas.getContext('2d');
+    this.rubberband_context.strokeStyle = '#000000';
 
     this._resize_canvas = function(width, height) {
         // Keep the size of the canvas, canvas container, and rubber band
@@ -137,13 +93,13 @@ mpl.figure.prototype._init_canvas = function() {
         canvas_div.style.width = width;
         canvas_div.style.height = height;
 
-        canvas.setAttribute('width', width * mpl.ratio);
-        canvas.setAttribute('height', height * mpl.ratio);
+        canvas.setAttribute('width', width * ratio);
+        canvas.setAttribute('height', height * ratio);
         canvas.setAttribute('style', 'width: ' + width + 'px; height: ' + height + 'px;');
 
         rubberband_canvas.setAttribute('width', width);
         rubberband_canvas.setAttribute('height', height);
-    }
+    };
 
     // Set the figure to an initial 600x600px, this will subsequently be updated
     // upon first draw.
@@ -153,10 +109,9 @@ mpl.figure.prototype._init_canvas = function() {
     this.rubberband_canvas.addEventListener('contextmenu', function(e) {
         return false;
     });
-}
+};
 
-
-mpl.figure.prototype._init_image = function() {
+figure.prototype._init_image = function() {
     var fig = this;
     this.image = document.createElement('img');
     this.image.style.display = 'none';
@@ -175,27 +130,12 @@ mpl.figure.prototype._init_image = function() {
     this.image.onunload = function() {
         fig.close();
     }
-}
+};
 
-
-mpl.figure.prototype._init_toolbar = function() {
-    var fig = this;
-
+figure.prototype._init_toolbar = function() {
     var toolbar_container = this.toolbar = document.createElement('div');
     toolbar_container.classList = 'jupyter-widgets widget-container widget-box widget-hbox';
     this.root.prepend(toolbar_container);
-
-    function on_click_closure(name) {
-        return function on_click() {
-            fig.toolbar_button_onclick(name);
-        };
-    }
-
-    function on_mouseover_closure(tooltip) {
-        return function on_mouseover() {
-            return fig.toolbar_button_onmouseover(tooltip);
-        };
-    }
 
     // Add the stop interaction button to the window.
     var button = document.createElement('button');
@@ -203,8 +143,8 @@ mpl.figure.prototype._init_toolbar = function() {
     button.setAttribute('href', '#');
     button.setAttribute('title', 'Toggle Interaction');
     button.setAttribute('style', 'outline:none');
-    button.addEventListener('click', function (evt) { fig.toggle_interaction(fig, {}); } );
-    button.addEventListener('mouseover', on_mouseover_closure('Toggle Interaction'));
+    button.addEventListener('click', this.toggle_interaction.bind(this));
+    button.addEventListener('mouseover', this.toolbar_button_onmouseover('Toggle Interaction'));
 
     var icon = document.createElement('i');
     icon.classList = 'fa fa-bars';
@@ -228,8 +168,8 @@ mpl.figure.prototype._init_toolbar = function() {
         button.setAttribute('href', '#');
         button.setAttribute('title', name);
         button.setAttribute('style', 'outline:none');
-        button.addEventListener('click', on_click_closure(method_name));
-        button.addEventListener('mouseover', on_mouseover_closure(tooltip));
+        button.addEventListener('click', this.toolbar_button_onclick(method_name));
+        button.addEventListener('mouseover', this.toolbar_button_onmouseover(tooltip));
 
         var icon = document.createElement('i');
         icon.classList = 'fa ' + image;
@@ -243,60 +183,59 @@ mpl.figure.prototype._init_toolbar = function() {
     status_bar.classList = 'jupyter-widgets widget-label';
     toolbar.appendChild(status_bar);
     this.message = status_bar;
-}
+};
 
-mpl.figure.prototype.toggle_interaction = function(fig, msg) {
+figure.prototype.toggle_interaction = function() {
     // Toggle the interactivity of the figure.
-    var visible = fig.toolbar.style.display !== 'none';
+    var visible = this.toolbar.style.display !== 'none';
     if (visible) {
-        fig.toolbar.style.display = 'none';
+        this.toolbar.style.display = 'none';
     } else {
-        fig.toolbar.style.display = '';
+        this.toolbar.style.display = '';
     }
-}
+};
 
-mpl.figure.prototype.request_resize = function(x_pixels, y_pixels) {
+figure.prototype.request_resize = function(x_pixels, y_pixels) {
     // Request matplotlib to resize the figure. Matplotlib will then trigger a resize in the client,
     // which will in turn request a refresh of the image.
     this.send_message('resize', {'width': x_pixels, 'height': y_pixels});
-}
+};
 
-mpl.figure.prototype.send_message = function(type, properties) {
+figure.prototype.send_message = function(type, properties = {}) {
     properties['type'] = type;
     properties['figure_id'] = this.id;
     this.widget.send(JSON.stringify(properties));
-}
+};
 
-mpl.figure.prototype.send_draw_message = function() {
+figure.prototype.send_draw_message = function() {
     if (!this.waiting) {
         this.waiting = true;
-        this.widget.send(JSON.stringify({type: "draw", figure_id: this.id}));
+        this.send_message('draw');
     }
-}
+};
 
-mpl.figure.prototype.handle_save = function(fig, msg) {
+figure.prototype.handle_save = function() {
     var save = document.createElement('a');
-    save.href = fig.canvas.toDataURL();
-    save.download = fig.header.textContent + '.png';
+    save.href = this.canvas.toDataURL();
+    save.download = this.header.textContent + '.png';
     document.body.appendChild(save);
     save.click();
     document.body.removeChild(save);
-}
+};
 
-
-mpl.figure.prototype.handle_resize = function(fig, msg) {
+figure.prototype.handle_resize = function(msg) {
     var size = msg['size'];
-    if (size[0] != fig.canvas.width || size[1] != fig.canvas.height) {
-        fig._resize_canvas(size[0], size[1]);
-        fig.send_message("refresh", {});
+    if (size[0] != this.canvas.width || size[1] != this.canvas.height) {
+        this._resize_canvas(size[0], size[1]);
+        this.send_message('refresh');
     };
-}
+};
 
-mpl.figure.prototype.handle_rubberband = function(fig, msg) {
-    var x0 = msg['x0'] / mpl.ratio;
-    var y0 = (fig.canvas.height - msg['y0']) / mpl.ratio;
-    var x1 = msg['x1'] / mpl.ratio;
-    var y1 = (fig.canvas.height - msg['y1']) / mpl.ratio;
+figure.prototype.handle_rubberband = function(msg) {
+    var x0 = msg['x0'] / this.ratio;
+    var y0 = (this.canvas.height - msg['y0']) / this.ratio;
+    var x1 = msg['x1'] / this.ratio;
+    var y1 = (this.canvas.height - msg['y1']) / this.ratio;
     x0 = Math.floor(x0) + 0.5;
     y0 = Math.floor(y0) + 0.5;
     x1 = Math.floor(x1) + 0.5;
@@ -306,18 +245,18 @@ mpl.figure.prototype.handle_rubberband = function(fig, msg) {
     var width = Math.abs(x1 - x0);
     var height = Math.abs(y1 - y0);
 
-    fig.rubberband_context.clearRect(
-        0, 0, fig.canvas.width, fig.canvas.height);
+    this.rubberband_context.clearRect(
+        0, 0, this.canvas.width, this.canvas.height);
 
-    fig.rubberband_context.strokeRect(min_x, min_y, width, height);
-}
+    this.rubberband_context.strokeRect(min_x, min_y, width, height);
+};
 
-mpl.figure.prototype.handle_figure_label = function(fig, msg) {
+figure.prototype.handle_figure_label = function(msg) {
     // Updates the figure title.
-    fig.header.textContent = msg['label'];
-}
+    this.header.textContent = msg['label'];
+};
 
-mpl.figure.prototype.handle_cursor = function(fig, msg) {
+figure.prototype.handle_cursor = function(msg) {
     var cursor = msg['cursor'];
     switch(cursor)
     {
@@ -334,175 +273,154 @@ mpl.figure.prototype.handle_cursor = function(fig, msg) {
         cursor = 'move';
         break;
     }
-    fig.rubberband_canvas.style.cursor = cursor;
-}
+    this.rubberband_canvas.style.cursor = cursor;
+};
 
-mpl.figure.prototype.handle_message = function(fig, msg) {
-    fig.message.textContent = msg['message'];
-}
+figure.prototype.handle_message = function(msg) {
+    this.message.textContent = msg['message'];
+};
 
-mpl.figure.prototype.handle_draw = function(fig, msg) {
+figure.prototype.handle_draw = function(msg) {
     // Request the server to send over a new figure.
-    fig.send_draw_message();
-}
+    this.send_draw_message();
+};
 
-mpl.figure.prototype.handle_image_mode = function(fig, msg) {
-    fig.image_mode = msg['mode'];
-}
+figure.prototype.handle_image_mode = function(msg) {
+    this.image_mode = msg['mode'];
+};
 
-mpl.figure.prototype.updated_canvas_event = function() {
+figure.prototype.updated_canvas_event = function() {
     // Tell Jupyter that the notebook contents must change.
     if (window.Jupyter) {
         Jupyter.notebook.set_dirty(true);
     }
-    this.send_message("ack", {});
-}
+    this.send_message('ack');
+};
 
-// A function to construct a web socket function for onmessage handling.
-// Called in the figure constructor.
-mpl.figure.prototype._make_on_message_function = function(fig) {
-    return function(evt, dataviews) {
-        var msg = JSON.parse(evt.data);
-        var msg_type = msg['type'];
+figure.prototype.on_comm_message = function(evt, dataviews) {
+    var msg = JSON.parse(evt.data);
+    var msg_type = msg['type'];
 
-        if (msg_type == 'binary') {
-            var url_creator = window.URL || window.webkitURL;
+    if (msg_type == 'binary') {
+        var url_creator = window.URL || window.webkitURL;
 
-            var buffer = new Uint8Array(dataviews[0].buffer);
-            var blob = new Blob([buffer], {type: "image/png"});
-            var image_url = url_creator.createObjectURL(blob);
+        var buffer = new Uint8Array(dataviews[0].buffer);
+        var blob = new Blob([buffer], {type: 'image/png'});
+        var image_url = url_creator.createObjectURL(blob);
 
-            // Free the memory for the previous frames
-            if (fig.image.src) {
-                url_creator.revokeObjectURL(fig.image.src);
-            }
-
-            fig.image.src = image_url;
-            fig.updated_canvas_event();
-            fig.waiting = false;
-
-            return;
+        // Free the memory for the previous frames
+        if (this.image.src) {
+            url_creator.revokeObjectURL(this.image.src);
         }
 
-        // Call the  "handle_{type}" callback, which takes
-        // the figure and JSON message as its only arguments.
+        this.image.src = image_url;
+        this.updated_canvas_event();
+        this.waiting = false;
+
+        return;
+    }
+
+    // Call the  'handle_{type}' callback, which takes
+    // the figure and JSON message as its only arguments.
+    try {
+        var callback = this['handle_' + msg_type].bind(this);
+    } catch (e) {
+        console.log('No handler for the \'' + msg_type + '\' message type: ', msg);
+        return;
+    }
+
+    if (callback) {
         try {
-            var callback = fig["handle_" + msg_type];
+            callback(msg);
         } catch (e) {
-            console.log("No handler for the '" + msg_type + "' message type: ", msg);
-            return;
+            console.log('Exception inside the \'handler_' + msg_type + '\' callback:', e, e.stack, msg);
+        }
+    }
+};
+
+figure.prototype.mouse_event = function(name) {
+    var fig = this;
+    return function(event) {
+        var canvas_pos = utils.get_mouse_position(event);
+
+        if (name === 'button_press')
+        {
+            fig.canvas.focus();
+            fig.canvas_div.focus();
         }
 
-        if (callback) {
-            try {
-                // console.log("Handling '" + msg_type + "' message: ", msg);
-                callback(fig, msg);
-            } catch (e) {
-                console.log("Exception inside the 'handler_" + msg_type + "' callback:", e, e.stack, msg);
-            }
+        var x = canvas_pos.x * fig.ratio;
+        var y = canvas_pos.y * fig.ratio;
+
+        fig.send_message(name, {x: x, y: y, button: event.button,
+                                step: event.step,
+                                guiEvent: utils.get_simple_keys(event)});
+
+        /* This prevents the web browser from automatically changing to
+         * the text insertion cursor when the button is pressed.  We want
+         * to control all of the cursor setting manually through the
+         * 'cursor' event from matplotlib */
+        event.preventDefault();
+        return false;
+    };
+};
+
+figure.prototype.key_event = function(name) {
+    var fig = this;
+    return function(event) {
+        event.stopPropagation();
+        event.preventDefault();
+
+        // Prevent repeat events
+        if (name == 'key_press')
+        {
+            if (event.which === fig._key)
+                return;
+            else
+                fig._key = event.which;
+        }
+        if (name == 'key_release')
+            fig._key = null;
+
+        var value = '';
+        if (event.ctrlKey && event.which != 17)
+            value += 'ctrl+';
+        if (event.altKey && event.which != 18)
+            value += 'alt+';
+        if (event.shiftKey && event.which != 16)
+            value += 'shift+';
+
+        value += 'k';
+        value += event.which.toString();
+
+        fig.send_message(name, {key: value, guiEvent: utils.get_simple_keys(event)});
+        return false;
+    };
+};
+
+figure.prototype.toolbar_button_onclick = function(name) {
+    var fig = this;
+    return function() {
+        if (name == 'download') {
+            fig.handle_save(fig);
+        } else {
+            fig.send_message('toolbar_button', {'name': name});
         }
     };
-}
-
-// from http://stackoverflow.com/questions/1114465/getting-mouse-location-in-canvas
-mpl.findpos = function(e) {
-    //this section is from http://www.quirksmode.org/js/events_properties.html
-    var targ;
-    if (!e)
-        e = window.event;
-    if (e.target)
-        targ = e.target;
-    else if (e.srcElement)
-        targ = e.srcElement;
-    if (targ.nodeType == 3) // defeat Safari bug
-        targ = targ.parentNode;
-
-    // jQuery normalizes the pageX and pageY
-    // pageX,Y are the mouse positions relative to the document
-    // offset() returns the position of the element relative to the document
-    var targ_offset = offset(targ);
-    var x = e.pageX - targ_offset.left;
-    var y = e.pageY - targ_offset.top;
-
-    return {"x": x, "y": y};
 };
 
-/*
- * return a copy of an object with only non-object keys
- * we need this to avoid circular references
- * http://stackoverflow.com/a/24161582/3208463
- */
-function simpleKeys (original) {
-  return Object.keys(original).reduce(function (obj, key) {
-    if (typeof original[key] !== 'object')
-        obj[key] = original[key]
-    return obj;
-  }, {});
-}
-
-mpl.figure.prototype.mouse_event = function(event, name) {
-    var canvas_pos = mpl.findpos(event)
-
-    if (name === 'button_press')
-    {
-        this.canvas.focus();
-        this.canvas_div.focus();
-    }
-
-    var x = canvas_pos.x * mpl.ratio;
-    var y = canvas_pos.y * mpl.ratio;
-
-    this.send_message(name, {x: x, y: y, button: event.button,
-                             step: event.step,
-                             guiEvent: simpleKeys(event)});
-
-    /* This prevents the web browser from automatically changing to
-     * the text insertion cursor when the button is pressed.  We want
-     * to control all of the cursor setting manually through the
-     * 'cursor' event from matplotlib */
-    event.preventDefault();
-    return false;
-}
-
-mpl.figure.prototype.key_event = function(event, name) {
-
-    // Prevent repeat events
-    if (name == 'key_press')
-    {
-        if (event.which === this._key)
-            return;
-        else
-            this._key = event.which;
-    }
-    if (name == 'key_release')
-        this._key = null;
-
-    var value = '';
-    if (event.ctrlKey && event.which != 17)
-        value += "ctrl+";
-    if (event.altKey && event.which != 18)
-        value += "alt+";
-    if (event.shiftKey && event.which != 16)
-        value += "shift+";
-
-    value += 'k';
-    value += event.which.toString();
-
-    this.send_message(name, {key: value,
-                             guiEvent: simpleKeys(event)});
-    return false;
-}
-
-mpl.figure.prototype.toolbar_button_onclick = function(name) {
-    if (name == 'download') {
-        this.handle_save(this, null);
-    } else {
-        this.send_message("toolbar_button", {'name': name});
-    }
+figure.prototype.toolbar_button_onmouseover = function(tooltip) {
+    var fig = this;
+    return function() {
+        fig.message.textContent = tooltip;
+    };
 };
 
-mpl.figure.prototype.toolbar_button_onmouseover = function(tooltip) {
-    this.message.textContent = tooltip;
+figure.prototype.close = function(){
+    this.send_message('closing');
+    this.widget.comm.close();
 };
 
-module.exports = mpl;
+module.exports = {
+    figure: figure
+};
