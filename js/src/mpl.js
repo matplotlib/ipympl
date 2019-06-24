@@ -71,9 +71,6 @@ figure.prototype._init_canvas = function() {
     var rubberband_canvas = this.rubberband_canvas = document.createElement('canvas');
     rubberband_canvas.setAttribute('style', 'position: absolute; left: 0; top: 0; z-index: 1;');
 
-    // TODO: on resize event
-    // this.request_resize(width, height);
-
     rubberband_canvas.addEventListener('mousedown', this.mouse_event('button_press'));
     rubberband_canvas.addEventListener('mouseup', this.mouse_event('button_release'));
     rubberband_canvas.addEventListener('mousemove', this.mouse_event('motion_notify'));
@@ -195,10 +192,10 @@ figure.prototype.toggle_interaction = function() {
     }
 };
 
-figure.prototype.request_resize = function(x_pixels, y_pixels) {
+figure.prototype.request_resize = function(width, height) {
     // Request matplotlib to resize the figure. Matplotlib will then trigger a resize in the client,
     // which will in turn request a refresh of the image.
-    this.send_message('resize', {'width': x_pixels, 'height': y_pixels});
+    this.send_message('resize', {'width': width, 'height': height});
 };
 
 figure.prototype.send_message = function(type, properties = {}) {

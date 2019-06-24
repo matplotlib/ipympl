@@ -25,6 +25,16 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         this.fig = new mpl.figure(id, toolbar_items, this);
 
         this.el.appendChild(this.fig.root);
+    },
+
+    processPhosphorMessage: function(msg) {
+        MPLCanvasView.__super__.processPhosphorMessage.apply(this, arguments);
+        switch (msg.type) {
+        case 'resize':
+            var rect = this.el.getBoundingClientRect();
+            this.fig.request_resize(rect.width, rect.height);
+            break;
+        }
     }
 });
 
