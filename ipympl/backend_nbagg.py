@@ -142,7 +142,6 @@ class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
     _key = Any()
     _lastx = Any()
     _lasty = Any()
-    _is_idle_drawing = Bool()
 
     def __init__(self, figure, *args, **kwargs):
         super(FigureCanvasWebAggCore, self).__init__(figure, *args, **kwargs)
