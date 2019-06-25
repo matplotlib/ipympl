@@ -10,7 +10,7 @@ from IPython.display import display, HTML
 
 from ipywidgets import DOMWidget, widget_serialization
 from traitlets import (
-    Unicode, Bool, Float, List, Any, Instance,
+    Unicode, Bool, Float, List, Any, Instance, Enum,
     default
 )
 
@@ -94,7 +94,7 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
 
     figure_id = Unicode('').tag(sync=True)
     toolitems = List().tag(sync=True)
-    # orientation?
+    orientation = Enum(['horizontal', 'vertical'], default_value='vertical').tag(sync=True)
     # button style?
 
     def __init__(self, canvas, *args, **kwargs):
@@ -151,6 +151,7 @@ class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
 
     toolbar = Instance(Toolbar, allow_none=True).tag(sync=True, **widget_serialization)
     toolbar_visible = Bool(True).tag(sync=True)
+    toolbar_position = Enum(['top', 'bottom', 'left', 'right'], default_value='left').tag(sync=True)
     _closed = Bool(True)
 
     # Must declare the superclass private members.

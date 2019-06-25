@@ -13,7 +13,8 @@ var ToolbarModel = widgets.DOMWidgetModel.extend({
             _model_module_version: '^'+ version,
             _view_module_version: '^' + version,
             figure_id: '',
-            toolitems: []
+            toolitems: [],
+            orientation: 'vertical'
         });
     }
 });
@@ -23,15 +24,17 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         this.create_toolbar();
 
         this.el.appendChild(this.toolbar_container);
+
+        this.model_events();
     },
 
     create_toolbar: function() {
         var toolbar_items = this.model.get('toolitems');
 
         this.toolbar_container = document.createElement('div');
-        this.toolbar_container.classList = 'jupyter-widgets widget-container widget-box widget-hbox';
-
+        this.toolbar_container.classList = this.get_container_class();
         this.toggle_button = document.createElement('button');
+
         this.toggle_button.classList = 'jupyter-widgets jupyter-button';
         this.toggle_button.setAttribute('href', '#');
         this.toggle_button.setAttribute('title', 'Toggle Interaction');
@@ -45,7 +48,7 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         this.toolbar_container.appendChild(this.toggle_button);
 
         this.toolbar = document.createElement('div');
-        this.toolbar.classList = 'jupyter-widgets widget-container widget-box widget-hbox';
+        this.toolbar.classList = this.get_container_class();
         this.toolbar_container.appendChild(this.toolbar);
 
         for(var toolbar_ind in toolbar_items) {
@@ -70,6 +73,15 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         }
     },
 
+    get_container_class: function() {
+        var orientation = this.model.get('orientation');
+        if (orientation == 'vertical') {
+            return 'jupyter-widgets widget-container widget-box widget-vbox';
+        } else {
+            return 'jupyter-widgets widget-container widget-box widget-hbox';
+        }
+    },
+
     toolbar_button_onclick: function(name) {
         var figure_id = this.model.get('figure_id');
         var toolbar_widget = this;
@@ -87,6 +99,15 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         // Toggle the interactivity of the figure.
         var visible = this.toolbar.style.display !== 'none';
         this.toolbar.style.display = visible ? 'none' : '';
+    },
+
+    model_events: function() {
+        this.model.on('change:orientation', this.update_orientation.bind(this));
+    },
+
+    update_orientation: function() {
+        this.toolbar_container.classList = this.get_container_class();
+        this.toolbar.classList = this.get_container_class();
     }
 });
 

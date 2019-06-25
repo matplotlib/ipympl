@@ -16,7 +16,7 @@ figure = function(figure_id, widget) {
 
     this.root = document.createElement('div');
     this.root.addEventListener('remove', this.close.bind(this));
-    this.root.setAttribute('style', 'display: inline-block');
+    this.root.classList = 'jupyter-widgets widget-container widget-box widget-vbox';
 
     this._init_header();
     this._init_canvas();
