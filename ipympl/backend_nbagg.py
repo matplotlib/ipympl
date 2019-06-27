@@ -8,8 +8,11 @@ from uuid import uuid4 as uuid
 
 from IPython.display import display, HTML
 
-from ipywidgets import DOMWidget
-from traitlets import Unicode, Bool, Float, List, Any
+from ipywidgets import DOMWidget, widget_serialization
+from traitlets import (
+    Unicode, Bool, Float, List, Any, Instance, Enum,
+    default
+)
 
 from matplotlib import rcParams
 from matplotlib.figure import Figure
@@ -20,6 +23,10 @@ from matplotlib.backends.backend_webagg_core import (FigureManagerWebAgg,
                                                      TimerTornado)
 from matplotlib.backend_bases import (ShowBase, NavigationToolbar2,
                                       FigureCanvasBase)
+
+here = os.path.dirname(__file__)
+with open(os.path.join(here, 'static', 'package.json')) as fid:
+    js_semver = '^%s' % json.load(fid)['version']
 
 
 class Show(ShowBase):
@@ -75,30 +82,27 @@ def connection_info():
     return '\n'.join(result)
 
 
-# Note: Version 3.2 and 4.x icons
-# http://fontawesome.io/3.2.1/icons/
-# http://fontawesome.io/
-_FONT_AWESOME_CLASSES = {
-    'home': 'fa fa-home',
-    'back': 'fa fa-arrow-left',
-    'forward': 'fa fa-arrow-right',
-    'zoom_to_rect': 'fa fa-square-o',
-    'move': 'fa fa-arrows',
-    'download': 'fa fa-floppy-o',
-    'export': 'fa fa-file-picture-o',
-    None: None
-}
+class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
 
+    _model_module = Unicode('jupyter-matplotlib').tag(sync=True)
+    _model_module_version = Unicode(js_semver).tag(sync=True)
+    _model_name = Unicode('ToolbarModel').tag(sync=True)
 
-class NavigationIPy(NavigationToolbar2WebAgg):
+    _view_module = Unicode('jupyter-matplotlib').tag(sync=True)
+    _view_module_version = Unicode(js_semver).tag(sync=True)
+    _view_name = Unicode('ToolbarView').tag(sync=True)
 
-    # Use the standard toolbar items + download button
-    toolitems = [(text, tooltip_text,
-                  _FONT_AWESOME_CLASSES[image_file], name_of_method)
-                 for text, tooltip_text, image_file, name_of_method
-                 in (NavigationToolbar2.toolitems +
-                     (('Download', 'Download plot', 'download', 'download'),))
-                 if image_file in _FONT_AWESOME_CLASSES]
+    figure_id = Unicode('').tag(sync=True)
+    toolitems = List().tag(sync=True)
+    orientation = Enum(['horizontal', 'vertical'], default_value='vertical').tag(sync=True)
+    # button style?
+
+    def __init__(self, canvas, *args, **kwargs):
+        super(DOMWidget, self).__init__(*args, **kwargs)
+        super(NavigationToolbar2WebAgg, self).__init__(canvas, *args, **kwargs)
+
+        self.figure_id = self.canvas.id
+        self.on_msg(self.canvas._handle_message)
 
     def export(self):
         buf = io.BytesIO()
@@ -111,25 +115,44 @@ class NavigationIPy(NavigationToolbar2WebAgg):
         data = data.format(b64encode(buf.getvalue()).decode('utf-8'), width)
         display(HTML(data))
 
+    @default('toolitems')
+    def _default_toolitems(self):
+        icons = {
+            'home': 'home',
+            'back': 'arrow-left',
+            'forward': 'arrow-right',
+            'zoom_to_rect': 'square-o',
+            'move': 'arrows',
+            'download': 'floppy-o',
+            'export': 'file-picture-o'
+        }
 
-here = os.path.dirname(__file__)
-with open(os.path.join(here, 'static', 'package.json')) as fid:
-    js_version = json.load(fid)['version']
+        download_item = ('Download', 'Download plot', 'download', 'save_figure')
+
+        toolitems = (NavigationToolbar2.toolitems + (download_item,))
+
+        return [(text, tooltip, icons[icon_name], method_name)
+                for text, tooltip, icon_name, method_name
+                in toolitems
+                if icon_name in icons]
 
 
 class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
 
     _model_module = Unicode('jupyter-matplotlib').tag(sync=True)
-    _model_module_version = Unicode('^%s' % js_version).tag(sync=True)
+    _model_module_version = Unicode(js_semver).tag(sync=True)
     _model_name = Unicode('MPLCanvasModel').tag(sync=True)
 
     _view_module = Unicode('jupyter-matplotlib').tag(sync=True)
-    _view_module_version = Unicode('^%s' % js_version).tag(sync=True)
+    _view_module_version = Unicode(js_semver).tag(sync=True)
     _view_name = Unicode('MPLCanvasView').tag(sync=True)
 
-    _toolbar_items = List().tag(sync=True)
+    id = Unicode('').tag(sync=True)
+
+    toolbar = Instance(Toolbar, allow_none=True).tag(sync=True, **widget_serialization)
+    toolbar_visible = Bool(True).tag(sync=True)
+    toolbar_position = Enum(['top', 'bottom', 'left', 'right'], default_value='left').tag(sync=True)
     _closed = Bool(True)
-    _id = Unicode('').tag(sync=True)
 
     # Must declare the superclass private members.
     _png_is_old = Bool()
@@ -144,9 +167,11 @@ class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
     _lasty = Any()
 
     def __init__(self, figure, *args, **kwargs):
-        super(FigureCanvasWebAggCore, self).__init__(figure, *args, **kwargs)
         super(DOMWidget, self).__init__(*args, **kwargs)
-        self._uid = uuid().hex
+        super(FigureCanvasWebAggCore, self).__init__(figure, *args, **kwargs)
+
+        self.id = uuid().hex
+
         self.on_msg(self._handle_message)
 
     def _handle_message(self, object, message, buffers):
@@ -177,17 +202,10 @@ class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
 
 
 class FigureManagerNbAgg(FigureManagerWebAgg):
-    ToolbarCls = NavigationIPy
+    ToolbarCls = Toolbar
 
     def __init__(self, canvas, num):
         FigureManagerWebAgg.__init__(self, canvas, num)
-        toolitems = []
-        for name, tooltip, image, method in self.ToolbarCls.toolitems:
-            if name is None:
-                toolitems.append(['', '', '', ''])
-            else:
-                toolitems.append([name, tooltip, image, method])
-        canvas._toolbar_items = toolitems
         self.web_sockets = [self.canvas]
 
     def show(self):
