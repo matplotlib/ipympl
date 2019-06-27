@@ -4,7 +4,6 @@ from base64 import b64encode
 import json
 import io
 import os
-from uuid import uuid4 as uuid
 
 from IPython.display import display, HTML
 
@@ -92,7 +91,6 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
     _view_module_version = Unicode(js_semver).tag(sync=True)
     _view_name = Unicode('ToolbarView').tag(sync=True)
 
-    figure_id = Unicode('').tag(sync=True)
     toolitems = List().tag(sync=True)
     orientation = Enum(['horizontal', 'vertical'], default_value='vertical').tag(sync=True)
     # button style?
@@ -101,7 +99,6 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
         super(DOMWidget, self).__init__(*args, **kwargs)
         super(NavigationToolbar2WebAgg, self).__init__(canvas, *args, **kwargs)
 
-        self.figure_id = self.canvas.id
         self.on_msg(self.canvas._handle_message)
 
     def export(self):
@@ -137,7 +134,7 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
                 if icon_name in icons]
 
 
-class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
+class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     _model_module = Unicode('jupyter-matplotlib').tag(sync=True)
     _model_module_version = Unicode(js_semver).tag(sync=True)
@@ -146,8 +143,6 @@ class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
     _view_module = Unicode('jupyter-matplotlib').tag(sync=True)
     _view_module_version = Unicode(js_semver).tag(sync=True)
     _view_name = Unicode('MPLCanvasView').tag(sync=True)
-
-    id = Unicode('').tag(sync=True)
 
     toolbar = Instance(Toolbar, allow_none=True).tag(sync=True, **widget_serialization)
     toolbar_visible = Bool(True).tag(sync=True)
@@ -170,20 +165,17 @@ class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
         super(DOMWidget, self).__init__(*args, **kwargs)
         super(FigureCanvasWebAggCore, self).__init__(figure, *args, **kwargs)
 
-        self.id = uuid().hex
-
         self.on_msg(self._handle_message)
 
-    def _handle_message(self, object, message, buffers):
-        # Every message has a "type" and a "figure_id".
-        message = json.loads(message)
-        if message['type'] == 'closing':
+    def _handle_message(self, object, content, buffers):
+        # Every content has a "type".
+        if content['type'] == 'closing':
             self._closed = True
-        elif message['type'] == 'initialized':
+        elif content['type'] == 'initialized':
             _, _, w, h = self.figure.bbox.bounds
             self.manager.resize(w, h)
         else:
-            self.manager.handle_json(message)
+            self.manager.handle_json(content)
 
     def send_json(self, content):
         self.send({'data': json.dumps(content)})
@@ -201,7 +193,7 @@ class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
         FigureCanvasBase.stop_event_loop_default(self)
 
 
-class FigureManagerNbAgg(FigureManagerWebAgg):
+class FigureManager(FigureManagerWebAgg):
     ToolbarCls = Toolbar
 
     def __init__(self, canvas, num):
@@ -237,10 +229,10 @@ def new_figure_manager_given_figure(num, figure):
     def closer(event):
         Gcf.destroy(num)
 
-    canvas = FigureCanvasNbAgg(figure)
+    canvas = Canvas(figure)
     if 'nbagg.transparent' in set(rcParams.keys()) and rcParams['nbagg.transparent']:
         figure.patch.set_alpha(0)
-    manager = FigureManagerNbAgg(canvas, num)
+    manager = FigureManager(canvas, num)
 
     if is_interactive():
         manager.show()

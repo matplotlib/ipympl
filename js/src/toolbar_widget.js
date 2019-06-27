@@ -12,7 +12,6 @@ var ToolbarModel = widgets.DOMWidgetModel.extend({
             _view_module: 'jupyter-matplotlib',
             _model_module_version: '^'+ version,
             _view_module_version: '^' + version,
-            figure_id: '',
             toolitems: [],
             orientation: 'vertical'
         });
@@ -40,7 +39,7 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         this.toggle_button.classList = 'jupyter-widgets jupyter-button';
         this.toggle_button.setAttribute('href', '#');
         this.toggle_button.setAttribute('title', 'Toggle Interaction');
-        this.toggle_button.setAttribute('style', 'outline:none');
+        this.toggle_button.style.outline = 'none';
         this.toggle_button.addEventListener('click', this.toggle_interaction.bind(this));
 
         var icon = document.createElement('i');
@@ -64,7 +63,7 @@ var ToolbarView = widgets.DOMWidgetView.extend({
             button.classList = 'jupyter-widgets jupyter-button';
             button.setAttribute('href', '#');
             button.setAttribute('title', tooltip);
-            button.setAttribute('style', 'outline:none');
+            button.style.outline = 'none';
             button.addEventListener('click', this.toolbar_button_onclick(method_name));
 
             var icon = document.createElement('i');
@@ -85,7 +84,6 @@ var ToolbarView = widgets.DOMWidgetView.extend({
     },
 
     toolbar_button_onclick: function(name) {
-        var figure_id = this.model.get('figure_id');
         var toolbar_widget = this;
 
         return function(event) {
@@ -112,11 +110,10 @@ var ToolbarView = widgets.DOMWidgetView.extend({
 
             var message = {
                 'type': 'toolbar_button',
-                'figure_id': figure_id,
                 'name': name
             };
 
-            toolbar_widget.send(JSON.stringify(message));
+            toolbar_widget.send(message);
         };
     },
 
