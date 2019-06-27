@@ -21,6 +21,7 @@ figure = function(figure_id, widget) {
     this._init_header();
     this._init_canvas();
     this._init_image();
+    this._init_footer();
 
     this.waiting = false;
 
@@ -131,6 +132,13 @@ figure.prototype._init_image = function() {
     }
 };
 
+figure.prototype._init_footer = function() {
+    this.footer = document.createElement('div');
+    this.footer.setAttribute('style', 'text-align: center;');
+    this.footer.classList = 'jupyter-widgets widget-label';
+    this.root.appendChild(this.footer);
+};
+
 figure.prototype.request_resize = function(x_pixels, y_pixels) {
     // Request matplotlib to resize the figure. Matplotlib will then trigger a resize in the client,
     // which will in turn request a refresh of the image.
@@ -189,21 +197,11 @@ figure.prototype.handle_rubberband = function(msg) {
 
 figure.prototype.handle_figure_label = function(msg) {
     // Updates the figure title.
-    this.figure_label = msg['label'];
-    this.update_header();
+    this.header.textContent = msg['label'];
 };
 
 figure.prototype.handle_message = function(msg) {
-    this.message = msg['message'];
-    this.update_header();
-};
-
-figure.prototype.update_header = function(msg) {
-    var header = this.figure_label;
-    if (this.message) {
-        header += ' (' + this.message + ')';
-    }
-    this.header.textContent = header;
+    this.footer.textContent = msg['message'];
 };
 
 figure.prototype.handle_cursor = function(msg) {
