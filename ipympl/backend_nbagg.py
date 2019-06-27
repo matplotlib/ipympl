@@ -26,7 +26,7 @@ from matplotlib.backend_bases import (ShowBase, NavigationToolbar2,
 
 here = os.path.dirname(__file__)
 with open(os.path.join(here, 'static', 'package.json')) as fid:
-    js_version = '^%s' % json.load(fid)['version']
+    js_semver = '^%s' % json.load(fid)['version']
 
 
 class Show(ShowBase):
@@ -85,11 +85,11 @@ def connection_info():
 class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
 
     _model_module = Unicode('jupyter-matplotlib').tag(sync=True)
-    _model_module_version = Unicode(js_version).tag(sync=True)
+    _model_module_version = Unicode(js_semver).tag(sync=True)
     _model_name = Unicode('ToolbarModel').tag(sync=True)
 
     _view_module = Unicode('jupyter-matplotlib').tag(sync=True)
-    _view_module_version = Unicode(js_version).tag(sync=True)
+    _view_module_version = Unicode(js_semver).tag(sync=True)
     _view_name = Unicode('ToolbarView').tag(sync=True)
 
     figure_id = Unicode('').tag(sync=True)
@@ -140,11 +140,11 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
 class FigureCanvasNbAgg(DOMWidget, FigureCanvasWebAggCore):
 
     _model_module = Unicode('jupyter-matplotlib').tag(sync=True)
-    _model_module_version = Unicode(js_version).tag(sync=True)
+    _model_module_version = Unicode(js_semver).tag(sync=True)
     _model_name = Unicode('MPLCanvasModel').tag(sync=True)
 
     _view_module = Unicode('jupyter-matplotlib').tag(sync=True)
-    _view_module_version = Unicode(js_version).tag(sync=True)
+    _view_module_version = Unicode(js_semver).tag(sync=True)
     _view_name = Unicode('MPLCanvasView').tag(sync=True)
 
     id = Unicode('').tag(sync=True)
