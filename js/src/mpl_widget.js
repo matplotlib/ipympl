@@ -38,7 +38,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         this.figure = document.createElement('div');
         this.figure.addEventListener('remove', this.close.bind(this));
-        this.figure.classList = 'jupyter-widgets widget-container widget-box widget-vbox';
+        this.figure.classList = 'ipympl_figure jupyter-widgets widget-container widget-box widget-vbox';
         this.el.appendChild(this.figure);
 
         this._init_header();
@@ -50,12 +50,14 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         var that = this;
 
-        this.create_child_view(this.model.get('toolbar')).then(function(toolbar_view) {
+        return this.create_child_view(this.model.get('toolbar')).then(function(toolbar_view) {
             that.toolbar_view = toolbar_view;
 
             that.update_toolbar_position();
 
             that.model_events();
+
+            window.addEventListener('resize', that.request_resize.bind(that));
 
             that.send_initialization_message();
         });
@@ -79,12 +81,13 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
     update_toolbar_visible: function() {
         this.toolbar_view.el.style.display = this.model.get('toolbar_visible') ? '' : 'none';
+        this.request_resize();
     },
 
     update_toolbar_position: function() {
         var toolbar_position = this.model.get('toolbar_position');
         if (toolbar_position == 'top' || toolbar_position == 'bottom') {
-            this.el.classList = 'jupyter-widgets widget-container widget-box widget-vbox';
+            this.el.classList = 'jupyter-widgets widget-container widget-box widget-vbox ipympl_widget';
             this.model.get('toolbar').set('orientation', 'horizontal');
 
             this.clear();
@@ -97,7 +100,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
                 this.el.appendChild(this.toolbar_view.el);
             }
         } else {
-            this.el.classList = 'jupyter-widgets widget-container widget-box widget-hbox';
+            this.el.classList = 'jupyter-widgets widget-container widget-box widget-hbox ipympl_widget';
             this.model.get('toolbar').set('orientation', 'vertical');
 
             this.clear();
@@ -129,7 +132,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         var canvas_div = this.canvas_div = document.createElement('div');
         canvas_div.style.position = 'relative';
         canvas_div.style.clear = 'both';
-        canvas_div.style.outline = 'none';
+        canvas_div.classList = 'jupyter-widgets ipympl_canvas_div';
 
         canvas_div.addEventListener('keydown', this.key_event('key_press'));
         canvas_div.addEventListener('keyup', this.key_event('key_release'));
@@ -151,7 +154,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
             this.context.oBackingStorePixelRatio ||
             this.context.backingStorePixelRatio || 1;
 
-        var ratio = this.ratio = (window.devicePixelRatio || 1) / backingStore;
+        this.ratio = (window.devicePixelRatio || 1) / backingStore;
 
         var rubberband_canvas = this.rubberband_canvas = document.createElement('canvas');
         rubberband_canvas.style.position = 'absolute';
@@ -171,25 +174,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         this.rubberband_context = rubberband_canvas.getContext('2d');
         this.rubberband_context.strokeStyle = '#000000';
-
-        this._resize_canvas = function(width, height) {
-            // Keep the size of the canvas, canvas container, and rubber band
-            // canvas in synch.
-            canvas_div.style.width = width;
-            canvas_div.style.height = height;
-
-            canvas.setAttribute('width', width * ratio);
-            canvas.setAttribute('height', height * ratio);
-            canvas.style.width = width + 'px';
-            canvas.style.height = height + 'px';
-
-            rubberband_canvas.setAttribute('width', width);
-            rubberband_canvas.setAttribute('height', height);
-        };
-
-        // Set the figure to an initial 600x600px, this will subsequently be updated
-        // upon first draw.
-        this._resize_canvas(600, 600);
 
         // Disable right mouse context menu.
         this.rubberband_canvas.addEventListener('contextmenu', function(e) {
@@ -225,10 +209,23 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         this.figure.appendChild(this.footer);
     },
 
-    request_resize: function(x_pixels, y_pixels) {
+    request_resize: function() {
         // Request matplotlib to resize the figure. Matplotlib will then trigger a resize in the client,
         // which will in turn request a refresh of the image.
-        this.send_message('resize', {'width': x_pixels, 'height': y_pixels});
+        var rect = this.canvas_div.getBoundingClientRect();
+        this.send_message('resize', {'width': rect.width, 'height': rect.height});
+    },
+
+    _resize_canvas: function(width, height) {
+        // Keep the size of the canvas, and rubber band canvas in sync.
+        this.canvas.setAttribute('width', width * this.ratio);
+        this.canvas.setAttribute('height', height * this.ratio);
+        this.canvas.style.width = width + 'px';
+
+        this.rubberband_canvas.setAttribute('width', width * this.ratio);
+        this.rubberband_canvas.setAttribute('height', height * this.ratio);
+        this.rubberband_canvas.style.height = height + 'px';
+        this.rubberband_canvas.style.height = height + 'px';
     },
 
     send_message: function(type, message = {}) {
@@ -358,6 +355,17 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
             } catch (e) {
                 console.log('Exception inside the \'handler_' + msg_type + '\' callback:', e, e.stack, msg);
             }
+        }
+    },
+
+    processPhosphorMessage: function(msg) {
+        MPLCanvasView.__super__.processPhosphorMessage.apply(this, arguments);
+
+        switch (msg.type) {
+        case 'resize':
+        // case 'after-show':
+            this.request_resize();
+            break;
         }
     },
 
