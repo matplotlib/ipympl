@@ -36,14 +36,14 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         this.toolbar_container.classList = this.get_container_class();
         this.toggle_button = document.createElement('button');
 
-        this.toggle_button.classList = 'jupyter-widgets jupyter-button';
+        this.toggle_button.classList = 'ipympl_button jupyter-widgets jupyter-button';
         this.toggle_button.setAttribute('href', '#');
         this.toggle_button.setAttribute('title', 'Toggle Interaction');
         this.toggle_button.style.outline = 'none';
         this.toggle_button.addEventListener('click', this.toggle_interaction.bind(this));
 
         var icon = document.createElement('i');
-        icon.classList = 'fa fa-bars';
+        icon.classList = 'center fa fa-bars';
         this.toggle_button.appendChild(icon);
 
         this.toolbar_container.appendChild(this.toggle_button);
@@ -60,14 +60,14 @@ var ToolbarView = widgets.DOMWidgetView.extend({
             if (!name) { continue; };
 
             var button = document.createElement('button');
-            button.classList = 'jupyter-widgets jupyter-button';
+            button.classList = 'ipympl_button jupyter-widgets jupyter-button';
             button.setAttribute('href', '#');
             button.setAttribute('title', tooltip);
             button.style.outline = 'none';
             button.addEventListener('click', this.toolbar_button_onclick(method_name));
 
             var icon = document.createElement('i');
-            icon.classList = 'fa fa-' + image;
+            icon.classList = 'center fa fa-' + image;
             button.appendChild(icon);
 
             this.toolbar.appendChild(button);
