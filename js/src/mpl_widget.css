@@ -1,0 +1,4 @@
+.ipympl_button {
+  width: 34px; /* calc(var(--jp-widgets-inline-width-tiny) / 2 - 2px) */
+  padding: 0;
+}

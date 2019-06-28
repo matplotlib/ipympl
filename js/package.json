@@ -28,6 +28,8 @@
   },
   "dependencies": {
     "@jupyter-widgets/base": "^1.1.0",
-    "lodash": "^4.17.4"
+    "css-loader": "^3.0.0",
+    "lodash": "^4.17.4",
+    "style-loader": "^0.23.1"
   }
 }

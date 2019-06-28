@@ -3,6 +3,8 @@ var _ = require('lodash');
 var toolbar = require('./toolbar_widget.js');
 var utils = require('./utils.js');
 
+require('./mpl_widget.css');
+
 var version = require('../package.json').version;
 
 var MPLCanvasModel = widgets.DOMWidgetModel.extend({
@@ -136,7 +138,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         this.figure.appendChild(canvas_div);
 
         var canvas = this.canvas = document.createElement('canvas');
-        canvas.classList.add('mpl-canvas');
         canvas.style.left = 0;
         canvas.style.top = 0;
         canvas.style.zIndex = 0;
@@ -157,9 +158,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         rubberband_canvas.style.left = 0;
         rubberband_canvas.style.top = 0;
         rubberband_canvas.style.zIndex = 1;
-
-        // TODO: on resize event
-        // this.request_resize(width, height);
 
         rubberband_canvas.addEventListener('mousedown', this.mouse_event('button_press'));
         rubberband_canvas.addEventListener('mouseup', this.mouse_event('button_release'));
