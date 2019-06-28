@@ -96,8 +96,8 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
     # button style?
 
     def __init__(self, canvas, *args, **kwargs):
-        super(DOMWidget, self).__init__(*args, **kwargs)
-        super(NavigationToolbar2WebAgg, self).__init__(canvas, *args, **kwargs)
+        DOMWidget.__init__(self, *args, **kwargs)
+        NavigationToolbar2WebAgg.__init__(self, canvas, *args, **kwargs)
 
         self.on_msg(self.canvas._handle_message)
 
@@ -162,8 +162,8 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     _lasty = Any()
 
     def __init__(self, figure, *args, **kwargs):
-        super(DOMWidget, self).__init__(*args, **kwargs)
-        super(FigureCanvasWebAggCore, self).__init__(figure, *args, **kwargs)
+        DOMWidget.__init__(self, *args, **kwargs)
+        FigureCanvasWebAggCore.__init__(self, figure, *args, **kwargs)
 
         self.on_msg(self._handle_message)
 
