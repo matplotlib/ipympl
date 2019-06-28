@@ -31,6 +31,8 @@ var ToolbarView = widgets.DOMWidgetView.extend({
     create_toolbar: function() {
         var toolbar_items = this.model.get('toolitems');
 
+        this.current_action = '';
+
         this.toolbar_container = document.createElement('div');
         this.toolbar_container.classList = this.get_container_class();
         this.toggle_button = document.createElement('button');
@@ -85,12 +87,35 @@ var ToolbarView = widgets.DOMWidgetView.extend({
     toolbar_button_onclick: function(name) {
         var figure_id = this.model.get('figure_id');
         var toolbar_widget = this;
-        return function() {
+
+        return function(event) {
+            var button = event.target;
+
+            // Special case for pan and zoom as they are toggle buttons
+            if (name == 'pan' || name == 'zoom') {
+                if (toolbar_widget.current_action == '') {
+                    toolbar_widget.current_action = name;
+                    button.classList.add('mod-active');
+                }
+                else if (toolbar_widget.current_action == name) {
+                    toolbar_widget.current_action = '';
+                    button.classList.remove('mod-active');
+                }
+                else {
+                    toolbar_widget.current_action = name;
+                    [].forEach.call(toolbar_widget.toolbar.children, function(child) {
+                        child.classList.remove('mod-active');
+                    });
+                    button.classList.add('mod-active');
+                }
+            }
+
             var message = {
                 'type': 'toolbar_button',
                 'figure_id': figure_id,
                 'name': name
             };
+
             toolbar_widget.send(JSON.stringify(message));
         };
     },
