@@ -13,7 +13,8 @@ var ToolbarModel = widgets.DOMWidgetModel.extend({
             _model_module_version: '^'+ version,
             _view_module_version: '^' + version,
             toolitems: [],
-            orientation: 'vertical'
+            orientation: 'vertical',
+            button_style: ''
         });
     }
 });
@@ -52,6 +53,8 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         this.toolbar.classList = this.get_container_class();
         this.toolbar_container.appendChild(this.toolbar);
 
+        this.buttons = [this.toggle_button];
+
         for(var toolbar_ind in toolbar_items) {
             var name = toolbar_items[toolbar_ind][0];
             var tooltip = toolbar_items[toolbar_ind][1];
@@ -70,8 +73,12 @@ var ToolbarView = widgets.DOMWidgetView.extend({
             icon.classList = 'center fa fa-' + image;
             button.appendChild(icon);
 
+            this.buttons.push(button);
+
             this.toolbar.appendChild(button);
         }
+
+        this.set_buttons_style();
     },
 
     get_container_class: function() {
@@ -84,27 +91,27 @@ var ToolbarView = widgets.DOMWidgetView.extend({
     },
 
     toolbar_button_onclick: function(name) {
-        var toolbar_widget = this;
+        var that = this;
 
         return function(event) {
-            var button = event.target;
+            var target = event.target;
 
             // Special case for pan and zoom as they are toggle buttons
             if (name == 'pan' || name == 'zoom') {
-                if (toolbar_widget.current_action == '') {
-                    toolbar_widget.current_action = name;
-                    button.classList.add('mod-active');
+                if (that.current_action == '') {
+                    that.current_action = name;
+                    target.classList.add('mod-active');
                 }
-                else if (toolbar_widget.current_action == name) {
-                    toolbar_widget.current_action = '';
-                    button.classList.remove('mod-active');
+                else if (that.current_action == name) {
+                    that.current_action = '';
+                    target.classList.remove('mod-active');
                 }
                 else {
-                    toolbar_widget.current_action = name;
-                    [].forEach.call(toolbar_widget.toolbar.children, function(child) {
-                        child.classList.remove('mod-active');
+                    that.current_action = name;
+                    that.buttons.forEach(function(button) {
+                        button.classList.remove('mod-active');
                     });
-                    button.classList.add('mod-active');
+                    target.classList.add('mod-active');
                 }
             }
 
@@ -113,8 +120,31 @@ var ToolbarView = widgets.DOMWidgetView.extend({
                 'name': name
             };
 
-            toolbar_widget.send(message);
+            that.send(message);
         };
+    },
+
+    set_buttons_style: function() {
+        var that = this;
+
+        var class_map = {
+            primary: ['mod-primary'],
+            success: ['mod-success'],
+            info: ['mod-info'],
+            warning: ['mod-warning'],
+            danger: ['mod-danger']
+        };
+
+        this.buttons.forEach(function(button) {
+            for (var class_name in class_map) {
+                button.classList.remove(class_map[class_name]);
+            }
+
+            var class_name = that.model.get('button_style');
+            if (class_name != '') {
+                button.classList.add(class_map[class_name]);
+            }
+        });
     },
 
     toggle_interaction: function() {
@@ -125,6 +155,7 @@ var ToolbarView = widgets.DOMWidgetView.extend({
 
     model_events: function() {
         this.model.on('change:orientation', this.update_orientation.bind(this));
+        this.model.on('change:button_style', this.set_buttons_style.bind(this));
     },
 
     update_orientation: function() {
