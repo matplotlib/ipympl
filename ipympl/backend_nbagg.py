@@ -9,7 +9,7 @@ from IPython.display import display, HTML
 
 from ipywidgets import DOMWidget, widget_serialization
 from traitlets import (
-    Unicode, Bool, Float, List, Any, Instance, Enum,
+    Unicode, Bool, Float, List, Any, Instance, CaselessStrEnum, Enum,
     default
 )
 
@@ -93,7 +93,9 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
 
     toolitems = List().tag(sync=True)
     orientation = Enum(['horizontal', 'vertical'], default_value='vertical').tag(sync=True)
-    # button style?
+    button_style = CaselessStrEnum(
+        values=['primary', 'success', 'info', 'warning', 'danger', ''], default_value='',
+        help="""Use a predefined styling for the button.""").tag(sync=True)
 
     def __init__(self, canvas, *args, **kwargs):
         DOMWidget.__init__(self, *args, **kwargs)
