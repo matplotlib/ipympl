@@ -1,11 +1,9 @@
 """Interactive figures in the Jupyter notebook"""
 
-from base64 import b64encode
 import json
-import io
 import os
 
-from IPython.display import display, HTML
+from IPython.display import display
 
 from ipywidgets import DOMWidget, widget_serialization
 from traitlets import (
