@@ -17,7 +17,6 @@ from matplotlib import rcParams, backend_bases
 from matplotlib.figure import Figure
 from matplotlib import is_interactive
 from matplotlib.backends.backend_webagg_core import (FigureCanvasWebAggCore,
-                                                     NavigationToolbar2WebAgg,
                                                      TimerTornado)
 from matplotlib.backend_bases import (ShowBase, NavigationToolbar2,
                                       FigureCanvasBase)
@@ -80,7 +79,7 @@ def connection_info():
     return '\n'.join(result)
 
 
-class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
+class Toolbar(DOMWidget, backend_bases.NavigationToolbar2):
 
     _model_module = Unicode('jupyter-matplotlib').tag(sync=True)
     _model_module_version = Unicode(js_semver).tag(sync=True)
@@ -98,20 +97,36 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
 
     def __init__(self, canvas, *args, **kwargs):
         DOMWidget.__init__(self, *args, **kwargs)
-        NavigationToolbar2WebAgg.__init__(self, canvas, *args, **kwargs)
+        backend_bases.NavigationToolbar2.__init__(self, canvas, *args, **kwargs)
 
         self.on_msg(self.canvas._handle_message)
 
-    def export(self):
-        buf = io.BytesIO()
-        self.canvas.figure.savefig(buf, format='png', dpi='figure')
-        # Figure width in pixels
-        pwidth = self.canvas.figure.get_figwidth() * self.canvas.figure.get_dpi()
-        # Scale size to match widget on HiPD monitors
-        width = pwidth / self.canvas._dpi_ratio
-        data = "<img src='data:image/png;base64,{0}' width={1}/>"
-        data = data.format(b64encode(buf.getvalue()).decode('utf-8'), width)
-        display(HTML(data))
+    def _init_toolbar(self):
+        self.message = ''
+        self.cursor = 0
+
+    def set_message(self, message):
+        if message != self.message:
+            self.canvas.send_event("message", message=message)
+        self.message = message
+
+    def set_cursor(self, cursor):
+        if cursor != self.cursor:
+            self.canvas.send_event("cursor", cursor=cursor)
+        self.cursor = cursor
+
+    def draw_rubberband(self, event, x0, y0, x1, y1):
+        self.canvas.send_event(
+            "rubberband", x0=x0, y0=y0, x1=x1, y1=y1)
+
+    def release_zoom(self, event):
+        backend_bases.NavigationToolbar2.release_zoom(self, event)
+        self.canvas.send_event(
+            "rubberband", x0=-1, y0=-1, x1=-1, y1=-1)
+
+    def save_figure(self, *args):
+        """Save the current figure"""
+        self.canvas.send_event('save')
 
     @default('toolitems')
     def _default_toolitems(self):
