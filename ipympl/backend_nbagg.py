@@ -13,11 +13,10 @@ from traitlets import (
     default
 )
 
-from matplotlib import rcParams
+from matplotlib import rcParams, backend_bases
 from matplotlib.figure import Figure
 from matplotlib import is_interactive
-from matplotlib.backends.backend_webagg_core import (FigureManagerWebAgg,
-                                                     FigureCanvasWebAggCore,
+from matplotlib.backends.backend_webagg_core import (FigureCanvasWebAggCore,
                                                      NavigationToolbar2WebAgg,
                                                      TimerTornado)
 from matplotlib.backend_bases import (ShowBase, NavigationToolbar2,
@@ -182,8 +181,8 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     def send_json(self, content):
         self.send({'data': json.dumps(content)})
 
-    def send_binary(self, data):
-        self.send({'data': '{"type": "binary"}'}, buffers=[data])
+    def refresh(self):
+        self.send({'data': '{"type": "binary"}'}, buffers=[self.get_diff_image()])
 
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)
@@ -195,12 +194,13 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         FigureCanvasBase.stop_event_loop_default(self)
 
 
-class FigureManager(FigureManagerWebAgg):
+class FigureManager(backend_bases.FigureManagerBase):
     ToolbarCls = Toolbar
 
     def __init__(self, canvas, num):
-        FigureManagerWebAgg.__init__(self, canvas, num)
-        self.web_sockets = [self.canvas]
+        backend_bases.FigureManagerBase.__init__(self, canvas, num)
+
+        self.toolbar = self.ToolbarCls(canvas)
 
     def show(self):
         if self.canvas._closed:
@@ -209,8 +209,25 @@ class FigureManager(FigureManagerWebAgg):
         else:
             self.canvas.draw_idle()
 
-    def destroy(self):
-        self.canvas.close()
+    def resize(self, w, h):
+        self._send_event(
+            'resize',
+            size=(w / self.canvas._dpi_ratio, h / self.canvas._dpi_ratio)
+        )
+
+    def set_window_title(self, title):
+        self._send_event('figure_label', label=title)
+
+    def handle_json(self, content):
+        self.canvas.handle_event(content)
+
+    def refresh_all(self):
+        self.canvas.refresh()
+
+    def _send_event(self, event_type, **kwargs):
+        payload = {'type': event_type, **kwargs}
+        self.canvas.send_json(payload)
+
 
 
 def new_figure_manager(num, *args, **kwargs):
