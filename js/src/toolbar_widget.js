@@ -21,10 +21,9 @@ var ToolbarModel = widgets.DOMWidgetModel.extend({
 
 var ToolbarView = widgets.DOMWidgetView.extend({
     render: function() {
+        this.el.classList = 'jupyter-widgets jupyter-matplotlib-toolbar';
+        this.el.classList.add('widget-container', 'widget-box');
         this.create_toolbar();
-
-        this.el.appendChild(this.toolbar_container);
-
         this.model_events();
     },
 
@@ -33,11 +32,9 @@ var ToolbarView = widgets.DOMWidgetView.extend({
 
         this.current_action = '';
 
-        this.toolbar_container = document.createElement('div');
-        this.toolbar_container.classList = this.get_container_class();
         this.toggle_button = document.createElement('button');
 
-        this.toggle_button.classList = 'ipympl_button jupyter-widgets jupyter-button';
+        this.toggle_button.classList = 'jupyter-matplotlib-button jupyter-widgets jupyter-button';
         this.toggle_button.setAttribute('href', '#');
         this.toggle_button.setAttribute('title', 'Toggle Interaction');
         this.toggle_button.style.outline = 'none';
@@ -47,12 +44,10 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         icon.classList = 'center fa fa-bars';
         this.toggle_button.appendChild(icon);
 
-        this.toolbar_container.appendChild(this.toggle_button);
-
+        this.el.appendChild(this.toggle_button);
         this.toolbar = document.createElement('div');
-        this.toolbar.classList = this.get_container_class();
-        this.toolbar_container.appendChild(this.toolbar);
-
+        this.toolbar.classList = 'widget-container widget-box';
+        this.el.appendChild(this.toolbar);
         this.buttons = [this.toggle_button];
 
         for(var toolbar_ind in toolbar_items) {
@@ -63,7 +58,7 @@ var ToolbarView = widgets.DOMWidgetView.extend({
             if (!name) { continue; };
 
             var button = document.createElement('button');
-            button.classList = 'ipympl_button jupyter-widgets jupyter-button';
+            button.classList = 'jupyter-matplotlib-button jupyter-widgets jupyter-button';
             button.setAttribute('href', '#');
             button.setAttribute('title', tooltip);
             button.style.outline = 'none';
@@ -78,15 +73,19 @@ var ToolbarView = widgets.DOMWidgetView.extend({
             this.toolbar.appendChild(button);
         }
 
+        this.set_orientation(this.el);
+        this.set_orientation(this.toolbar);
         this.set_buttons_style();
     },
 
-    get_container_class: function() {
+    set_orientation: function(el) {
         var orientation = this.model.get('orientation');
         if (orientation == 'vertical') {
-            return 'jupyter-widgets widget-container widget-box widget-vbox';
+            el.classList.remove('widget-hbox');
+            el.classList.add('widget-vbox');
         } else {
-            return 'jupyter-widgets widget-container widget-box widget-hbox';
+            el.classList.add('widget-hbox');
+            el.classList.remove('widget-vbox');
         }
     },
 
@@ -159,8 +158,8 @@ var ToolbarView = widgets.DOMWidgetView.extend({
     },
 
     update_orientation: function() {
-        this.toolbar_container.classList = this.get_container_class();
-        this.toolbar.classList = this.get_container_class();
+        this.set_orientation(this.el);
+        this.set_orientation(this.toolbar);
     }
 });
 
