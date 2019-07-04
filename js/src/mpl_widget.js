@@ -135,6 +135,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         canvas_div.addEventListener('keydown', this.key_event('key_press'));
         canvas_div.addEventListener('keyup', this.key_event('key_release'));
+
         // this is important to make the div 'focusable'
         canvas_div.setAttribute('tabindex', 0);
         this.figure.appendChild(canvas_div);
@@ -169,6 +170,8 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         rubberband_canvas.addEventListener('mouseenter', this.mouse_event('figure_enter'));
         rubberband_canvas.addEventListener('mouseleave', this.mouse_event('figure_leave'));
+
+        rubberband_canvas.addEventListener('wheel', this.mouse_event('scroll'));
 
         canvas_div.appendChild(canvas);
         canvas_div.appendChild(rubberband_canvas);
@@ -375,8 +378,16 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         return function(event) {
             var canvas_pos = utils.get_mouse_position(event);
 
-            if (name === 'button_press')
-            {
+            if (name === 'scroll') {
+                event['data'] = 'scroll'
+                if (event.deltaY < 0) {
+                    event.step = 1;
+                } else {
+                    event.step = -1;
+                }
+            }
+
+            if (name === 'button_press') {
                 that.canvas.focus();
                 that.canvas_div.focus();
             }
@@ -404,15 +415,15 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
             event.preventDefault();
 
             // Prevent repeat events
-            if (name == 'key_press')
-            {
+            if (name == 'key_press') {
                 if (event.which === that._key)
                     return;
                 else
                     that._key = event.which;
             }
-            if (name == 'key_release')
+            if (name == 'key_release') {
                 that._key = null;
+            }
 
             var value = '';
             if (event.ctrlKey && event.which != 17)
