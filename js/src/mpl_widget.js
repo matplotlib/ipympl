@@ -38,8 +38,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         this.figure = document.createElement('div');
         this.figure.addEventListener('remove', this.close.bind(this));
-        this.figure.classList = 'ipympl_figure jupyter-widgets widget-container widget-box widget-vbox';
-        this.el.appendChild(this.figure);
+        this.figure.classList = 'jupyter-matplotlib-figure jupyter-widgets widget-container widget-box widget-vbox';
 
         this._init_header();
         this._init_canvas();
@@ -87,7 +86,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
     update_toolbar_position: function() {
         var toolbar_position = this.model.get('toolbar_position');
         if (toolbar_position == 'top' || toolbar_position == 'bottom') {
-            this.el.classList = 'jupyter-widgets widget-container widget-box widget-vbox ipympl_widget';
+            this.el.classList = 'jupyter-widgets widget-container widget-box widget-vbox jupyter-matplotlib';
             this.model.get('toolbar').set('orientation', 'horizontal');
 
             this.clear();
@@ -100,7 +99,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
                 this.el.appendChild(this.toolbar_view.el);
             }
         } else {
-            this.el.classList = 'jupyter-widgets widget-container widget-box widget-hbox ipympl_widget';
+            this.el.classList = 'jupyter-widgets widget-container widget-box widget-hbox jupyter-matplotlib';
             this.model.get('toolbar').set('orientation', 'vertical');
 
             this.clear();
@@ -132,7 +131,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         var canvas_div = this.canvas_div = document.createElement('div');
         canvas_div.style.position = 'relative';
         canvas_div.style.clear = 'both';
-        canvas_div.classList = 'jupyter-widgets ipympl_canvas_div';
+        canvas_div.classList = 'jupyter-widgets jupyter-matplotlib-canvas_div';
 
         canvas_div.addEventListener('keydown', this.key_event('key_press'));
         canvas_div.addEventListener('keyup', this.key_event('key_release'));
@@ -141,6 +140,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         this.figure.appendChild(canvas_div);
 
         var canvas = this.canvas = document.createElement('canvas');
+        canvas.style.display = 'block';
         canvas.style.left = 0;
         canvas.style.top = 0;
         canvas.style.zIndex = 0;
@@ -157,6 +157,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         this.ratio = (window.devicePixelRatio || 1) / backingStore;
 
         var rubberband_canvas = this.rubberband_canvas = document.createElement('canvas');
+        rubberband_canvas.style.display = 'block';
         rubberband_canvas.style.position = 'absolute';
         rubberband_canvas.style.left = 0;
         rubberband_canvas.style.top = 0;

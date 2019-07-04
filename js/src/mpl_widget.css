@@ -1,19 +1,27 @@
-.ipympl_widget {
+.jupyter-matplotlib {
   height: 500px;
+  flex: 1 1 auto;
 }
 
-.ipympl_button {
+/* Toolbar */
+
+.jupyter-matplotlib-button {
   width: 34px; /* calc(var(--jp-widgets-inline-width-tiny) / 2 - 2px) */
   padding: 0;
 }
 
-.ipympl_figure {
+/* Figure */
+
+.jupyter-matplotlib-figure {
   width: 100%;
   height: 100%;
 }
 
-.ipympl_canvas_div {
+.jupyter-matplotlib-canvas_div {
   margin: 2px;
-  flex-grow: 1; /* Take all the remaining space after the header and footer is displayed */
-  overflow: hidden;
+  flex: 1 1 auto;
+}
+
+.jupyter-matplotlib-canvas_div:focus {
+  outline: 1px solid; /* 1px solid var(--jp-widgets-input-focus-border-color); */
 }
