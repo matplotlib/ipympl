@@ -4,4 +4,4 @@ channels:
 dependencies:
   - numpy
   - matplotlib-base>=2.2.2
-  - ipympl=0.3.0
+  - ipympl=0.3.2
