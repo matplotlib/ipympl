@@ -1,7 +1,7 @@
 # jupyter-matplotlib
 
 [![Version](https://img.shields.io/pypi/v/ipympl.svg)](https://pypi.python.org/pypi/ipympl)
-[![Binder](https://img.shields.io/badge/launch-binder-brightgreen.svg)](https://mybinder.org/v2/gh/matplotlib/jupyter-matplotlib/master?filepath=examples)
+[![Binder](https://img.shields.io/badge/launch-binder-brightgreen.svg)](https://mybinder.org/v2/gh/matplotlib/jupyter-matplotlib/stable?filepath=examples)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jupyter-widgets/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Leveraging the Jupyter interactive widgets framework, jupyter-matplotlib
@@ -30,8 +30,10 @@ To install `ipympl` with conda:
 
 ```bash
 conda install -c conda-forge ipympl
+
 # If using the Notebook
 conda install -c conda-forge widgetsnbextension
+
 # If using JupyterLab
 conda install nodejs
 jupyter labextension install @jupyter-widgets/jupyterlab-manager
@@ -42,6 +44,7 @@ To install `ipympl` with pip:
 
 ```bash
 pip install ipympl
+
 # If using JupyterLab
 # Install nodejs: https://nodejs.org/en/download/
 jupyter labextension install @jupyter-widgets/jupyterlab-manager

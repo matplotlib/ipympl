@@ -3,5 +3,5 @@ channels:
   - conda-forge
 dependencies:
   - numpy
-  - matplotlib=2.2.2
-  - ipympl=0.2.0
+  - matplotlib-base>=2.2.2
+  - ipympl=0.3.0

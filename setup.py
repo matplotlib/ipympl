@@ -150,7 +150,7 @@ setup_args = {
     'version': version_ns['__version__'],
     'description': 'Matplotlib Jupyter Extension',
     'long_description': LONG_DESCRIPTION,
-    'License': 'BSD License',
+    'license': 'BSD License',
     'include_package_data': True,
     'data_files': get_data_files(),
     'install_requires': [
