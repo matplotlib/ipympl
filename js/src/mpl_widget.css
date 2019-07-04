@@ -6,7 +6,7 @@
 /* Toolbar */
 
 .jupyter-matplotlib-button {
-  width: 34px; /* calc(var(--jp-widgets-inline-width-tiny) / 2 - 2px) */
+  width: calc(var(--jp-widgets-inline-width-tiny) / 2 - 2px);
   padding: 0;
 }
 
@@ -23,5 +23,5 @@
 }
 
 .jupyter-matplotlib-canvas_div:focus {
-  outline: 1px solid; /* 1px solid var(--jp-widgets-input-focus-border-color); */
+  outline: 1px solid var(--jp-widgets-input-focus-border-color);
 }
