@@ -1,3 +1,6 @@
+.gitignore
+examples/gitignore.ipynb
+
 *.egg-info/
 .ipynb_checkpoints/
 dist/
