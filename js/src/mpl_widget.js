@@ -142,6 +142,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         var canvas = this.canvas = document.createElement('canvas');
         canvas.style.display = 'block';
+        canvas.style.position = 'absolute';
         canvas.style.left = 0;
         canvas.style.top = 0;
         canvas.style.zIndex = 0;
