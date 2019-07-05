@@ -226,10 +226,8 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         this.canvas.setAttribute('height', height * this.ratio);
         this.canvas.style.width = width + 'px';
 
-        this.rubberband_canvas.setAttribute('width', width * this.ratio);
-        this.rubberband_canvas.setAttribute('height', height * this.ratio);
-        this.rubberband_canvas.style.height = height + 'px';
-        this.rubberband_canvas.style.height = height + 'px';
+        this.rubberband_canvas.setAttribute('width', width);
+        this.rubberband_canvas.setAttribute('height', height);
     },
 
     send_message: function(type, message = {}) {
