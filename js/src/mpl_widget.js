@@ -182,6 +182,8 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         // Disable right mouse context menu.
         this.rubberband_canvas.addEventListener('contextmenu', function(e) {
+            event.preventDefault();
+            event.stopPropagation();
             return false;
         });
     },
