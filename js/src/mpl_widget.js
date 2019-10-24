@@ -374,6 +374,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
     mouse_event: function(name) {
         var that = this;
+        var last_update = 0;
         return function(event) {
             var canvas_pos = utils.get_mouse_position(event);
 
@@ -391,12 +392,18 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
                 that.canvas_div.focus();
             }
 
-            var x = canvas_pos.x * that.ratio;
-            var y = canvas_pos.y * that.ratio;
+            // Rate-limit the position text updates so that we don't overwhelm the
+            // system.
+            if (Date.now() > last_update + 40) {
+                last_update = Date.now();
 
-            that.send_message(name, {x: x, y: y, button: event.button,
-                                    step: event.step,
-                                    guiEvent: utils.get_simple_keys(event)});
+                var x = canvas_pos.x * that.ratio;
+                var y = canvas_pos.y * that.ratio;
+
+                that.send_message(name, {x: x, y: y, button: event.button,
+                                        step: event.step,
+                                        guiEvent: utils.get_simple_keys(event)});
+            }
 
             /* This prevents the web browser from automatically changing to
              * the text insertion cursor when the button is pressed.  We want
