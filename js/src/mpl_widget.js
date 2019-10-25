@@ -231,6 +231,9 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         this.rubberband_canvas.setAttribute('width', width);
         this.rubberband_canvas.setAttribute('height', height);
+
+        this.canvas_div.style.width = width + 'px';
+        this.canvas_div.style.height = height + 'px';
     },
 
     send_message: function(type, message = {}) {
@@ -360,17 +363,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
             } catch (e) {
                 console.log('Exception inside the \'handler_' + msg_type + '\' callback:', e, e.stack, msg);
             }
-        }
-    },
-
-    processPhosphorMessage: function(msg) {
-        MPLCanvasView.__super__.processPhosphorMessage.apply(this, arguments);
-
-        switch (msg.type) {
-        case 'resize':
-        // case 'after-show':
-            this.request_resize();
-            break;
         }
     },
 

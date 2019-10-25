@@ -1,6 +1,7 @@
 .jupyter-matplotlib {
-  height: 500px;
   flex: 1 1 auto;
+  width: auto;
+  height: auto;
 }
 
 /* Toolbar */
@@ -13,8 +14,8 @@
 /* Figure */
 
 .jupyter-matplotlib-figure {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
 }
 
 .jupyter-matplotlib-canvas_div {
