@@ -396,7 +396,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
             // Rate-limit the position text updates so that we don't overwhelm the
             // system.
-            if (Date.now() > last_update + 40) {
+            if (Date.now() > last_update + 16) {
                 last_update = Date.now();
 
                 var x = canvas_pos.x * that.ratio;
