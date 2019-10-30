@@ -6,8 +6,13 @@
 
 /* Toolbar */
 
+.jupyter-matplotlib-toolbar {
+  flex: 0 0 auto;
+}
+
 .jupyter-matplotlib-button {
   width: calc(var(--jp-widgets-inline-width-tiny) / 2 - 2px);
+  overflow: hidden;
   padding: 0;
 }
 
@@ -16,6 +21,7 @@
 .jupyter-matplotlib-figure {
   width: auto;
   height: auto;
+  overflow: hidden;
 }
 
 .jupyter-matplotlib-canvas_div {

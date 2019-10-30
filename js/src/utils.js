@@ -41,8 +41,41 @@ function get_simple_keys(original) {
     }, {});
 }
 
+/*
+ * Return the total size of the margins for an element in both width and height.
+ */
+function get_margin_size(el) {
+    var style = getComputedStyle(el);
+
+    var margin_width = parseFloat(style.marginLeft) + parseFloat(style.marginRight);
+    var margin_height = parseFloat(style.marginTop) + parseFloat(style.marginBottom);
+
+    return {
+        width: margin_width,
+        height: margin_height,
+    };
+}
+
+
+/*
+ * Return the full size of an element, including margins.
+ */
+function get_full_size(el) {
+    var margin_size = get_margin_size(el);
+
+    var full_width = el.scrollWidth + margin_size.width;
+    var full_height = el.scrollHeight + margin_size.height;
+
+    return {
+        width: full_width,
+        height: full_height,
+    };
+}
+
 module.exports = {
   offset: offset,
   get_mouse_position: get_mouse_position,
-  get_simple_keys: get_simple_keys
+  get_simple_keys: get_simple_keys,
+  get_margin_size: get_margin_size,
+  get_full_size: get_full_size,
 }
