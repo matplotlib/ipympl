@@ -254,6 +254,13 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
     },
 
     request_resize: function() {
+        // Ensure that the image already exists. We ignore the first calls to resize
+        // because we want the widget to first adapt to the figure size set in
+        // matplotlib.
+        if (!this.image.src) {
+            return;
+        }
+
         // Using the given widget size, figure out how big the canvas should be.
         var decorations_size = this._calculate_decorations_size();
 
@@ -422,12 +429,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         switch (msg.type) {
         case 'resize':
-            // Ensure that the image already exists. We ignore the very first call to
-            // resize because we want the widget to adapt to the figure size set in
-            // matplotlib.
-            if (this.image.src) {
-                this.request_resize();
-            }
+            this.request_resize();
             break;
         }
     },
