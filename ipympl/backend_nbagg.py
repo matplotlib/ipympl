@@ -211,8 +211,8 @@ class FigureManager(FigureManagerWebAgg):
 
     def destroy(self):
         try:
-            self.canvas.close() #stonebig self.canvas.close()
-        except:		   #stonebig self.canvas.close()
+            self.canvas.close()
+        except:
             self._send_event('close')
 
 
