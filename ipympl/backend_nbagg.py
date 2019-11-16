@@ -212,7 +212,7 @@ class FigureManager(FigureManagerWebAgg):
     def destroy(self):
         try:
             self.canvas.close()
-        except:
+        except AttributeError:
             self._send_event('close')
 
 
