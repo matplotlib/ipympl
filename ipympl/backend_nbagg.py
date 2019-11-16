@@ -210,7 +210,10 @@ class FigureManager(FigureManagerWebAgg):
             self.canvas.draw_idle()
 
     def destroy(self):
-        self.canvas.close()
+        try:
+            self.canvas.close() #stonebig self.canvas.close()
+        except:		   #stonebig self.canvas.close()
+            self._send_event('close')
 
 
 def new_figure_manager(num, *args, **kwargs):
