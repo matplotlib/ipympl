@@ -1,8 +1,11 @@
 # jupyter-matplotlib
 
-[![Version](https://img.shields.io/pypi/v/ipympl.svg)](https://pypi.python.org/pypi/ipympl)
-[![Binder](https://img.shields.io/badge/launch-binder-brightgreen.svg)](https://mybinder.org/v2/gh/matplotlib/jupyter-matplotlib/stable?filepath=examples)
-[![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jupyter-widgets/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![TravisCI build status](https://img.shields.io/travis/com/matplotlib/jupyter-matplotlib/master?logo=travis)](https://travis-ci.com/matplotlib/jupyter-matplotlib)
+[![Latest PyPI version](https://img.shields.io/pypi/v/ipympl?logo=pypi)](https://pypi.python.org/pypi/ipympl)
+[![Latest conda-forge version](https://img.shields.io/conda/vn/conda-forge/ipympl?logo=conda-forge)](https://www.npmjs.com/package/ipympl)
+[![Latest npm version](https://img.shields.io/npm/v/jupyter-matplotlib?logo=npm)](https://www.npmjs.com/package/jupyter-matplotlib)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/matplotlib/jupyter-matplotlib/master?urlpath=%2Flab%2Ftree%2Fexamples%2Fipympl.ipynb)
+[![Gitter](https://img.shields.io/badge/gitter-Join_chat-blue?logo=gitter)](https://gitter.im/jupyter-widgets/Lobby)
 
 Leveraging the Jupyter interactive widgets framework, jupyter-matplotlib
 enables the interactive features of matplotlib in the Jupyter notebook and in

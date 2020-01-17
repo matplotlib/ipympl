@@ -5,3 +5,4 @@ dependencies:
   - numpy
   - matplotlib-base>=2.2.2
   - ipympl=0.4.0
+  - widgetsnbextension
