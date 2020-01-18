@@ -1,5 +1,8 @@
 - To release a new version of ipympl on PyPI:
 
+# nuke the  `dist` and `node_modules`
+git clean -fdx
+
 Update _version.py (set release version, remove 'dev')
 git add and git commit
 python setup.py sdist upload
@@ -11,8 +14,5 @@ git push
 git push --tags
 
 - To release a new version of jupyter-matplotlib on NPM:
-
-# nuke the  `dist` and `node_modules`
-git clean -fdx
 npm install
 npm publish
