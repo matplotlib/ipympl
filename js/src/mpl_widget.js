@@ -16,6 +16,7 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
             _view_module: 'jupyter-matplotlib',
             _model_module_version: '^'+ version,
             _view_module_version: '^' + version,
+            header_visible: true,
             toolbar: null,
             toolbar_visible: true,
             toolbar_position: 'horizontal'
@@ -62,6 +63,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
     model_events: function() {
         this.model.on('msg:custom', this.on_comm_message.bind(this));
+        this.model.on('change:header_visible', this.update_header_visible.bind(this));
         this.model.on('change:toolbar_visible', this.update_toolbar_visible.bind(this));
         this.model.on('change:toolbar_position', this.update_toolbar_position.bind(this));
     },
@@ -74,6 +76,11 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         this.send_message('refresh');
 
         this.send_message('initialized');
+    },
+
+    update_header_visible: function() {
+        this.header.style.display = this.model.get('header_visible') ? '': 'none';
+        this.request_resize();
     },
 
     update_toolbar_visible: function() {

@@ -149,6 +149,9 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     toolbar = Instance(Toolbar, allow_none=True).tag(sync=True, **widget_serialization)
     toolbar_visible = Bool(True).tag(sync=True)
     toolbar_position = Enum(['top', 'bottom', 'left', 'right'], default_value='left').tag(sync=True)
+
+    header_visible = Bool(True).tag(sync=True)
+
     _closed = Bool(True)
 
     # Must declare the superclass private members.
