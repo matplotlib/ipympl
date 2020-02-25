@@ -17,6 +17,7 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
             _model_module_version: '^'+ version,
             _view_module_version: '^' + version,
             header_visible: true,
+            footer_visible: true,
             toolbar: null,
             toolbar_visible: true,
             toolbar_position: 'horizontal',
@@ -219,6 +220,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
             that._update_toolbar_position();
 
             that._update_header_visible();
+            that._update_footer_visible();
             that._update_toolbar_visible();
 
             that.model_events();
@@ -227,6 +229,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
     model_events: function() {
         this.model.on('change:header_visible', this._update_header_visible.bind(this));
+        this.model.on('change:footer_visible', this._update_footer_visible.bind(this));
         this.model.on('change:toolbar_visible', this._update_toolbar_visible.bind(this));
         this.model.on('change:toolbar_position', this._update_toolbar_position.bind(this));
         this.model.on('change:_figure_label', this._update_figure_label.bind(this));
@@ -236,6 +239,10 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
     _update_header_visible: function() {
         this.header.style.display = this.model.get('header_visible') ? '': 'none';
+    },
+
+    _update_footer_visible: function() {
+        this.footer.style.display = this.model.get('footer_visible') ? '': 'none';
     },
 
     _update_toolbar_visible: function() {

@@ -151,6 +151,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     toolbar_position = Enum(['top', 'bottom', 'left', 'right'], default_value='left').tag(sync=True)
 
     header_visible = Bool(True).tag(sync=True)
+    footer_visible = Bool(True).tag(sync=True)
 
     _width = CInt().tag(sync=True)
     _height = CInt().tag(sync=True)
