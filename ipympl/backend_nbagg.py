@@ -9,7 +9,7 @@ from IPython.display import display, HTML
 
 from ipywidgets import DOMWidget, widget_serialization
 from traitlets import (
-    Unicode, Bool, Float, List, Any, Instance, CaselessStrEnum, Enum,
+    Unicode, Bool, CInt, Float, List, Any, Instance, CaselessStrEnum, Enum,
     default
 )
 
@@ -152,6 +152,15 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     header_visible = Bool(True).tag(sync=True)
 
+    _width = CInt().tag(sync=True)
+    _height = CInt().tag(sync=True)
+
+    _figure_label = Unicode('Figure').tag(sync=True)
+    _message = Unicode().tag(sync=True)
+    _cursor = Unicode('pointer').tag(sync=True)
+
+    _image_mode = Unicode('full').tag(sync=True)
+
     _closed = Bool(True)
 
     # Must declare the superclass private members.
@@ -183,7 +192,29 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
             self.manager.handle_json(content)
 
     def send_json(self, content):
-        self.send({'data': json.dumps(content)})
+        # Change in the widget state?
+        if content['type'] == 'cursor':
+            cursors = ['pointer', 'default', 'crosshair', 'move']
+            self._cursor = cursors[content['cursor']]
+
+        elif content['type'] == 'message':
+            self._message = content['message']
+
+        elif content['type'] == 'figure_label':
+            self._figure_label = content['label']
+
+        elif content['type'] == 'resize':
+            self._width = content['size'][0]
+            self._height = content['size'][1]
+            # Send resize message anyway
+            self.send({'data': json.dumps(content)})
+
+        elif content['type'] == 'image_mode':
+            self._image_mode = content['mode']
+
+        else:
+            # Default: send the message to the front-end
+            self.send({'data': json.dumps(content)})
 
     def send_binary(self, data):
         self.send({'data': '{"type": "binary"}'}, buffers=[data])
