@@ -55,6 +55,9 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
             that.update_toolbar_position();
 
+            that.update_header_visible();
+            that.update_toolbar_visible();
+
             that.model_events();
 
             that.send_initialization_message();
@@ -80,12 +83,10 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
     update_header_visible: function() {
         this.header.style.display = this.model.get('header_visible') ? '': 'none';
-        this.request_resize();
     },
 
     update_toolbar_visible: function() {
         this.toolbar_view.el.style.display = this.model.get('toolbar_visible') ? '' : 'none';
-        this.request_resize();
     },
 
     update_toolbar_position: function() {
@@ -117,8 +118,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
                 this.el.appendChild(this.toolbar_view.el);
             }
         }
-
-        this.request_resize();
     },
 
     clear: function() {
@@ -227,60 +226,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         this.figure.appendChild(this.footer);
     },
 
-    _calculate_decorations_size: function() {
-        // Calculate the size of the decorations on the figure.
-        var decorations_width = 0;
-        var decorations_height = 0;
-
-        // Toolbar size
-        var toolbar_position = this.model.get('toolbar_position');
-        if (toolbar_position == 'top' || toolbar_position == 'bottom') {
-            decorations_height += utils.get_full_size(this.toolbar_view.el).height;
-        } else {
-            decorations_width += utils.get_full_size(this.toolbar_view.el).width;
-        }
-
-        // Label sizes
-        decorations_height += utils.get_full_size(this.header).height;
-        decorations_height += utils.get_full_size(this.footer).height;
-
-        // Margins on the canvas
-        var canvas_div_margins = utils.get_margin_size(this.canvas_div);
-        decorations_width += canvas_div_margins.width;
-        decorations_height += canvas_div_margins.height;
-
-        // Margins on the figure div
-        var figure_margins = utils.get_margin_size(this.figure);
-        decorations_width += figure_margins.width;
-        decorations_height += figure_margins.height;
-
-        return {
-            width: decorations_width,
-            height: decorations_height
-        };
-    },
-
-    request_resize: function() {
-        // Ensure that the image already exists. We ignore the first calls to resize
-        // because we want the widget to first adapt to the figure size set in
-        // matplotlib.
-        if (!this.image.src) {
-            return;
-        }
-
-        // Using the given widget size, figure out how big the canvas should be.
-        var decorations_size = this._calculate_decorations_size();
-
-        var new_canvas_width = this.el.clientWidth - decorations_size.width;
-        var new_canvas_height = this.el.clientHeight - decorations_size.height;
-
-        // Ensure that the canvas size is a positive number.
-        new_canvas_width = new_canvas_width < 1 ? 1 : new_canvas_width;
-        new_canvas_height = new_canvas_height < 1 ? 1 : new_canvas_height;
-
-        this.send_message('resize', {'width': new_canvas_width, 'height': new_canvas_height});
-    },
-
     _resize_canvas: function(width, height) {
         // Keep the size of the canvas, and rubber band canvas in sync.
         this.canvas.setAttribute('width', width * this.ratio);
@@ -292,13 +237,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         this.canvas_div.style.width = width + 'px';
         this.canvas_div.style.height = height + 'px';
-
-        // Figure out the widget size.
-        var decorations_size = this._calculate_decorations_size();
-
-        // Reset the widget size to adapt to this figure.
-        this.el.style.width = width + decorations_size.width + 'px';
-        this.el.style.height = height + decorations_size.height + 'px';
     },
 
     send_message: function(type, message = {}) {
@@ -430,17 +368,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
             }
         }
     },
-
-    processPhosphorMessage: function(msg) {
-        MPLCanvasView.__super__.processPhosphorMessage.apply(this, arguments);
-
-        switch (msg.type) {
-        case 'resize':
-            this.request_resize();
-            break;
-        }
-    },
-
 
     mouse_event: function(name) {
         var that = this;
