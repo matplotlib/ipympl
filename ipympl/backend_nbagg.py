@@ -152,7 +152,12 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     header_visible = Bool(True).tag(sync=True)
 
+    width = Float(0, read_only=True).tag(sync=True)
+    height = Float(0, read_only=True).tag(sync=True)
+
     _closed = Bool(True)
+    closed = Bool(False, read_only=True).tag(sync=True)
+    _data_url = Unicode(None, allow_none=True, read_only=True).tag(sync=True)
 
     # Must declare the superclass private members.
     _png_is_old = Bool()
@@ -174,9 +179,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     def _handle_message(self, object, content, buffers):
         # Every content has a "type".
-        if content['type'] == 'closing':
-            self._closed = True
-        elif content['type'] == 'initialized':
+        if content['type'] == 'initialized':
             _, _, w, h = self.figure.bbox.bounds
             self.manager.resize(w, h)
         else:

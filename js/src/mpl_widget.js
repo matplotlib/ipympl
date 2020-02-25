@@ -19,6 +19,10 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
             header_visible: true,
             toolbar: null,
             toolbar_visible: true,
+            closed: false,
+            _data_url: null,
+            width: 0,
+            height: 0,
             toolbar_position: 'horizontal'
         });
     }
@@ -38,7 +42,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         this.image_mode = 'full';
 
         this.figure = document.createElement('div');
-        this.figure.addEventListener('remove', this.close.bind(this));
         this.figure.classList = 'jupyter-matplotlib-figure jupyter-widgets widget-container widget-box widget-vbox';
 
         this._init_header();
@@ -52,6 +55,8 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         return this.create_child_view(this.model.get('toolbar')).then(function(toolbar_view) {
             that.toolbar_view = toolbar_view;
+
+            toolbar_view.on('close',that.handle_close.bind(that));
 
             that.update_toolbar_position();
 
@@ -72,6 +77,10 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
     },
 
     send_initialization_message: function() {
+        if (this.model.get('closed')) {
+            return;
+        }
+
         if (this.ratio != 1) {
             this.send_message('set_dpi_ratio', {'dpi_ratio': this.ratio});
         }
@@ -86,7 +95,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
     },
 
     update_toolbar_visible: function() {
-        this.toolbar_view.el.style.display = this.model.get('toolbar_visible') ? '' : 'none';
+        this.toolbar_view.el.style.display = this.model.get('toolbar_visible') && !this.model.get('closed') ? '' : 'none';
     },
 
     update_toolbar_position: function() {
@@ -124,6 +133,14 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         while (this.el.firstChild) {
             this.el.removeChild(this.el.firstChild);
         }
+    },
+
+    handle_close: function() {
+        this.model.set('_data_url', this.canvas.toDataURL());
+        this.model.set('closed', true);
+        this.model.save_changes();
+
+        this.update_toolbar_visible();
     },
 
     _init_header: function() {
@@ -208,12 +225,21 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
                 // almost always do), so we need to clear the canvas so that
                 // there is no ghosting.
                 that.context.clearRect(0, 0, that.canvas.width, that.canvas.height);
+                if (that.model.get('width') != that.canvas.width || that.model.get('height') != that.canvas.height) {
+                    that._resize_canvas(that.model.get('width'), that.model.get('height'));
+                }
             }
             that.context.drawImage(that.image, 0, 0);
         };
 
         this.image.onunload = function() {
             that.close();
+        }
+
+        // Draw saved state if the communication is closed
+        if (this.model.get('closed')) {
+            this.image_mode = 'full';
+            this.image.src = this.model.get('_data_url');
         }
     },
 
@@ -266,7 +292,10 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         if (size[0] != this.canvas.width || size[1] != this.canvas.height) {
             this._resize_canvas(size[0], size[1]);
             this.send_message('refresh');
-        };
+        }
+        this.model.set('width', size[0]);
+        this.model.set('height', size[1]);
+        this.model.save_changes();
     },
 
     handle_rubberband: function(msg) {
@@ -442,11 +471,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
             that.send_message(name, {key: value, guiEvent: utils.get_simple_keys(event)});
             return false;
         };
-    },
-
-    close: function(){
-        this.send_message('closing');
-        this.trigger('close');
     }
 });
 

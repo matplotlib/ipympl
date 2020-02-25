@@ -44,6 +44,19 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         icon.classList = 'center fa fa-bars';
         this.toggle_button.appendChild(icon);
 
+        this.stop_button = document.createElement('button');
+
+        this.stop_button.classList = 'jupyter-matplotlib-button jupyter-widgets jupyter-button mod-danger';
+        this.stop_button.setAttribute('href', '#');
+        this.stop_button.setAttribute('title', 'Stop Interactions and embed');
+        this.stop_button.style.outline = 'none';
+        this.stop_button.addEventListener('click', this.handle_stop.bind(this));
+
+        var close_icon = document.createElement('i');
+        close_icon.classList = 'center fa fa-times';
+        this.stop_button.appendChild(close_icon);
+
+        this.el.appendChild(this.stop_button);
         this.el.appendChild(this.toggle_button);
         this.toolbar = document.createElement('div');
         this.toolbar.classList = 'widget-container widget-box';
@@ -150,6 +163,10 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         // Toggle the interactivity of the figure.
         var visible = this.toolbar.style.display !== 'none';
         this.toolbar.style.display = visible ? 'none' : '';
+    },
+
+    handle_stop: function() {
+        this.trigger('close');
     },
 
     model_events: function() {
