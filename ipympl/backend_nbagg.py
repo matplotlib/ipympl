@@ -162,6 +162,11 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     _image_mode = Unicode('full').tag(sync=True)
 
+    _rubberband_x = CInt(0).tag(sync=True)
+    _rubberband_y = CInt(0).tag(sync=True)
+    _rubberband_width = CInt(0).tag(sync=True)
+    _rubberband_height = CInt(0).tag(sync=True)
+
     _closed = Bool(True)
 
     # Must declare the superclass private members.

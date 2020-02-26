@@ -8,17 +8,18 @@ function offset(el) {
 };
 
 // from http://stackoverflow.com/questions/1114465/getting-mouse-location-in-canvas
-function get_mouse_position(e) {
+function get_mouse_position(e, targ) {
     //this section is from http://www.quirksmode.org/js/events_properties.html
-    var targ;
     if (!e)
         e = window.event;
-    if (e.target)
-        targ = e.target;
-    else if (e.srcElement)
-        targ = e.srcElement;
-    if (targ.nodeType == 3) // defeat Safari bug
-        targ = targ.parentNode;
+    if (!targ) {
+        if (e.target)
+            targ = e.target;
+        else if (e.srcElement)
+            targ = e.srcElement;
+        if (targ.nodeType == 3) // defeat Safari bug
+            targ = targ.parentNode;
+    }
 
     // offset() returns the position of the element relative to the document
     var targ_offset = offset(targ);

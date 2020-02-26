@@ -27,6 +27,10 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
             _message: '',
             _cursor: 'pointer',
             _image_mode: 'full',
+            _rubberband_x: 0,
+            _rubberband_y: 0,
+            _rubberband_width: 0,
+            _rubberband_height: 0,
         });
     },
 
@@ -41,6 +45,8 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
             this.offscreen_context.msBackingStorePixelRatio ||
             this.offscreen_context.oBackingStorePixelRatio || 1;
 
+        this.requested_size = null;
+        this.resize_requested = false;
         this.ratio = (window.devicePixelRatio || 1) / backingStore;
         this._init_image();
 
@@ -84,18 +90,37 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
 
     handle_resize: function(msg) {
         var size = msg['size'];
+
         this.resize_canvas(size[0], size[1]);
+        this.offscreen_context.drawImage(this.image, 0, 0);
+
         this._for_each_view(function(view) {
             view.resize_canvas(size[0], size[1]);
         });
+
         this.send_message('refresh');
+
+        this.resize_requested = false;
+        if (this.requested_size !== null) {
+            // Requesting saved resize
+            this.resize(this.requested_size[0], this.requested_size[1]);
+            this.requested_size = null;
+        }
+    },
+
+    resize: function(width, height) {
+        if (this.resize_requested) {
+            // If a resize was already requested, save the requested size for later
+            this.requested_size = [width, height];
+        } else {
+            this.resize_requested = true;
+            this.send_message('resize', {'width': width, 'height': height});
+        }
     },
 
     resize_canvas: function(width, height) {
         this.offscreen_canvas.setAttribute('width', width * this.ratio);
         this.offscreen_canvas.setAttribute('height', height * this.ratio);
-        this.offscreen_canvas.style.width = width + 'px';
-        this.offscreen_canvas.style.height = height + 'px';
     },
 
     handle_rubberband: function(msg) {
@@ -107,16 +132,15 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
         y0 = Math.floor(y0) + 0.5;
         x1 = Math.floor(x1) + 0.5;
         y1 = Math.floor(y1) + 0.5;
-        var min_x = Math.min(x0, x1);
-        var min_y = Math.min(y0, y1);
-        var width = Math.abs(x1 - x0);
-        var height = Math.abs(y1 - y0);
+
+        this.set('_rubberband_x', Math.min(x0, x1));
+        this.set('_rubberband_y', Math.min(y0, y1));
+        this.set('_rubberband_width', Math.abs(x1 - x0));
+        this.set('_rubberband_height', Math.abs(y1 - y0));
+        this.save_changes();
 
         this._for_each_view(function(view) {
-            view.rubberband_context.clearRect(
-                0, 0, view.rubberband_canvas.width, view.rubberband_canvas.height);
-
-            view.rubberband_context.strokeRect(min_x, min_y, width, height);
+            view.update_canvas();
         });
     },
 
@@ -177,7 +201,7 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
             that.offscreen_context.drawImage(that.image, 0, 0);
 
             that._for_each_view(function(view) {
-                view.context.drawImage(that.offscreen_canvas, 0, 0);
+                view.update_canvas();
             });
         };
     },
@@ -189,6 +213,10 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
             });
         }
     },
+
+    remove: function() {
+        this.send_message('closing');
+    }
 }, {
     serializers: _.extend({
         toolbar: { deserialize: widgets.unpack_models }
@@ -199,16 +227,22 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
     render: function() {
         this.canvas = undefined;
         this.context = undefined;
-        this.rubberband_canvas = undefined;
-        this.rubberband_context = undefined;
+        this.top_canvas = undefined;
+        this.top_context = undefined;
+        this.resizing = false;
+        this.resize_handle_size = 20;
 
         this.figure = document.createElement('div');
-        this.figure.addEventListener('remove', this.close.bind(this));
         this.figure.classList = 'jupyter-matplotlib-figure jupyter-widgets widget-container widget-box widget-vbox';
 
         this._init_header();
         this._init_canvas();
         this._init_footer();
+
+        this._resize_event = this.resize_event.bind(this);
+        this._stop_resize_event = this.stop_resize_event.bind(this);
+        window.addEventListener('mousemove', this._resize_event);
+        window.addEventListener('mouseup', this._stop_resize_event);
 
         this.waiting = false;
 
@@ -320,41 +354,82 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
         this.context = canvas.getContext('2d');
 
-        var rubberband_canvas = this.rubberband_canvas = document.createElement('canvas');
-        rubberband_canvas.style.display = 'block';
-        rubberband_canvas.style.position = 'absolute';
-        rubberband_canvas.style.left = 0;
-        rubberband_canvas.style.top = 0;
-        rubberband_canvas.style.zIndex = 1;
+        var top_canvas = this.top_canvas = document.createElement('canvas');
+        top_canvas.style.display = 'block';
+        top_canvas.style.position = 'absolute';
+        top_canvas.style.left = 0;
+        top_canvas.style.top = 0;
+        top_canvas.style.zIndex = 1;
 
-        rubberband_canvas.addEventListener('mousedown', this.mouse_event('button_press'));
-        rubberband_canvas.addEventListener('mouseup', this.mouse_event('button_release'));
-        rubberband_canvas.addEventListener('mousemove', this.mouse_event('motion_notify'));
+        top_canvas.addEventListener('mousedown', this.mouse_event('button_press'));
+        top_canvas.addEventListener('mouseup', this.mouse_event('button_release'));
+        top_canvas.addEventListener('mousemove', this.mouse_event('motion_notify'));
 
-        rubberband_canvas.addEventListener('mouseenter', this.mouse_event('figure_enter'));
-        rubberband_canvas.addEventListener('mouseleave', this.mouse_event('figure_leave'));
+        top_canvas.addEventListener('mouseenter', this.mouse_event('figure_enter'));
+        top_canvas.addEventListener('mouseleave', this.mouse_event('figure_leave'));
 
-        rubberband_canvas.addEventListener('wheel', this.mouse_event('scroll'));
+        top_canvas.addEventListener('wheel', this.mouse_event('scroll'));
 
         canvas_div.appendChild(canvas);
-        canvas_div.appendChild(rubberband_canvas);
+        canvas_div.appendChild(top_canvas);
 
-        this.rubberband_context = rubberband_canvas.getContext('2d');
-        this.rubberband_context.strokeStyle = '#000000';
+        this.top_context = top_canvas.getContext('2d');
+        this.top_context.strokeStyle = 'rgba(0, 0, 0, 255)';
 
         // Disable right mouse context menu.
-        this.rubberband_canvas.addEventListener('contextmenu', function(e) {
+        this.top_canvas.addEventListener('contextmenu', function(e) {
             event.preventDefault();
             event.stopPropagation();
             return false;
         });
 
         this.resize_canvas(this.model.get('_width'), this.model.get('_height'));
+        this.update_canvas();
+    },
+
+    update_canvas: function() {
+        if (this.canvas.width == 0 || this.canvas.height == 0) {
+            return;
+        }
+
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.drawImage(this.model.offscreen_canvas, 0, 0);
+
+        this.top_context.clearRect(0, 0, this.top_canvas.width, this.top_canvas.height);
+
+        // Draw rubberband
+        if (this.model.get('_rubberband_width') != 0 && this.model.get('_rubberband_height') != 0) {
+            this.top_context.strokeRect(
+                this.model.get('_rubberband_x'), this.model.get('_rubberband_y'),
+                this.model.get('_rubberband_width'), this.model.get('_rubberband_height')
+            );
+        }
+
+        // Draw resize handle
+        this.top_context.save();
+
+        var gradient = this.top_context.createLinearGradient(
+            this.top_canvas.width - this.resize_handle_size / 3, this.top_canvas.height - this.resize_handle_size / 3,
+            this.top_canvas.width - this.resize_handle_size / 4, this.top_canvas.height - this.resize_handle_size / 4
+        );
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 255)');
+
+        this.top_context.fillStyle = gradient;
+
+        this.top_context.globalAlpha = 0.3;
+        this.top_context.beginPath();
+        this.top_context.moveTo(this.top_canvas.width, this.top_canvas.height);
+        this.top_context.lineTo(this.top_canvas.width, this.top_canvas.height - this.resize_handle_size);
+        this.top_context.lineTo(this.top_canvas.width - this.resize_handle_size, this.top_canvas.height);
+        this.top_context.closePath();
+        this.top_context.fill();
+
+        this.top_context.restore();
     },
 
     _update_cursor: function() {
-        this.rubberband_canvas.style.cursor = this.model.get('_cursor');
+        this.top_canvas.style.cursor = this.model.get('_cursor');
     },
 
     _init_footer: function() {
@@ -376,11 +451,13 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         this.canvas.style.width = width + 'px';
         this.canvas.style.height = height + 'px';
 
-        this.rubberband_canvas.setAttribute('width', width);
-        this.rubberband_canvas.setAttribute('height', height);
+        this.top_canvas.setAttribute('width', width);
+        this.top_canvas.setAttribute('height', height);
 
         this.canvas_div.style.width = width + 'px';
         this.canvas_div.style.height = height + 'px';
+
+        this.update_canvas();
     },
 
     mouse_event: function(name) {
@@ -399,8 +476,18 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
             }
 
             if (name === 'button_press') {
-                that.canvas.focus();
-                that.canvas_div.focus();
+                // If clicking on the resize handle
+                if (canvas_pos.x >= that.top_canvas.width - that.resize_handle_size && canvas_pos.y >= that.top_canvas.height - that.resize_handle_size) {
+                    that.resizing = true;
+                    return;
+                } else {
+                    that.canvas.focus();
+                    that.canvas_div.focus();
+                }
+            }
+
+            if (name === 'button_release') {
+                that.resizing = false;
             }
 
             // Rate-limit the position text updates so that we don't overwhelm the
@@ -421,8 +508,19 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
              * to control all of the cursor setting manually through the
              * 'cursor' event from matplotlib */
             event.preventDefault();
-            return false;
         };
+    },
+
+    resize_event: function(event) {
+        if (this.resizing) {
+            var new_size = utils.get_mouse_position(event, this.top_canvas);
+
+            this.model.resize(new_size.x, new_size.y);
+        }
+    },
+
+    stop_resize_event: function() {
+        this.resizing = false;
     },
 
     key_event: function(name) {
@@ -458,9 +556,9 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         };
     },
 
-    close: function(){
-        this.send_message('closing');
-        this.trigger('close');
+    remove: function(){
+        window.removeEventListener('mousemove', this._resize_event);
+        window.removeEventListener('mouseup', this._stop_resize_event);
     }
 });
 
