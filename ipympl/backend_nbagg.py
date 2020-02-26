@@ -97,6 +97,8 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
         values=['primary', 'success', 'info', 'warning', 'danger', ''], default_value='',
         help="""Use a predefined styling for the button.""").tag(sync=True)
 
+    _current_action = Enum(values=['pan', 'zoom', ''], default_value='').tag(sync=True)
+
     def __init__(self, canvas, *args, **kwargs):
         DOMWidget.__init__(self, *args, **kwargs)
         NavigationToolbar2WebAgg.__init__(self, canvas, *args, **kwargs)

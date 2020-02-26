@@ -14,7 +14,8 @@ var ToolbarModel = widgets.DOMWidgetModel.extend({
             _view_module_version: '^' + version,
             toolitems: [],
             orientation: 'vertical',
-            button_style: ''
+            button_style: '',
+            _current_action: '',
         });
     }
 });
@@ -29,8 +30,6 @@ var ToolbarView = widgets.DOMWidgetView.extend({
 
     create_toolbar: function() {
         var toolbar_items = this.model.get('toolitems');
-
-        this.current_action = '';
 
         this.toggle_button = document.createElement('button');
 
@@ -48,7 +47,7 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         this.toolbar = document.createElement('div');
         this.toolbar.classList = 'widget-container widget-box';
         this.el.appendChild(this.toolbar);
-        this.buttons = [this.toggle_button];
+        this.buttons = {'toggle_button': this.toggle_button};
 
         for(var toolbar_ind in toolbar_items) {
             var name = toolbar_items[toolbar_ind][0];
@@ -68,7 +67,7 @@ var ToolbarView = widgets.DOMWidgetView.extend({
             icon.classList = 'center fa fa-' + image;
             button.appendChild(icon);
 
-            this.buttons.push(button);
+            this.buttons[method_name] = button;
 
             this.toolbar.appendChild(button);
         }
@@ -93,25 +92,15 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         var that = this;
 
         return function(event) {
-            var target = event.target;
-
             // Special case for pan and zoom as they are toggle buttons
             if (name == 'pan' || name == 'zoom') {
-                if (that.current_action == '') {
-                    that.current_action = name;
-                    target.classList.add('mod-active');
-                }
-                else if (that.current_action == name) {
-                    that.current_action = '';
-                    target.classList.remove('mod-active');
+                if (that.model.get('_current_action') == name) {
+                    that.model.set('_current_action', '');
                 }
                 else {
-                    that.current_action = name;
-                    that.buttons.forEach(function(button) {
-                        button.classList.remove('mod-active');
-                    });
-                    target.classList.add('mod-active');
+                    that.model.set('_current_action', name);
                 }
+                that.model.save_changes();
             }
 
             var message = {
@@ -124,8 +113,6 @@ var ToolbarView = widgets.DOMWidgetView.extend({
     },
 
     set_buttons_style: function() {
-        var that = this;
-
         var class_map = {
             primary: ['mod-primary'],
             success: ['mod-success'],
@@ -134,16 +121,23 @@ var ToolbarView = widgets.DOMWidgetView.extend({
             danger: ['mod-danger']
         };
 
-        this.buttons.forEach(function(button) {
+        for (var name in this.buttons) {
+            var button = this.buttons[name];
+
             for (var class_name in class_map) {
                 button.classList.remove(class_map[class_name]);
             }
+            button.classList.remove('mod-active');
 
-            var class_name = that.model.get('button_style');
+            var class_name = this.model.get('button_style');
             if (class_name != '') {
                 button.classList.add(class_map[class_name]);
             }
-        });
+
+            if (name == this.model.get('_current_action')) {
+                button.classList.add('mod-active');
+            }
+        }
     },
 
     toggle_interaction: function() {
@@ -154,7 +148,7 @@ var ToolbarView = widgets.DOMWidgetView.extend({
 
     model_events: function() {
         this.model.on('change:orientation', this.update_orientation.bind(this));
-        this.model.on('change:button_style', this.set_buttons_style.bind(this));
+        this.model.on_some_change(['button_style', '_current_action'], this.set_buttons_style.bind(this));
     },
 
     update_orientation: function() {
