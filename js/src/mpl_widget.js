@@ -477,7 +477,8 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
             if (name === 'button_press') {
                 // If clicking on the resize handle
-                if (canvas_pos.x >= that.top_canvas.width - that.resize_handle_size && canvas_pos.y >= that.top_canvas.height - that.resize_handle_size) {
+                if (canvas_pos.x >= that.top_canvas.width - that.resize_handle_size &&
+                        canvas_pos.y >= that.top_canvas.height - that.resize_handle_size) {
                     that.resizing = true;
                     return;
                 } else {
@@ -488,6 +489,16 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
 
             if (name === 'button_release') {
                 that.resizing = false;
+            }
+
+            if (name === 'motion_notify') {
+                // If the mouse is on the handle, change the cursor style
+                if (canvas_pos.x >= that.top_canvas.width - that.resize_handle_size &&
+                        canvas_pos.y >= that.top_canvas.height - that.resize_handle_size) {
+                    that.top_canvas.style.cursor = 'nw-resize';
+                } else {
+                    that.top_canvas.style.cursor = that.model.get('_cursor');
+                }
             }
 
             // Rate-limit the position text updates so that we don't overwhelm the
