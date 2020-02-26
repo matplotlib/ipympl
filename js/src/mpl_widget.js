@@ -487,10 +487,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
                 }
             }
 
-            if (name === 'button_release') {
-                that.resizing = false;
-            }
-
             if (name === 'motion_notify') {
                 // If the mouse is on the handle, change the cursor style
                 if (canvas_pos.x >= that.top_canvas.width - that.resize_handle_size &&
