@@ -339,17 +339,21 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
     },
 
     _init_canvas: function() {
+        var canvas_container = document.createElement('div');
+        canvas_container.classList = 'jupyter-widgets jupyter-matplotlib-canvas-container';
+        this.figure.appendChild(canvas_container);
+
         var canvas_div = this.canvas_div = document.createElement('div');
         canvas_div.style.position = 'relative';
         canvas_div.style.clear = 'both';
-        canvas_div.classList = 'jupyter-widgets jupyter-matplotlib-canvas_div';
+        canvas_div.classList = 'jupyter-widgets jupyter-matplotlib-canvas-div';
 
         canvas_div.addEventListener('keydown', this.key_event('key_press'));
         canvas_div.addEventListener('keyup', this.key_event('key_release'));
 
         // this is important to make the div 'focusable'
         canvas_div.setAttribute('tabindex', 0);
-        this.figure.appendChild(canvas_div);
+        canvas_container.appendChild(canvas_div);
 
         var canvas = this.canvas = document.createElement('canvas');
         canvas.style.display = 'block';
@@ -520,12 +524,6 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
                                         step: event.step,
                                         guiEvent: utils.get_simple_keys(event)});
             }
-
-            /* This prevents the web browser from automatically changing to
-             * the text insertion cursor when the button is pressed.  We want
-             * to control all of the cursor setting manually through the
-             * 'cursor' event from matplotlib */
-            event.preventDefault();
         };
     },
 

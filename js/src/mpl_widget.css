@@ -1,13 +1,13 @@
 .jupyter-matplotlib {
-  flex: 1 1 auto;
   width: auto;
   height: auto;
+  flex: 1 1 auto;
 }
 
 /* Toolbar */
 
 .jupyter-matplotlib-toolbar {
-  flex: 0 0 auto;
+  overflow: visible;
 }
 
 .jupyter-matplotlib-button {
@@ -24,11 +24,15 @@
   overflow: hidden;
 }
 
-.jupyter-matplotlib-canvas_div {
+.jupyter-matplotlib-canvas-container {
+  overflow: auto;
+}
+
+.jupyter-matplotlib-canvas-div {
   margin: 2px;
   flex: 1 1 auto;
 }
 
-.jupyter-matplotlib-canvas_div:focus {
+.jupyter-matplotlib-canvas-div:focus {
   outline: 1px solid var(--jp-widgets-input-focus-border-color);
 }
