@@ -90,13 +90,14 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
 
     handle_resize: function(msg) {
         var size = msg['size'];
-
         this.resize_canvas(size[0], size[1]);
         this.offscreen_context.drawImage(this.image, 0, 0);
 
-        this._for_each_view(function(view) {
-            view.resize_canvas(size[0], size[1]);
-        });
+        if (!this.resize_requested) {
+            this._for_each_view(function(view) {
+                view.resize_canvas(size[0], size[1]);
+            });
+        }
 
         this.send_message('refresh');
 
@@ -109,6 +110,11 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
     },
 
     resize: function(width, height) {
+        this._for_each_view(function(view) {
+            // Do an initial resize of each view, stretching the old canvas.
+            view.resize_canvas(width, height);
+        });
+
         if (this.resize_requested) {
             // If a resize was already requested, save the requested size for later
             this.requested_size = [width, height];
@@ -485,6 +491,11 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
                     that.canvas.focus();
                     that.canvas_div.focus();
                 }
+            }
+
+            if (that.resizing) {
+                // Ignore other mouse events while resizing.
+                return;
             }
 
             if (name === 'motion_notify') {
