@@ -110,6 +110,11 @@ var MPLCanvasModel = widgets.DOMWidgetModel.extend({
     },
 
     resize: function(width, height) {
+        // Do not request a super small size, as it seems to break the back-end
+        if (width <= 5 || height <= 5) {
+            return;
+        }
+
         this._for_each_view(function(view) {
             // Do an initial resize of each view, stretching the old canvas.
             view.resize_canvas(width, height);
