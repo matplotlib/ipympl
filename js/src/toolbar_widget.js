@@ -1,11 +1,13 @@
-var widgets = require('@jupyter-widgets/base');
-var _ = require('lodash');
+const widgets = require('@jupyter-widgets/base');
 
-var version = require('../package.json').version;
+const version = require('../package.json').version;
 
-var ToolbarModel = widgets.DOMWidgetModel.extend({
-    defaults: function() {
-        return _.extend(widgets.DOMWidgetModel.prototype.defaults(), {
+
+export
+class ToolbarModel extends widgets.DOMWidgetModel {
+    defaults() {
+        return {
+            ...super.defaults(),
             _model_name: 'ToolbarModel',
             _view_name: 'ToolbarView',
             _model_module: 'jupyter-matplotlib',
@@ -16,20 +18,23 @@ var ToolbarModel = widgets.DOMWidgetModel.extend({
             orientation: 'vertical',
             button_style: '',
             _current_action: '',
-        });
+        };
     }
-});
+}
 
-var ToolbarView = widgets.DOMWidgetView.extend({
-    render: function() {
+
+export
+class ToolbarView extends widgets.DOMWidgetView {
+    render() {
         this.el.classList = 'jupyter-widgets jupyter-matplotlib-toolbar';
         this.el.classList.add('widget-container', 'widget-box');
+
         this.create_toolbar();
         this.model_events();
-    },
+    }
 
-    create_toolbar: function() {
-        var toolbar_items = this.model.get('toolitems');
+    create_toolbar() {
+        const toolbar_items = this.model.get('toolitems');
 
         this.toggle_button = document.createElement('button');
 
@@ -39,7 +44,7 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         this.toggle_button.style.outline = 'none';
         this.toggle_button.addEventListener('click', this.toggle_interaction.bind(this));
 
-        var icon = document.createElement('i');
+        const icon = document.createElement('i');
         icon.classList = 'center fa fa-bars';
         this.toggle_button.appendChild(icon);
 
@@ -49,21 +54,21 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         this.el.appendChild(this.toolbar);
         this.buttons = {'toggle_button': this.toggle_button};
 
-        for(var toolbar_ind in toolbar_items) {
-            var name = toolbar_items[toolbar_ind][0];
-            var tooltip = toolbar_items[toolbar_ind][1];
-            var image = toolbar_items[toolbar_ind][2];
-            var method_name = toolbar_items[toolbar_ind][3];
+        for(let toolbar_ind in toolbar_items) {
+            const name = toolbar_items[toolbar_ind][0];
+            const tooltip = toolbar_items[toolbar_ind][1];
+            const image = toolbar_items[toolbar_ind][2];
+            const method_name = toolbar_items[toolbar_ind][3];
             if (!name) { continue; };
 
-            var button = document.createElement('button');
+            const button = document.createElement('button');
             button.classList = 'jupyter-matplotlib-button jupyter-widgets jupyter-button';
             button.setAttribute('href', '#');
             button.setAttribute('title', tooltip);
             button.style.outline = 'none';
             button.addEventListener('click', this.toolbar_button_onclick(method_name));
 
-            var icon = document.createElement('i');
+            const icon = document.createElement('i');
             icon.classList = 'center fa fa-' + image;
             button.appendChild(icon);
 
@@ -75,10 +80,10 @@ var ToolbarView = widgets.DOMWidgetView.extend({
         this.set_orientation(this.el);
         this.set_orientation(this.toolbar);
         this.set_buttons_style();
-    },
+    }
 
-    set_orientation: function(el) {
-        var orientation = this.model.get('orientation');
+    set_orientation(el) {
+        const orientation = this.model.get('orientation');
         if (orientation == 'vertical') {
             el.classList.remove('widget-hbox');
             el.classList.add('widget-vbox');
@@ -86,34 +91,30 @@ var ToolbarView = widgets.DOMWidgetView.extend({
             el.classList.add('widget-hbox');
             el.classList.remove('widget-vbox');
         }
-    },
+    }
 
-    toolbar_button_onclick: function(name) {
-        var that = this;
-
-        return function(event) {
+    toolbar_button_onclick(name) {
+        return (event) => {
             // Special case for pan and zoom as they are toggle buttons
             if (name == 'pan' || name == 'zoom') {
-                if (that.model.get('_current_action') == name) {
-                    that.model.set('_current_action', '');
+                if (this.model.get('_current_action') == name) {
+                    this.model.set('_current_action', '');
                 }
                 else {
-                    that.model.set('_current_action', name);
+                    this.model.set('_current_action', name);
                 }
-                that.model.save_changes();
+                this.model.save_changes();
             }
 
-            var message = {
+            this.send({
                 'type': 'toolbar_button',
                 'name': name
-            };
-
-            that.send(message);
+            });
         };
-    },
+    }
 
-    set_buttons_style: function() {
-        var class_map = {
+    set_buttons_style() {
+        const class_map = {
             primary: ['mod-primary'],
             success: ['mod-success'],
             info: ['mod-info'],
@@ -121,15 +122,15 @@ var ToolbarView = widgets.DOMWidgetView.extend({
             danger: ['mod-danger']
         };
 
-        for (var name in this.buttons) {
-            var button = this.buttons[name];
+        for (let name in this.buttons) {
+            const button = this.buttons[name];
 
-            for (var class_name in class_map) {
+            for (let class_name in class_map) {
                 button.classList.remove(class_map[class_name]);
             }
             button.classList.remove('mod-active');
 
-            var class_name = this.model.get('button_style');
+            const class_name = this.model.get('button_style');
             if (class_name != '') {
                 button.classList.add(class_map[class_name]);
             }
@@ -138,26 +139,21 @@ var ToolbarView = widgets.DOMWidgetView.extend({
                 button.classList.add('mod-active');
             }
         }
-    },
+    }
 
-    toggle_interaction: function() {
+    toggle_interaction() {
         // Toggle the interactivity of the figure.
-        var visible = this.toolbar.style.display !== 'none';
+        const visible = this.toolbar.style.display !== 'none';
         this.toolbar.style.display = visible ? 'none' : '';
-    },
+    }
 
-    model_events: function() {
+    model_events() {
         this.model.on('change:orientation', this.update_orientation.bind(this));
         this.model.on_some_change(['button_style', '_current_action'], this.set_buttons_style.bind(this));
-    },
+    }
 
-    update_orientation: function() {
+    update_orientation() {
         this.set_orientation(this.el);
         this.set_orientation(this.toolbar);
     }
-});
-
-module.exports = {
-    ToolbarModel: ToolbarModel,
-    ToolbarView: ToolbarView
 }

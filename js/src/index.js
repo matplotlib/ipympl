@@ -1,5 +1,6 @@
 
 // Export widget models and views, and the npm package version number.
-module.exports = require('./mpl_widget.js');
-module.exports['version'] = require('../package.json').version;
+export * from './toolbar_widget.js';
+export * from './mpl_widget.js';
+export { version } from '../package.json';
 

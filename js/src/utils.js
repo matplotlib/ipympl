@@ -1,4 +1,5 @@
 // Get mouse position relative to target
+export
 function get_mouse_position(event, targ) {
     var boundingRect = targ.getBoundingClientRect();
 
@@ -13,16 +14,11 @@ function get_mouse_position(event, targ) {
  * we need this to avoid circular references
  * http://stackoverflow.com/a/24161582/3208463
  */
+export
 function get_simple_keys(original) {
     return Object.keys(original).reduce(function (obj, key) {
         if (typeof original[key] !== 'object')
             obj[key] = original[key]
         return obj;
     }, {});
-}
-
-
-module.exports = {
-  get_mouse_position: get_mouse_position,
-  get_simple_keys: get_simple_keys
 }
