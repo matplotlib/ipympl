@@ -21,15 +21,15 @@
     "extension": "src/lab_extension"
   },
   "devDependencies": {
+    "css-loader": "^3.4.2",
     "fs-extra": "^4.0.2",
     "json-loader": "^0.5.4",
     "rimraf": "^2.6.1",
-    "webpack": "^3.5.5"
+    "style-loader": "^0.23.1",
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11"
   },
   "dependencies": {
-    "@jupyter-widgets/base": "^2.0.0",
-    "css-loader": "^3.0.0",
-    "lodash": "^4.17.4",
-    "style-loader": "^0.23.1"
+    "@jupyter-widgets/base": "^2.0.0"
   }
 }
