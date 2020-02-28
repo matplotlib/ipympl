@@ -63,7 +63,7 @@ module.exports = [
      // The target bundle is always `dist/index.js`, which is the path required
      // by the custom widget embedder.
      //
-        entry: './src/embed.js',
+        entry: './src/index.js',
         output: {
             filename: 'index.js',
             path: path.resolve(__dirname, 'dist'),
