@@ -474,7 +474,7 @@ var MPLCanvasView = widgets.DOMWidgetView.extend({
         var that = this;
         var last_update = 0;
         return function(event) {
-            var canvas_pos = utils.get_mouse_position(event);
+            var canvas_pos = utils.get_mouse_position(event, that.top_canvas);
 
             if (name === 'scroll') {
                 event['data'] = 'scroll'

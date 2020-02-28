@@ -1,32 +1,11 @@
-// Equivalent of jQuery offset method
-function offset(el) {
-    var boundingRect = el.getBoundingClientRect();
+// Get mouse position relative to target
+function get_mouse_position(event, targ) {
+    var boundingRect = targ.getBoundingClientRect();
+
     return {
-        top: boundingRect.top + document.body.scrollTop,
-        left: boundingRect.left + document.body.scrollLeft
-    }
-};
-
-// from http://stackoverflow.com/questions/1114465/getting-mouse-location-in-canvas
-function get_mouse_position(e, targ) {
-    //this section is from http://www.quirksmode.org/js/events_properties.html
-    if (!e)
-        e = window.event;
-    if (!targ) {
-        if (e.target)
-            targ = e.target;
-        else if (e.srcElement)
-            targ = e.srcElement;
-        if (targ.nodeType == 3) // defeat Safari bug
-            targ = targ.parentNode;
-    }
-
-    // offset() returns the position of the element relative to the document
-    var targ_offset = offset(targ);
-    var x = e.pageX - targ_offset.left;
-    var y = e.pageY - targ_offset.top;
-
-    return {'x': x, 'y': y};
+        x: event.clientX - boundingRect.left,
+        y: event.clientY - boundingRect.top
+    };
 };
 
 /*
@@ -44,7 +23,6 @@ function get_simple_keys(original) {
 
 
 module.exports = {
-  offset: offset,
   get_mouse_position: get_mouse_position,
   get_simple_keys: get_simple_keys
 }
