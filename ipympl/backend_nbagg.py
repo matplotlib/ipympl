@@ -155,6 +155,8 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     header_visible = Bool(True).tag(sync=True)
     footer_visible = Bool(True).tag(sync=True)
 
+    resizable = Bool(True).tag(sync=True)
+
     _width = CInt().tag(sync=True)
     _height = CInt().tag(sync=True)
 
