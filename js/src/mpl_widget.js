@@ -21,6 +21,7 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
             toolbar: null,
             toolbar_visible: true,
             toolbar_position: 'horizontal',
+            resizable: true,
             _width: 0,
             _height: 0,
             _figure_label: 'Figure',
@@ -51,6 +52,11 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
         this._init_image();
 
         this.on('msg:custom', this.on_comm_message.bind(this));
+        this.on('change:resizable', () => {
+            this._for_each_view(function(view) {
+                view.update_canvas();
+            })
+        });
 
         this.send_initialization_message();
     }
@@ -421,26 +427,28 @@ class MPLCanvasView extends widgets.DOMWidgetView {
         }
 
         // Draw resize handle
-        this.top_context.save();
+        if (this.model.get('resizable')) {
+            this.top_context.save();
 
-        var gradient = this.top_context.createLinearGradient(
-            this.top_canvas.width - this.resize_handle_size / 3, this.top_canvas.height - this.resize_handle_size / 3,
-            this.top_canvas.width - this.resize_handle_size / 4, this.top_canvas.height - this.resize_handle_size / 4
-        );
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 255)');
+            var gradient = this.top_context.createLinearGradient(
+                this.top_canvas.width - this.resize_handle_size / 3, this.top_canvas.height - this.resize_handle_size / 3,
+                this.top_canvas.width - this.resize_handle_size / 4, this.top_canvas.height - this.resize_handle_size / 4
+            );
+            gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 255)');
 
-        this.top_context.fillStyle = gradient;
+            this.top_context.fillStyle = gradient;
 
-        this.top_context.globalAlpha = 0.3;
-        this.top_context.beginPath();
-        this.top_context.moveTo(this.top_canvas.width, this.top_canvas.height);
-        this.top_context.lineTo(this.top_canvas.width, this.top_canvas.height - this.resize_handle_size);
-        this.top_context.lineTo(this.top_canvas.width - this.resize_handle_size, this.top_canvas.height);
-        this.top_context.closePath();
-        this.top_context.fill();
+            this.top_context.globalAlpha = 0.3;
+            this.top_context.beginPath();
+            this.top_context.moveTo(this.top_canvas.width, this.top_canvas.height);
+            this.top_context.lineTo(this.top_canvas.width, this.top_canvas.height - this.resize_handle_size);
+            this.top_context.lineTo(this.top_canvas.width - this.resize_handle_size, this.top_canvas.height);
+            this.top_context.closePath();
+            this.top_context.fill();
 
-        this.top_context.restore();
+            this.top_context.restore();
+        }
     }
 
     _update_cursor() {
@@ -492,7 +500,8 @@ class MPLCanvasView extends widgets.DOMWidgetView {
             if (name === 'button_press') {
                 // If clicking on the resize handle
                 if (canvas_pos.x >= this.top_canvas.width - this.resize_handle_size &&
-                        canvas_pos.y >= this.top_canvas.height - this.resize_handle_size) {
+                        canvas_pos.y >= this.top_canvas.height - this.resize_handle_size &&
+                        this.model.get('resizable')) {
                     this.resizing = true;
                     return;
                 } else {
