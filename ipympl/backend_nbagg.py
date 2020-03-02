@@ -96,6 +96,7 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
     button_style = CaselessStrEnum(
         values=['primary', 'success', 'info', 'warning', 'danger', ''], default_value='',
         help="""Use a predefined styling for the button.""").tag(sync=True)
+    collapsed = Bool(True).tag(sync=True)
 
     _current_action = Enum(values=['pan', 'zoom', ''], default_value='').tag(sync=True)
 

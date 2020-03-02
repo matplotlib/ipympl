@@ -17,6 +17,7 @@ class ToolbarModel extends widgets.DOMWidgetModel {
             toolitems: [],
             orientation: 'vertical',
             button_style: '',
+            collapsed: true,
             _current_action: '',
         };
     }
@@ -42,7 +43,10 @@ class ToolbarView extends widgets.DOMWidgetView {
         this.toggle_button.setAttribute('href', '#');
         this.toggle_button.setAttribute('title', 'Toggle Interaction');
         this.toggle_button.style.outline = 'none';
-        this.toggle_button.addEventListener('click', this.toggle_interaction.bind(this));
+        this.toggle_button.addEventListener('click', () => {
+            this.model.set('collapsed', !this.model.get('collapsed'));
+            this.model.save_changes();
+        });
 
         const icon = document.createElement('i');
         icon.classList = 'center fa fa-bars';
@@ -141,15 +145,14 @@ class ToolbarView extends widgets.DOMWidgetView {
         }
     }
 
-    toggle_interaction() {
-        // Toggle the interactivity of the figure.
-        const visible = this.toolbar.style.display !== 'none';
-        this.toolbar.style.display = visible ? 'none' : '';
+    update_collapsed() {
+        this.toolbar.style.display = this.model.get('collapsed') ? '' : 'none';
     }
 
     model_events() {
         this.model.on('change:orientation', this.update_orientation.bind(this));
         this.model.on_some_change(['button_style', '_current_action'], this.set_buttons_style.bind(this));
+        this.model.on('change:collapsed', this.update_collapsed.bind(this));
     }
 
     update_orientation() {
