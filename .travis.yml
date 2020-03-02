@@ -21,9 +21,7 @@ install:
 - conda config --set always_yes yes --set changeps1 no
 - conda update -q conda
 - conda info -a
-- conda install -c conda-forge nodejs notebook matplotlib ipywidgets
-- pip install selenium
-- pip install jupyterlab
+- conda install -c conda-forge nodejs notebook matplotlib ipywidgets selenium jupyterlab=1
 - pip install -v .
 script:
 - jupyter nbextension install --py --symlink --sys-prefix ipympl
