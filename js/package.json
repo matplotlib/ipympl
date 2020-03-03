@@ -30,6 +30,6 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
-    "@jupyter-widgets/base": "^2.0.0"
+    "@jupyter-widgets/base": "^2 || ^3"
   }
 }
