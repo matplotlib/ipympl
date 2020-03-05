@@ -4,15 +4,14 @@ from setuptools.command.sdist import sdist
 from setuptools.command.build_py import build_py
 from setuptools.command.egg_info import egg_info
 from subprocess import check_call
-import glob
 import os
+import json
 import sys
 from os.path import join as pjoin
 
 here = os.path.dirname(os.path.abspath(__file__))
 node_root = pjoin(here, 'js')
 is_repo = os.path.exists(pjoin(here, '.git'))
-tar_path = pjoin(here, 'ipympl', '*.tgz')
 
 npm_path = os.pathsep.join([
     pjoin(node_root, 'node_modules', '.bin'),
@@ -54,7 +53,7 @@ def js_prerelease(command, strict=False):
 def update_package_data(distribution):
     """update package_data to catch changes during setup"""
     build_py = distribution.get_command_obj('build_py')
-    # distribution.package_data = find_package_data()
+    distribution.data_files = get_data_files()
     # re-init build_py options which load package_data
     build_py.finalize_options()
 
@@ -62,6 +61,10 @@ def update_package_data(distribution):
 def get_data_files():
     """Get the data files for the package.
     """
+    with open(os.path.join('js', 'package.json')) as f:
+        package_json = json.load(f)
+    tgz = '%s-%s.tgz' % (package_json['name'], package_json['version'])
+
     return [
         ('share/jupyter/nbextensions/jupyter-matplotlib', [
             'ipympl/static/extension.js',
@@ -69,10 +72,8 @@ def get_data_files():
             'ipympl/static/index.js.map',
             'ipympl/static/package.json'
         ]),
-        ('share/jupyter/lab/extensions', [
-            os.path.relpath(f, '.') for f in glob.glob(tar_path)
-        ]),
-        ('etc/jupyter/nbconfig/notebook.d' , ['jupyter-matplotlib.json'])
+        ('etc/jupyter/nbconfig/notebook.d', ['jupyter-matplotlib.json']),
+        ('share/jupyter/lab/extensions', ['js/' + tgz]),
     ]
 
 
@@ -102,13 +103,6 @@ class NPM(Command):
         except Exception:
             return False
 
-    def should_run_npm_install(self):
-        node_modules_exists = os.path.exists(self.node_modules)
-        return self.has_npm() and not node_modules_exists
-
-    def should_run_npm_pack(self):
-        return self.has_npm()
-
     def run(self):
         has_npm = self.has_npm()
         if not has_npm:
@@ -117,16 +111,10 @@ class NPM(Command):
         env = os.environ.copy()
         env['PATH'] = npm_path
 
-        if self.should_run_npm_install():
+        if self.has_npm():
             log.info("Installing build dependencies with npm.  This may take a while...")
             check_call(['npm', 'install'], cwd=node_root, stdout=sys.stdout, stderr=sys.stderr)
-            os.utime(self.node_modules, None)
-
-        if self.should_run_npm_pack():
-            check_call(['npm', 'pack', node_root], cwd=pjoin(here, 'ipympl'), stdout=sys.stdout, stderr=sys.stderr)
-
-        files = glob.glob(tar_path)
-        self.targets.append(tar_path if not files else files[0])
+            check_call(['npm', 'pack'], cwd=node_root, stdout=sys.stdout, stderr=sys.stderr)
 
         for t in self.targets:
             if not os.path.exists(t):
@@ -134,8 +122,6 @@ class NPM(Command):
                 if not has_npm:
                     msg += '\nnpm is required to build a development version of widgetsnbextension'
                 raise ValueError(msg)
-
-        self.distribution.data_files = get_data_files()
 
         # update package data in case this created new files
         update_package_data(self.distribution)
