@@ -61,7 +61,7 @@ def update_package_data(distribution):
 def get_data_files():
     """Get the data files for the package.
     """
-    with open(os.path.join('js', 'package.json')) as f:
+    with open(pjoin(node_root, 'package.json')) as f:
         package_json = json.load(f)
     tgz = '%s-%s.tgz' % (package_json['name'], package_json['version'])
 

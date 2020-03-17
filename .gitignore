@@ -9,6 +9,7 @@ node_modules/
 ipympl/static/
 ipympl/staticlab/
 ipympl/*.tgz
+js/*.tgz
 
 # OS X
 .DS_Store
