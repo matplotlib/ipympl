@@ -21,11 +21,20 @@ from matplotlib.backends.backend_webagg_core import (FigureManagerWebAgg,
                                                      NavigationToolbar2WebAgg,
                                                      TimerTornado)
 from matplotlib.backend_bases import (ShowBase, NavigationToolbar2,
-                                      FigureCanvasBase)
+                                      FigureCanvasBase, cursors)
 
 here = os.path.dirname(__file__)
 with open(os.path.join(here, 'static', 'package.json')) as fid:
     js_semver = '^%s' % json.load(fid)['version']
+
+cursors_str = {
+    cursors.HAND: 'pointer',
+    cursors.POINTER: 'default',
+    cursors.SELECT_REGION: 'crosshair',
+    cursors.MOVE: 'move',
+    cursors.WAIT: 'wait'
+}
+
 
 
 class Show(ShowBase):
@@ -205,8 +214,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     def send_json(self, content):
         # Change in the widget state?
         if content['type'] == 'cursor':
-            cursors = ['pointer', 'default', 'crosshair', 'move']
-            self._cursor = cursors[content['cursor']]
+            self._cursor = cursors_str[content['cursor']]
 
         elif content['type'] == 'message':
             self._message = content['message']
