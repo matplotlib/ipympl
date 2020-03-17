@@ -1,4 +1,5 @@
 recursive-include ipympl/static *.*
-include ipympl/*.tgz
+include js/*.tgz
+include js/package.json
 include LICENSE
 include jupyter-matplotlib.json
