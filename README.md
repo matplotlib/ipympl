@@ -1,4 +1,4 @@
-# jupyter-matplotlib
+# ipympl
 
 [![TravisCI build status](https://img.shields.io/travis/com/matplotlib/ipympl/master?logo=travis)](https://travis-ci.com/matplotlib/ipympl)
 [![Latest PyPI version](https://img.shields.io/pypi/v/ipympl?logo=pypi)](https://pypi.python.org/pypi/ipympl)
@@ -13,7 +13,7 @@ Besides, the figure `canvas` element is a proper Jupyter interactive widget whic
 
 ## Usage
 
-To enable the jupyter-matplotlib backend, simply use the `matplotlib` Jupyter
+To enable the `ipympl` backend, simply use the `matplotlib` Jupyter
 magic:
 
 ```
@@ -49,8 +49,8 @@ jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-matplot
 ### For a development installation (requires nodejs):
 
 ```bash
-git clone https://github.com/matplotlib/jupyter-matplotlib.git
-cd jupyter-matplotlib
+git clone https://github.com/matplotlib/ipympl.git
+cd ipympl
 pip install -e .
 
 # If using classic Jupyter Notebook
