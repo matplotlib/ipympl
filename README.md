@@ -49,7 +49,7 @@ pip install ipympl
 jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-matplotlib
 ```
 
-For a development installation (requires nodejs),
+### For a development installation (requires nodejs),
 
 ```bash
 git clone https://github.com/matplotlib/jupyter-matplotlib.git
