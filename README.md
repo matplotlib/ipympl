@@ -29,39 +29,38 @@ magic:
 
 ## Installation
 
-To install `ipympl` with conda:
+### With conda:
 
 ```bash
 conda install -c conda-forge ipympl
 
-# If using the Notebook
-conda install -c conda-forge widgetsnbextension
-
 # If using JupyterLab
-conda install nodejs
-jupyter labextension install @jupyter-widgets/jupyterlab-manager
-jupyter labextension install jupyter-matplotlib
+conda install -c conda-forge nodejs
+jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-matplotlib
 ```
 
-To install `ipympl` with pip:
+### With pip:
 
 ```bash
 pip install ipympl
 
 # If using JupyterLab
 # Install nodejs: https://nodejs.org/en/download/
-jupyter labextension install @jupyter-widgets/jupyterlab-manager
-jupyter labextension install jupyter-matplotlib
+jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-matplotlib
 ```
 
-For a development installation (requires node),
+For a development installation (requires nodejs),
 
 ```bash
 git clone https://github.com/matplotlib/jupyter-matplotlib.git
 cd jupyter-matplotlib
 pip install -e .
+
+# If using classic Jupyter Notebook
 jupyter nbextension install --py --symlink --sys-prefix ipympl
 jupyter nbextension enable --py --sys-prefix ipympl
+
+# If using JupyterLab
 jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build
 jupyter labextension link ./js
 cd js && npm run watch
