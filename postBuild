@@ -3,6 +3,5 @@
 # A way for mybinder.org to realize it should install the jupyter lab extension
 # automatically. This file does not affect anything except when mybinder.org use
 # it for this specifically.
-jupyter labextension install @jupyter-widgets/jupyterlab-manager
-jupyter labextension install jupyter-matplotlib
+jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-matplotlib
 
