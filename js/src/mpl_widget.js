@@ -161,7 +161,7 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
         });
     }
 
-    handle_draw(msg) {
+    handle_draw(_msg) {
         // Request the server to send over a new figure.
         this.send_draw_message();
     }
@@ -345,7 +345,7 @@ class MPLCanvasView extends widgets.DOMWidgetView {
         this.figure.appendChild(this.header);
     }
 
-    _update_figure_label(msg) {
+    _update_figure_label(_msg) {
         this.header.textContent = this.model.get('_figure_label');
     }
 
@@ -398,7 +398,7 @@ class MPLCanvasView extends widgets.DOMWidgetView {
         this.top_context.strokeStyle = 'rgba(0, 0, 0, 255)';
 
         // Disable right mouse context menu.
-        this.top_canvas.addEventListener('contextmenu', function(e) {
+        this.top_canvas.addEventListener('contextmenu', function(_e) {
             event.preventDefault();
             event.stopPropagation();
             return false;

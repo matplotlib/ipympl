@@ -98,7 +98,7 @@ class ToolbarView extends widgets.DOMWidgetView {
     }
 
     toolbar_button_onclick(name) {
-        return (event) => {
+        return (_event) => {
             // Special case for pan and zoom as they are toggle buttons
             if (name == 'pan' || name == 'zoom') {
                 if (this.model.get('_current_action') == name) {
