@@ -21,7 +21,7 @@
     "extension": "src/lab_extension"
   },
   "devDependencies": {
-    "css-loader": "^3.4.2",
+    "css-loader": "^3.5.3",
     "fs-extra": "^4.0.2",
     "json-loader": "^0.5.4",
     "rimraf": "^2.6.1",
