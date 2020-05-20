@@ -1,4 +1,5 @@
 from __future__ import print_function
+from distutils import log
 from setuptools import setup, find_packages, Command
 from setuptools.command.sdist import sdist
 from setuptools.command.build_py import build_py
@@ -18,7 +19,6 @@ npm_path = os.pathsep.join([
     os.environ.get('PATH', os.defpath),
 ])
 
-from distutils import log
 log.info('setup.py entered')
 log.info('$PATH=%s' % os.environ['PATH'])
 
