@@ -3,6 +3,7 @@ from ._version import version_info, __version__
 
 npm_pkg_name = 'jupyter-matplotlib'
 
+
 def _jupyter_nbextension_paths():
     return [{
         'section': 'notebook',

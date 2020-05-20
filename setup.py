@@ -15,7 +15,7 @@ is_repo = os.path.exists(pjoin(here, '.git'))
 
 npm_path = os.pathsep.join([
     pjoin(node_root, 'node_modules', '.bin'),
-            os.environ.get('PATH', os.defpath),
+    os.environ.get('PATH', os.defpath),
 ])
 
 from distutils import log
@@ -23,6 +23,7 @@ log.info('setup.py entered')
 log.info('$PATH=%s' % os.environ['PATH'])
 
 LONG_DESCRIPTION = 'Matplotlib Jupyter Extension'
+
 
 def js_prerelease(command, strict=False):
     """decorator for building minified js/css prior to another command"""
@@ -49,6 +50,7 @@ def js_prerelease(command, strict=False):
             command.run(self)
             update_package_data(self.distribution)
     return DecoratedCommand
+
 
 def update_package_data(distribution):
     """update package_data to catch changes during setup"""
@@ -106,21 +108,26 @@ class NPM(Command):
     def run(self):
         has_npm = self.has_npm()
         if not has_npm:
-            log.error("`npm` unavailable.  If you're running this command using sudo, make sure `npm` is available to sudo")
+            log.error("`npm` unavailable.  If you're running this command "
+                      "using sudo, make sure `npm` is available to sudo")
 
         env = os.environ.copy()
         env['PATH'] = npm_path
 
         if self.has_npm():
-            log.info("Installing build dependencies with npm.  This may take a while...")
-            check_call(['npm', 'install'], cwd=node_root, stdout=sys.stdout, stderr=sys.stderr)
-            check_call(['npm', 'pack'], cwd=node_root, stdout=sys.stdout, stderr=sys.stderr)
+            log.info("Installing build dependencies with npm.  "
+                     "This may take a while...")
+            check_call(['npm', 'install'], cwd=node_root, stdout=sys.stdout,
+                       stderr=sys.stderr)
+            check_call(['npm', 'pack'], cwd=node_root, stdout=sys.stdout,
+                       stderr=sys.stderr)
 
         for t in self.targets:
             if not os.path.exists(t):
                 msg = 'Missing file: %s' % t
                 if not has_npm:
-                    msg += '\nnpm is required to build a development version of widgetsnbextension'
+                    msg += ('\nnpm is required to build a development version '
+                            'of widgetsnbextension')
                 raise ValueError(msg)
 
         # update package data in case this created new files

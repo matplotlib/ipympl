@@ -36,7 +36,6 @@ cursors_str = {
 }
 
 
-
 class Show(ShowBase):
 
     def __call__(self, block=None):
@@ -61,7 +60,9 @@ class Show(ShowBase):
             if not interactive and manager in Gcf._activeQue:
                 Gcf._activeQue.remove(manager)
 
+
 show = Show()
+
 
 def draw_if_interactive():
     import matplotlib._pylab_helpers as pylab_helpers
@@ -70,6 +71,7 @@ def draw_if_interactive():
         manager = pylab_helpers.Gcf.get_active()
         if manager is not None:
             manager.show()
+
 
 def connection_info():
     """
@@ -101,13 +103,16 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
     _view_name = Unicode('ToolbarView').tag(sync=True)
 
     toolitems = List().tag(sync=True)
-    orientation = Enum(['horizontal', 'vertical'], default_value='vertical').tag(sync=True)
+    orientation = Enum(['horizontal', 'vertical'],
+                       default_value='vertical').tag(sync=True)
     button_style = CaselessStrEnum(
-        values=['primary', 'success', 'info', 'warning', 'danger', ''], default_value='',
+        values=['primary', 'success', 'info', 'warning', 'danger', ''],
+        default_value='',
         help="""Use a predefined styling for the button.""").tag(sync=True)
     collapsed = Bool(True).tag(sync=True)
 
-    _current_action = Enum(values=['pan', 'zoom', ''], default_value='').tag(sync=True)
+    _current_action = Enum(values=['pan', 'zoom', ''],
+                           default_value='').tag(sync=True)
 
     def __init__(self, canvas, *args, **kwargs):
         DOMWidget.__init__(self, *args, **kwargs)
@@ -119,7 +124,8 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
         buf = io.BytesIO()
         self.canvas.figure.savefig(buf, format='png', dpi='figure')
         # Figure width in pixels
-        pwidth = self.canvas.figure.get_figwidth() * self.canvas.figure.get_dpi()
+        pwidth = (self.canvas.figure.get_figwidth() *
+                  self.canvas.figure.get_dpi())
         # Scale size to match widget on HiPD monitors
         width = pwidth / self.canvas._dpi_ratio
         data = "<img src='data:image/png;base64,{0}' width={1}/>"
@@ -138,7 +144,8 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
             'export': 'file-picture-o'
         }
 
-        download_item = ('Download', 'Download plot', 'download', 'save_figure')
+        download_item = ('Download', 'Download plot', 'download',
+                         'save_figure')
 
         toolitems = (NavigationToolbar2.toolitems + (download_item,))
 
@@ -158,9 +165,11 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     _view_module_version = Unicode(js_semver).tag(sync=True)
     _view_name = Unicode('MPLCanvasView').tag(sync=True)
 
-    toolbar = Instance(Toolbar, allow_none=True).tag(sync=True, **widget_serialization)
+    toolbar = Instance(Toolbar,
+                       allow_none=True).tag(sync=True, **widget_serialization)
     toolbar_visible = Bool(True).tag(sync=True)
-    toolbar_position = Enum(['top', 'bottom', 'left', 'right'], default_value='left').tag(sync=True)
+    toolbar_position = Enum(['top', 'bottom', 'left', 'right'],
+                            default_value='left').tag(sync=True)
 
     header_visible = Bool(True).tag(sync=True)
     footer_visible = Bool(True).tag(sync=True)
