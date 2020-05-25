@@ -5,8 +5,7 @@ require('./mpl_widget.css');
 
 const version = require('../package.json').version;
 
-export
-class MPLCanvasModel extends widgets.DOMWidgetModel {
+export class MPLCanvasModel extends widgets.DOMWidgetModel {
     defaults() {
         return {
             ...super.defaults(),
@@ -14,7 +13,7 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
             _view_name: 'MPLCanvasView',
             _model_module: 'jupyter-matplotlib',
             _view_module: 'jupyter-matplotlib',
-            _model_module_version: '^'+ version,
+            _model_module_version: '^' + version,
             _view_module_version: '^' + version,
             header_visible: true,
             footer_visible: true,
@@ -40,11 +39,13 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
 
         this.offscreen_canvas = document.createElement('canvas');
         this.offscreen_context = this.offscreen_canvas.getContext('2d');
-        const backingStore = this.offscreen_context.backingStorePixelRatio ||
+        const backingStore =
+            this.offscreen_context.backingStorePixelRatio ||
             this.offscreen_context.webkitBackingStorePixelRatio ||
             this.offscreen_context.mozBackingStorePixelRatio ||
             this.offscreen_context.msBackingStorePixelRatio ||
-            this.offscreen_context.oBackingStorePixelRatio || 1;
+            this.offscreen_context.oBackingStorePixelRatio ||
+            1;
 
         this.requested_size = null;
         this.resize_requested = false;
@@ -53,9 +54,9 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
 
         this.on('msg:custom', this.on_comm_message.bind(this));
         this.on('change:resizable', () => {
-            this._for_each_view(function(view) {
+            this._for_each_view(function (view) {
                 view.update_canvas();
-            })
+            });
         });
 
         this.send_initialization_message();
@@ -69,7 +70,7 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
 
     send_initialization_message() {
         if (this.ratio != 1) {
-            this.send_message('set_dpi_ratio', {'dpi_ratio': this.ratio});
+            this.send_message('set_dpi_ratio', { dpi_ratio: this.ratio });
         }
 
         this.send_message('send_image_mode');
@@ -100,7 +101,7 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
         this.offscreen_context.drawImage(this.image, 0, 0);
 
         if (!this.resize_requested) {
-            this._for_each_view(function(view) {
+            this._for_each_view(function (view) {
                 view.resize_canvas(size[0], size[1]);
             });
         }
@@ -121,7 +122,7 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
             return;
         }
 
-        this._for_each_view(function(view) {
+        this._for_each_view(function (view) {
             // Do an initial resize of each view, stretching the old canvas.
             view.resize_canvas(width, height);
         });
@@ -131,7 +132,7 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
             this.requested_size = [width, height];
         } else {
             this.resize_requested = true;
-            this.send_message('resize', {'width': width, 'height': height});
+            this.send_message('resize', { width: width, height: height });
         }
     }
 
@@ -156,12 +157,12 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
         this.set('_rubberband_height', Math.abs(y1 - y0));
         this.save_changes();
 
-        this._for_each_view(function(view) {
+        this._for_each_view(function (view) {
             view.update_canvas();
         });
     }
 
-    handle_draw(msg) {
+    handle_draw(_msg) {
         // Request the server to send over a new figure.
         this.send_draw_message();
     }
@@ -170,7 +171,7 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
         const url_creator = window.URL || window.webkitURL;
 
         const buffer = new Uint8Array(dataviews[0].buffer);
-        const blob = new Blob([buffer], {type: 'image/png'});
+        const blob = new Blob([buffer], { type: 'image/png' });
         const image_url = url_creator.createObjectURL(blob);
 
         // Free the memory for the previous frames
@@ -196,7 +197,10 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
         try {
             callback = this['handle_' + msg_type].bind(this);
         } catch (e) {
-            console.log('No handler for the \'' + msg_type + '\' message type: ', msg);
+            console.log(
+                "No handler for the '" + msg_type + "' message type: ",
+                msg
+            );
             return;
         }
 
@@ -212,11 +216,16 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
                 // Full images could contain transparency (where diff images
                 // almost always do), so we need to clear the canvas so that
                 // there is no ghosting.
-                this.offscreen_context.clearRect(0, 0, this.offscreen_canvas.width, this.offscreen_canvas.height);
+                this.offscreen_context.clearRect(
+                    0,
+                    0,
+                    this.offscreen_canvas.width,
+                    this.offscreen_canvas.height
+                );
             }
             this.offscreen_context.drawImage(this.image, 0, 0);
 
-            this._for_each_view(function(view) {
+            this._for_each_view(function (view) {
                 view.update_canvas();
             });
         };
@@ -237,12 +246,10 @@ class MPLCanvasModel extends widgets.DOMWidgetModel {
 
 MPLCanvasModel.serializers = {
     ...widgets.DOMWidgetModel.serializers,
-    toolbar: { deserialize: widgets.unpack_models }
+    toolbar: { deserialize: widgets.unpack_models },
 };
 
-
-export
-class MPLCanvasView extends widgets.DOMWidgetView {
+export class MPLCanvasView extends widgets.DOMWidgetView {
     render() {
         this.canvas = undefined;
         this.context = undefined;
@@ -252,7 +259,8 @@ class MPLCanvasView extends widgets.DOMWidgetView {
         this.resize_handle_size = 20;
 
         this.figure = document.createElement('div');
-        this.figure.classList = 'jupyter-matplotlib-figure jupyter-widgets widget-container widget-box widget-vbox';
+        this.figure.classList =
+            'jupyter-matplotlib-figure jupyter-widgets widget-container widget-box widget-vbox';
 
         this._init_header();
         this._init_canvas();
@@ -265,45 +273,69 @@ class MPLCanvasView extends widgets.DOMWidgetView {
 
         this.waiting = false;
 
-        return this.create_child_view(this.model.get('toolbar')).then((toolbar_view) => {
-            this.toolbar_view = toolbar_view;
+        return this.create_child_view(this.model.get('toolbar')).then(
+            (toolbar_view) => {
+                this.toolbar_view = toolbar_view;
 
-            this._update_toolbar_position();
+                this._update_toolbar_position();
 
-            this._update_header_visible();
-            this._update_footer_visible();
-            this._update_toolbar_visible();
+                this._update_header_visible();
+                this._update_footer_visible();
+                this._update_toolbar_visible();
 
-            this.model_events();
-        });
+                this.model_events();
+            }
+        );
     }
 
     model_events() {
-        this.model.on('change:header_visible', this._update_header_visible.bind(this));
-        this.model.on('change:footer_visible', this._update_footer_visible.bind(this));
-        this.model.on('change:toolbar_visible', this._update_toolbar_visible.bind(this));
-        this.model.on('change:toolbar_position', this._update_toolbar_position.bind(this));
-        this.model.on('change:_figure_label', this._update_figure_label.bind(this));
+        this.model.on(
+            'change:header_visible',
+            this._update_header_visible.bind(this)
+        );
+        this.model.on(
+            'change:footer_visible',
+            this._update_footer_visible.bind(this)
+        );
+        this.model.on(
+            'change:toolbar_visible',
+            this._update_toolbar_visible.bind(this)
+        );
+        this.model.on(
+            'change:toolbar_position',
+            this._update_toolbar_position.bind(this)
+        );
+        this.model.on(
+            'change:_figure_label',
+            this._update_figure_label.bind(this)
+        );
         this.model.on('change:_message', this._update_message.bind(this));
         this.model.on('change:_cursor', this._update_cursor.bind(this));
     }
 
     _update_header_visible() {
-        this.header.style.display = this.model.get('header_visible') ? '': 'none';
+        this.header.style.display = this.model.get('header_visible')
+            ? ''
+            : 'none';
     }
 
     _update_footer_visible() {
-        this.footer.style.display = this.model.get('footer_visible') ? '': 'none';
+        this.footer.style.display = this.model.get('footer_visible')
+            ? ''
+            : 'none';
     }
 
     _update_toolbar_visible() {
-        this.toolbar_view.el.style.display = this.model.get('toolbar_visible') ? '' : 'none';
+        this.toolbar_view.el.style.display = this.model.get('toolbar_visible')
+            ? ''
+            : 'none';
     }
 
     _update_toolbar_position() {
         const toolbar_position = this.model.get('toolbar_position');
         if (toolbar_position == 'top' || toolbar_position == 'bottom') {
-            this.el.classList = 'jupyter-widgets widget-container widget-box widget-vbox jupyter-matplotlib';
+            this.el.classList =
+                'jupyter-widgets widget-container widget-box widget-vbox jupyter-matplotlib';
             this.model.get('toolbar').set('orientation', 'horizontal');
 
             this.clear();
@@ -316,7 +348,8 @@ class MPLCanvasView extends widgets.DOMWidgetView {
                 this.el.appendChild(this.toolbar_view.el);
             }
         } else {
-            this.el.classList = 'jupyter-widgets widget-container widget-box widget-hbox jupyter-matplotlib';
+            this.el.classList =
+                'jupyter-widgets widget-container widget-box widget-hbox jupyter-matplotlib';
             this.model.get('toolbar').set('orientation', 'vertical');
 
             this.clear();
@@ -345,16 +378,17 @@ class MPLCanvasView extends widgets.DOMWidgetView {
         this.figure.appendChild(this.header);
     }
 
-    _update_figure_label(msg) {
+    _update_figure_label(_msg) {
         this.header.textContent = this.model.get('_figure_label');
     }
 
     _init_canvas() {
         const canvas_container = document.createElement('div');
-        canvas_container.classList = 'jupyter-widgets jupyter-matplotlib-canvas-container';
+        canvas_container.classList =
+            'jupyter-widgets jupyter-matplotlib-canvas-container';
         this.figure.appendChild(canvas_container);
 
-        const canvas_div = this.canvas_div = document.createElement('div');
+        const canvas_div = (this.canvas_div = document.createElement('div'));
         canvas_div.style.position = 'relative';
         canvas_div.style.clear = 'both';
         canvas_div.classList = 'jupyter-widgets jupyter-matplotlib-canvas-div';
@@ -366,7 +400,7 @@ class MPLCanvasView extends widgets.DOMWidgetView {
         canvas_div.setAttribute('tabindex', 0);
         canvas_container.appendChild(canvas_div);
 
-        const canvas = this.canvas = document.createElement('canvas');
+        const canvas = (this.canvas = document.createElement('canvas'));
         canvas.style.display = 'block';
         canvas.style.position = 'absolute';
         canvas.style.left = 0;
@@ -375,19 +409,34 @@ class MPLCanvasView extends widgets.DOMWidgetView {
 
         this.context = canvas.getContext('2d');
 
-        const top_canvas = this.top_canvas = document.createElement('canvas');
+        const top_canvas = (this.top_canvas = document.createElement('canvas'));
         top_canvas.style.display = 'block';
         top_canvas.style.position = 'absolute';
         top_canvas.style.left = 0;
         top_canvas.style.top = 0;
         top_canvas.style.zIndex = 1;
 
-        top_canvas.addEventListener('mousedown', this.mouse_event('button_press'));
-        top_canvas.addEventListener('mouseup', this.mouse_event('button_release'));
-        top_canvas.addEventListener('mousemove', this.mouse_event('motion_notify'));
+        top_canvas.addEventListener(
+            'mousedown',
+            this.mouse_event('button_press')
+        );
+        top_canvas.addEventListener(
+            'mouseup',
+            this.mouse_event('button_release')
+        );
+        top_canvas.addEventListener(
+            'mousemove',
+            this.mouse_event('motion_notify')
+        );
 
-        top_canvas.addEventListener('mouseenter', this.mouse_event('figure_enter'));
-        top_canvas.addEventListener('mouseleave', this.mouse_event('figure_leave'));
+        top_canvas.addEventListener(
+            'mouseenter',
+            this.mouse_event('figure_enter')
+        );
+        top_canvas.addEventListener(
+            'mouseleave',
+            this.mouse_event('figure_leave')
+        );
 
         top_canvas.addEventListener('wheel', this.mouse_event('scroll'));
 
@@ -398,7 +447,7 @@ class MPLCanvasView extends widgets.DOMWidgetView {
         this.top_context.strokeStyle = 'rgba(0, 0, 0, 255)';
 
         // Disable right mouse context menu.
-        this.top_canvas.addEventListener('contextmenu', function(e) {
+        this.top_canvas.addEventListener('contextmenu', function (_e) {
             event.preventDefault();
             event.stopPropagation();
             return false;
@@ -416,13 +465,23 @@ class MPLCanvasView extends widgets.DOMWidgetView {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.drawImage(this.model.offscreen_canvas, 0, 0);
 
-        this.top_context.clearRect(0, 0, this.top_canvas.width, this.top_canvas.height);
+        this.top_context.clearRect(
+            0,
+            0,
+            this.top_canvas.width,
+            this.top_canvas.height
+        );
 
         // Draw rubberband
-        if (this.model.get('_rubberband_width') != 0 && this.model.get('_rubberband_height') != 0) {
+        if (
+            this.model.get('_rubberband_width') != 0 &&
+            this.model.get('_rubberband_height') != 0
+        ) {
             this.top_context.strokeRect(
-                this.model.get('_rubberband_x'), this.model.get('_rubberband_y'),
-                this.model.get('_rubberband_width'), this.model.get('_rubberband_height')
+                this.model.get('_rubberband_x'),
+                this.model.get('_rubberband_y'),
+                this.model.get('_rubberband_width'),
+                this.model.get('_rubberband_height')
             );
         }
 
@@ -431,8 +490,10 @@ class MPLCanvasView extends widgets.DOMWidgetView {
             this.top_context.save();
 
             var gradient = this.top_context.createLinearGradient(
-                this.top_canvas.width - this.resize_handle_size / 3, this.top_canvas.height - this.resize_handle_size / 3,
-                this.top_canvas.width - this.resize_handle_size / 4, this.top_canvas.height - this.resize_handle_size / 4
+                this.top_canvas.width - this.resize_handle_size / 3,
+                this.top_canvas.height - this.resize_handle_size / 3,
+                this.top_canvas.width - this.resize_handle_size / 4,
+                this.top_canvas.height - this.resize_handle_size / 4
             );
             gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
             gradient.addColorStop(1, 'rgba(0, 0, 0, 255)');
@@ -441,9 +502,18 @@ class MPLCanvasView extends widgets.DOMWidgetView {
 
             this.top_context.globalAlpha = 0.3;
             this.top_context.beginPath();
-            this.top_context.moveTo(this.top_canvas.width, this.top_canvas.height);
-            this.top_context.lineTo(this.top_canvas.width, this.top_canvas.height - this.resize_handle_size);
-            this.top_context.lineTo(this.top_canvas.width - this.resize_handle_size, this.top_canvas.height);
+            this.top_context.moveTo(
+                this.top_canvas.width,
+                this.top_canvas.height
+            );
+            this.top_context.lineTo(
+                this.top_canvas.width,
+                this.top_canvas.height - this.resize_handle_size
+            );
+            this.top_context.lineTo(
+                this.top_canvas.width - this.resize_handle_size,
+                this.top_canvas.height
+            );
             this.top_context.closePath();
             this.top_context.fill();
 
@@ -489,7 +559,7 @@ class MPLCanvasView extends widgets.DOMWidgetView {
             const canvas_pos = utils.get_mouse_position(event, this.top_canvas);
 
             if (name === 'scroll') {
-                event['data'] = 'scroll'
+                event['data'] = 'scroll';
                 if (event.deltaY < 0) {
                     event.step = 1;
                 } else {
@@ -499,9 +569,13 @@ class MPLCanvasView extends widgets.DOMWidgetView {
 
             if (name === 'button_press') {
                 // If clicking on the resize handle
-                if (canvas_pos.x >= this.top_canvas.width - this.resize_handle_size &&
-                        canvas_pos.y >= this.top_canvas.height - this.resize_handle_size &&
-                        this.model.get('resizable')) {
+                if (
+                    canvas_pos.x >=
+                        this.top_canvas.width - this.resize_handle_size &&
+                    canvas_pos.y >=
+                        this.top_canvas.height - this.resize_handle_size &&
+                    this.model.get('resizable')
+                ) {
                     this.resizing = true;
                     return;
                 } else {
@@ -517,8 +591,12 @@ class MPLCanvasView extends widgets.DOMWidgetView {
 
             if (name === 'motion_notify') {
                 // If the mouse is on the handle, change the cursor style
-                if (canvas_pos.x >= this.top_canvas.width - this.resize_handle_size &&
-                        canvas_pos.y >= this.top_canvas.height - this.resize_handle_size) {
+                if (
+                    canvas_pos.x >=
+                        this.top_canvas.width - this.resize_handle_size &&
+                    canvas_pos.y >=
+                        this.top_canvas.height - this.resize_handle_size
+                ) {
                     this.top_canvas.style.cursor = 'nw-resize';
                 } else {
                     this.top_canvas.style.cursor = this.model.get('_cursor');
@@ -533,9 +611,13 @@ class MPLCanvasView extends widgets.DOMWidgetView {
                 var x = canvas_pos.x * this.model.ratio;
                 var y = canvas_pos.y * this.model.ratio;
 
-                this.model.send_message(name, {x: x, y: y, button: event.button,
-                                        step: event.step,
-                                        guiEvent: utils.get_simple_keys(event)});
+                this.model.send_message(name, {
+                    x: x,
+                    y: y,
+                    button: event.button,
+                    step: event.step,
+                    guiEvent: utils.get_simple_keys(event),
+                });
             }
         };
     }
@@ -559,32 +641,39 @@ class MPLCanvasView extends widgets.DOMWidgetView {
 
             // Prevent repeat events
             if (name == 'key_press') {
-                if (event.which === this._key)
+                if (event.which === this._key) {
                     return;
-                else
+                } else {
                     this._key = event.which;
+                }
             }
             if (name == 'key_release') {
                 this._key = null;
             }
 
             var value = '';
-            if (event.ctrlKey && event.which != 17)
+            if (event.ctrlKey && event.which != 17) {
                 value += 'ctrl+';
-            if (event.altKey && event.which != 18)
+            }
+            if (event.altKey && event.which != 18) {
                 value += 'alt+';
-            if (event.shiftKey && event.which != 16)
+            }
+            if (event.shiftKey && event.which != 16) {
                 value += 'shift+';
+            }
 
             value += 'k';
             value += event.which.toString();
 
-            this.model.send_message(name, {key: value, guiEvent: utils.get_simple_keys(event)});
+            this.model.send_message(name, {
+                key: value,
+                guiEvent: utils.get_simple_keys(event),
+            });
             return false;
         };
     }
 
-    remove(){
+    remove() {
         window.removeEventListener('mousemove', this._resize_event);
         window.removeEventListener('mouseup', this._stop_resize_event);
     }

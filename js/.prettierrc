@@ -1,0 +1,11 @@
+{
+  "overrides": [
+    {
+      "files": ["webpack.config.js", "src/**/*.js"],
+      "options": {
+        "singleQuote": true,
+        "tabWidth": 4,
+      }
+    }
+  ]
+}

@@ -5,12 +5,12 @@ var base = require('@jupyter-widgets/base');
 module.exports = {
     id: 'matplotlib-jupyter:main',
     requires: [base.IJupyterWidgetRegistry],
-    activate: function(app, widgets) {
+    activate: function (app, widgets) {
         widgets.registerWidget({
             name: 'jupyter-matplotlib',
             version: jupyter_matplotlib.version,
-            exports: jupyter_matplotlib
+            exports: jupyter_matplotlib,
         });
     },
-    autoStart: true
+    autoStart: true,
 };

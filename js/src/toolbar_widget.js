@@ -2,9 +2,7 @@ const widgets = require('@jupyter-widgets/base');
 
 const version = require('../package.json').version;
 
-
-export
-class ToolbarModel extends widgets.DOMWidgetModel {
+export class ToolbarModel extends widgets.DOMWidgetModel {
     defaults() {
         return {
             ...super.defaults(),
@@ -12,7 +10,7 @@ class ToolbarModel extends widgets.DOMWidgetModel {
             _view_name: 'ToolbarView',
             _model_module: 'jupyter-matplotlib',
             _view_module: 'jupyter-matplotlib',
-            _model_module_version: '^'+ version,
+            _model_module_version: '^' + version,
             _view_module_version: '^' + version,
             toolitems: [],
             orientation: 'vertical',
@@ -23,9 +21,7 @@ class ToolbarModel extends widgets.DOMWidgetModel {
     }
 }
 
-
-export
-class ToolbarView extends widgets.DOMWidgetView {
+export class ToolbarView extends widgets.DOMWidgetView {
     render() {
         this.el.classList = 'jupyter-widgets jupyter-matplotlib-toolbar';
         this.el.classList.add('widget-container', 'widget-box');
@@ -39,7 +35,8 @@ class ToolbarView extends widgets.DOMWidgetView {
 
         this.toggle_button = document.createElement('button');
 
-        this.toggle_button.classList = 'jupyter-matplotlib-button jupyter-widgets jupyter-button';
+        this.toggle_button.classList =
+            'jupyter-matplotlib-button jupyter-widgets jupyter-button';
         this.toggle_button.setAttribute('href', '#');
         this.toggle_button.setAttribute('title', 'Toggle Interaction');
         this.toggle_button.style.outline = 'none';
@@ -56,21 +53,27 @@ class ToolbarView extends widgets.DOMWidgetView {
         this.toolbar = document.createElement('div');
         this.toolbar.classList = 'widget-container widget-box';
         this.el.appendChild(this.toolbar);
-        this.buttons = {'toggle_button': this.toggle_button};
+        this.buttons = { toggle_button: this.toggle_button };
 
-        for(let toolbar_ind in toolbar_items) {
+        for (let toolbar_ind in toolbar_items) {
             const name = toolbar_items[toolbar_ind][0];
             const tooltip = toolbar_items[toolbar_ind][1];
             const image = toolbar_items[toolbar_ind][2];
             const method_name = toolbar_items[toolbar_ind][3];
-            if (!name) { continue; };
+            if (!name) {
+                continue;
+            }
 
             const button = document.createElement('button');
-            button.classList = 'jupyter-matplotlib-button jupyter-widgets jupyter-button';
+            button.classList =
+                'jupyter-matplotlib-button jupyter-widgets jupyter-button';
             button.setAttribute('href', '#');
             button.setAttribute('title', tooltip);
             button.style.outline = 'none';
-            button.addEventListener('click', this.toolbar_button_onclick(method_name));
+            button.addEventListener(
+                'click',
+                this.toolbar_button_onclick(method_name)
+            );
 
             const icon = document.createElement('i');
             icon.classList = 'center fa fa-' + image;
@@ -98,21 +101,20 @@ class ToolbarView extends widgets.DOMWidgetView {
     }
 
     toolbar_button_onclick(name) {
-        return (event) => {
+        return (_event) => {
             // Special case for pan and zoom as they are toggle buttons
             if (name == 'pan' || name == 'zoom') {
                 if (this.model.get('_current_action') == name) {
                     this.model.set('_current_action', '');
-                }
-                else {
+                } else {
                     this.model.set('_current_action', name);
                 }
                 this.model.save_changes();
             }
 
             this.send({
-                'type': 'toolbar_button',
-                'name': name
+                type: 'toolbar_button',
+                name: name,
             });
         };
     }
@@ -123,7 +125,7 @@ class ToolbarView extends widgets.DOMWidgetView {
             success: ['mod-success'],
             info: ['mod-info'],
             warning: ['mod-warning'],
-            danger: ['mod-danger']
+            danger: ['mod-danger'],
         };
 
         for (let name in this.buttons) {
@@ -151,7 +153,10 @@ class ToolbarView extends widgets.DOMWidgetView {
 
     model_events() {
         this.model.on('change:orientation', this.update_orientation.bind(this));
-        this.model.on_some_change(['button_style', '_current_action'], this.set_buttons_style.bind(this));
+        this.model.on_some_change(
+            ['button_style', '_current_action'],
+            this.set_buttons_style.bind(this)
+        );
         this.model.on('change:collapsed', this.update_collapsed.bind(this));
     }
 
