@@ -1,7 +1,8 @@
 import sys
-from ._version import version_info, __version__
+from ._version import version_info, __version__  # noqa
 
 npm_pkg_name = 'jupyter-matplotlib'
+
 
 def _jupyter_nbextension_paths():
     return [{
