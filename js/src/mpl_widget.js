@@ -21,6 +21,7 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
             toolbar_visible: true,
             toolbar_position: 'horizontal',
             resizable: true,
+            capture_scroll: false,
             _width: 0,
             _height: 0,
             _figure_label: 'Figure',
@@ -564,6 +565,9 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
                     event.step = 1;
                 } else {
                     event.step = -1;
+                }
+                if (this.model.get('capture_scroll')) {
+                    event.preventDefault();
                 }
             }
 
