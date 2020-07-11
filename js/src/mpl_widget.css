@@ -12,8 +12,7 @@
 
 .jupyter-matplotlib-button {
   width: calc(var(--jp-widgets-inline-width-tiny) / 2 - 2px);
-  overflow: hidden;
-  padding: 0;
+  padding: 0 !important;
 }
 
 /* Figure */
