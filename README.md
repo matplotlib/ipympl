@@ -93,8 +93,18 @@ jupyter nbextension enable --py --sys-prefix ipympl
 
 # If using JupyterLab
 jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build
-jupyter labextension link ./js
-cd js && npm run watch
-# Launch jupyterlab as `jupyter lab --watch` in another terminal
+jupyter labextension install ./js
 ```
 
+#### How to see your changes
+**Javascript**:
+
+To continuously monitor the project for changes and automatically trigger a rebuild, start Jupyter in watch mode:
+
+jupyter lab --watch
+
+After a change wait for the build to finish and then refresh your browser and the changes should take effect.
+
+**Python:**
+
+If you make a change to the python code then you will need to restart the notebook kernel to have it take effect.
