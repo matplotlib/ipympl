@@ -21,5 +21,5 @@ python -c "import sys; print('\n',sys.version); import ipympl; print('ipympl ver
 ```
 -->
 ```
-Paste here the command output.
+Paste the command output here.
 ```
