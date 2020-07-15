@@ -46,7 +46,7 @@ export class ToolbarView extends widgets.DOMWidgetView {
         });
 
         const icon = document.createElement('i');
-        icon.classList = 'center fa fa-bars';
+        icon.classList = 'center fa fa-fw fa-bars';
         this.toggle_button.appendChild(icon);
 
         this.el.appendChild(this.toggle_button);
@@ -76,7 +76,7 @@ export class ToolbarView extends widgets.DOMWidgetView {
             );
 
             const icon = document.createElement('i');
-            icon.classList = 'center fa fa-' + image;
+            icon.classList = 'center fa fa-fw fa-' + image;
             button.appendChild(icon);
 
             this.buttons[method_name] = button;
