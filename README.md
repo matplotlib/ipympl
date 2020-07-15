@@ -101,7 +101,9 @@ jupyter labextension install ./js
 
 To continuously monitor the project for changes and automatically trigger a rebuild, start Jupyter in watch mode:
 
+```bash
 jupyter lab --watch
+```
 
 After a change wait for the build to finish and then refresh your browser and the changes should take effect.
 
