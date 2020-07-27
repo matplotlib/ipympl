@@ -10,6 +10,9 @@ import json
 import sys
 from os.path import join as pjoin
 
+# Name of the project
+name = 'ipympl'
+
 here = os.path.dirname(os.path.abspath(__file__))
 node_root = pjoin(here, 'js')
 is_repo = os.path.exists(pjoin(here, '.git'))
@@ -138,37 +141,37 @@ version_ns = {}
 with open(pjoin(here, 'ipympl', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
-setup_args = {
-    'name': 'ipympl',
-    'version': version_ns['__version__'],
-    'description': 'Matplotlib Jupyter Extension',
-    'long_description': LONG_DESCRIPTION,
-    'license': 'BSD License',
-    'include_package_data': True,
-    'data_files': get_data_files(),
-    'install_requires': [
+setup_args = dict(
+    name=name,
+    version=version_ns['__version__'],
+    description='Matplotlib Jupyter Extension',
+    long_description=LONG_DESCRIPTION,
+    license='BSD License',
+    include_package_data=True,
+    data_files=get_data_files(),
+    install_requires=[
         'ipykernel>=4.7',
         'ipywidgets>=7.5.0',
         'matplotlib>=2.0.0'
     ],
-    'packages': find_packages(),
-    'zip_safe': False,
-    'cmdclass': {
+    packages=find_packages(),
+    zip_safe=False,
+    cmdclass={
         'build_py': js_prerelease(build_py),
         'egg_info': js_prerelease(egg_info),
         'sdist': js_prerelease(sdist, strict=True),
         'jsdeps': NPM,
     },
-    'author': 'Matplotlib Development Team',
-    'author_email': 'matplotlib-users@python.org',
-    'url': 'http://matplotlib.org',
-    'keywords': [
+    author='Matplotlib Development Team',
+    author_email='matplotlib-users@python.org',
+    url='http://matplotlib.org',
+    keywords=[
         'ipython',
         'jupyter',
         'widgets',
         'graphics',
     ],
-    'classifiers': [
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Framework :: IPython',
         'Intended Audience :: Developers',
@@ -181,6 +184,6 @@ setup_args = {
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
-}
+)
 
 setup(**setup_args)
