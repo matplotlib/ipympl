@@ -40,5 +40,11 @@
   },
   "dependencies": {
     "@jupyter-widgets/base": "^2 || ^3"
-  }
+  },
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension",
+    "widgets"
+  ]
 }
