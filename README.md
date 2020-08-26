@@ -60,7 +60,7 @@ You will need to install the right `jupyter-matplotlib` version, according to th
 For example, if you installed ipympl `0.5.1`, you need to install jupyter-matplotlib `0.7.0`, and this version is only compatible with JupyterLab `1`.
 
 ```bash
-const install -c conda-forge ipympl==0.5.1
+conda install -c conda-forge ipympl==0.5.1
 jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-matplotlib@0.7.0
 ```
 
