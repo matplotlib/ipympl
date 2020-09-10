@@ -198,12 +198,6 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     _force_full = Bool()
     _current_image_mode = Unicode()
     _dpi_ratio = Float(1.0)
-    _is_idle_drawing = Bool()
-    _is_saving = Bool()
-    _button = Any()
-    _key = Any()
-    _lastx = Any()
-    _lasty = Any()
 
     def __init__(self, figure, *args, **kwargs):
         DOMWidget.__init__(self, *args, **kwargs)
