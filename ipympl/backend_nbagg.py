@@ -9,7 +9,7 @@ from IPython.display import display, HTML
 
 from ipywidgets import DOMWidget, widget_serialization
 from traitlets import (
-    Unicode, Bool, CInt, Float, List, Any, Instance, CaselessStrEnum, Enum,
+    Unicode, Bool, CInt, Float, List, Instance, CaselessStrEnum, Enum,
     default
 )
 
