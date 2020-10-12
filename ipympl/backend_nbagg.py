@@ -3,7 +3,6 @@
 from base64 import b64encode
 import json
 import io
-import os
 
 from IPython.display import display, HTML
 
@@ -23,9 +22,7 @@ from matplotlib.backends.backend_webagg_core import (FigureManagerWebAgg,
 from matplotlib.backend_bases import (ShowBase, NavigationToolbar2,
                                       FigureCanvasBase, cursors)
 
-here = os.path.dirname(__file__)
-with open(os.path.join(here, 'static', 'package.json')) as fid:
-    js_semver = '^%s' % json.load(fid)['version']
+from ._version import js_semver
 
 cursors_str = {
     cursors.HAND: 'pointer',
@@ -84,8 +81,8 @@ def connection_info():
     result = []
     for manager in Gcf.get_all_fig_managers():
         fig = manager.canvas.figure
-        result.append('{0} - {0}'.format((fig.get_label() or
-                                          "Figure {0}".format(manager.num)),
+        result.append('{0} - {1}'.format((fig.get_label() or
+                                          "Figure {}".format(manager.num)),
                                          manager.web_sockets))
     if not is_interactive():
         result.append('Figures pending show: {0}'.format(len(Gcf._activeQue)))

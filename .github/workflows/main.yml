@@ -1,0 +1,67 @@
+name: Tests
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  run:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: [3.7, 3.8]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup conda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        mamba-version: "*"
+        channels: conda-forge
+
+    - name: Mamba install dependencies
+      shell: bash -l {0}
+      run: mamba install python=${{ matrix.python-version }} pip nodejs ipywidgets=7.6 jupyter jupyterlab=3 pillow numpy matplotlib flake8 pytest nbval
+
+    - name: Install ipympl
+      shell: bash -l {0}
+      run: pip install -e .
+
+    - name: Check installation files
+      shell: bash -l {0}
+      run: |
+        test -d $CONDA_PREFIX/share/jupyter/nbextensions/jupyter-matplotlib
+        test -f $CONDA_PREFIX/share/jupyter/nbextensions/jupyter-matplotlib/extension.js
+        test -f $CONDA_PREFIX/share/jupyter/nbextensions/jupyter-matplotlib/index.js
+        test -d $CONDA_PREFIX/share/jupyter/labextensions/jupyter-matplotlib
+        test -f $CONDA_PREFIX/share/jupyter/labextensions/jupyter-matplotlib/package.json
+
+    - name: Check nbextension and labextension
+      shell: bash -l {0}
+      run: |
+        jupyter nbextension list 2>&1 | grep -ie "jupyter-matplotlib/extension.*enabled" -
+        jupyter labextension list 2>&1 | grep -ie "jupyter-matplotlib.*enabled.*ok" -
+
+    - name: Run tests
+      shell: bash -l {0}
+      run: pytest .
+
+    - name: Test flake8
+      shell: bash -l {0}
+      run: flake8 ipympl --ignore=E501,W504,W503
+
+    - name: Test JS linters
+      shell: bash -l {0}
+      working-directory: js
+      run: |
+        npm run eslint:check
+        npm run prettier:check

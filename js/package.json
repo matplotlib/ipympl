@@ -10,23 +10,32 @@
     "url": "https://github.com/matplotlib/jupyter-matplotlib.git"
   },
   "scripts": {
-    "build": "webpack",
-    "clean": "rimraf dist/",
+    "build": "webpack && npm run build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "clean": "rimraf dist/ && rimraf ../ipympl/labextension/ && rimraf ../ipympl/nbextension",
     "eslint": "eslint . --fix --ignore-path ../.gitignore",
     "eslint:check": "eslint . --ignore-path ../.gitignore",
     "lint": "npm run prettier && npm run eslint",
     "lint:check": "npm run prettier:check && npm run eslint:check",
     "postinstall": "npm run build",
     "prepack": "npm run postinstall",
+    "prepublish": "npm run clean && npm run build",
     "prettier": "prettier --ignore-path ../.gitignore --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "prettier:check": "prettier --check --ignore-path ../.gitignore \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "webpack --watch"
   },
   "jupyterlab": {
-    "extension": "src/lab_extension"
+    "extension": "src/lab_extension",
+    "outputDir": "../ipympl/labextension",
+    "sharedPackages": {
+      "@jupyter-widgets/base": {
+        "bundled": false,
+        "singleton": true
+      }
+    }
   },
   "devDependencies": {
+    "@jupyterlab/builder": "^3.0.0",
     "css-loader": "^3.5.3",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.10.1",
@@ -39,7 +48,7 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
-    "@jupyter-widgets/base": "^2 || ^3"
+    "@jupyter-widgets/base": "^2 || ^3 || ^4.0.0"
   },
   "keywords": [
     "jupyter",
