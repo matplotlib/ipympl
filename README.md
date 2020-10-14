@@ -41,7 +41,8 @@ pip install ipympl
 
 ### Install the JupyterLab extension
 
-In order to install the JupyterLab extension `jupyter-matplotlib`, you will first need to install `nodejs`, you can install it with `conda` doing
+In order to install the JupyterLab extension `jupyter-matplotlib`, you will first need to install `nodejs` and `npm`.
+You can install both with `conda` doing
 
 ```bash
 conda install -c conda-forge nodejs
