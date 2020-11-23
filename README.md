@@ -55,6 +55,7 @@ jupyter labextension install @jupyter-widgets/jupyterlab-manager
 # If you already installed the @jupyter-widgets/jupyterlab-manager extension, you will still need to rebuild JupyterLab after you installed ipympl
 jupyter lab build
 ```
+Make sure to restart JupyterLab after installing the extension
 
 #### Install an old JupyterLab extension
 
