@@ -39,26 +39,13 @@ conda install -c conda-forge ipympl
 pip install ipympl
 ```
 
-### Install the JupyterLab extension
+### Use in JupyterLab
 
-In order to install the JupyterLab extension `jupyter-matplotlib`, you will first need to install `nodejs` and `npm`.
-You can install both with `conda` doing
-
-```bash
-conda install -c conda-forge nodejs
-```
-
-Starting from ipympl `0.5.6`, **you do not need to manually install the JupyterLab extension**, but you still need to install the JupyterLab widget manager:
-```bash
-jupyter labextension install @jupyter-widgets/jupyterlab-manager
-
-# If you already installed the @jupyter-widgets/jupyterlab-manager extension, you will still need to rebuild JupyterLab after you installed ipympl
-jupyter lab build
-```
+If you want to use ipympl in JupyterLab, we recommend using JupyterLab >= 3.
 
 #### Install an old JupyterLab extension
 
-You will need to install the right `jupyter-matplotlib` version, according to the `ipympl` and `jupyterlab` versions you installed.
+If you are using JupyterLab 1 or 2, you will need to install the right `jupyter-matplotlib` version, according to the `ipympl` and `jupyterlab` versions you installed.
 For example, if you installed ipympl `0.5.1`, you need to install jupyter-matplotlib `0.7.0`, and this version is only compatible with JupyterLab `1`.
 
 ```bash
@@ -67,7 +54,6 @@ jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-matplot
 ```
 
 Versions lookup table:
-
 
 | `ipympl` | `jupyter-matplotlib` | `JupyterLab` | `Matplotlib` |
 |----------|----------------------|--------------|--------------|

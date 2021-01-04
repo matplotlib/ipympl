@@ -7,11 +7,11 @@ var version = require('./package.json').version;
 // stored in a separate local variable.
 var rules = [{ test: /\.css$/, use: ['style-loader', 'css-loader'] }];
 
-// The static file directory.
-var staticDir = path.resolve(__dirname, '..', 'ipympl', 'static');
+// The nbextension file directory.
+var nbextensionDir = path.resolve(__dirname, '..', 'ipympl', 'nbextension');
 
-// Copy the package.json to static so we can inspect its version.
-fs.copySync('./package.json', path.join(staticDir, 'package.json'));
+// Copy the package.json to nbextension so we can inspect its version.
+fs.copySync('./package.json', path.join(nbextensionDir, 'package.json'));
 
 module.exports = [
     {
@@ -26,7 +26,7 @@ module.exports = [
         entry: './src/nb_extension.js',
         output: {
             filename: 'extension.js',
-            path: staticDir,
+            path: nbextensionDir,
             libraryTarget: 'amd',
         },
     },
@@ -40,7 +40,7 @@ module.exports = [
         entry: './src/nb_index.js',
         output: {
             filename: 'index.js',
-            path: staticDir,
+            path: nbextensionDir,
             libraryTarget: 'amd',
         },
         devtool: 'source-map',

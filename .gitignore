@@ -6,8 +6,8 @@ build/
 node_modules/
 
 # Generated Javascript
-ipympl/static/
-ipympl/staticlab/
+ipympl/nbextension/
+ipympl/labextension/
 ipympl/*.tgz
 js/*.tgz
 
