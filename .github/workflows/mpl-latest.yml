@@ -1,0 +1,57 @@
+name: Latest Matplotlib Test
+
+on:
+  schedule:
+    - cron: "0 12 * * 1" # monday at noon UTC
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup conda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        mamba-version: "*"
+        channels: conda-forge
+
+    - name: Install dependencies
+      shell: bash -l {0}
+      run: |
+        mamba install python=${{ matrix.python-version }} pip nodejs ipywidgets=7.6 jupyter jupyterlab=3 pillow numpy flake8 pytest nbval
+        pip install git+https://github.com/matplotlib/matplotlib.git
+
+    - name: Install ipympl
+      shell: bash -l {0}
+      run: pip install -e .
+
+    - name: Check installation files
+      shell: bash -l {0}
+      run: |
+        test -d $CONDA_PREFIX/share/jupyter/nbextensions/jupyter-matplotlib
+        test -f $CONDA_PREFIX/share/jupyter/nbextensions/jupyter-matplotlib/extension.js
+        test -f $CONDA_PREFIX/share/jupyter/nbextensions/jupyter-matplotlib/index.js
+        test -d $CONDA_PREFIX/share/jupyter/labextensions/jupyter-matplotlib
+        test -f $CONDA_PREFIX/share/jupyter/labextensions/jupyter-matplotlib/package.json
+
+    - name: Check nbextension and labextension
+      shell: bash -l {0}
+      run: |
+        jupyter nbextension list 2>&1 | grep -ie "jupyter-matplotlib/extension.*enabled" -
+        jupyter labextension list 2>&1 | grep -ie "jupyter-matplotlib.*enabled.*ok" -
+
+    - name: Run tests
+      shell: bash -l {0}
+      run: pytest .
