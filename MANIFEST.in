@@ -1,7 +1,9 @@
 recursive-include ipympl/nbextension *.*
 recursive-include ipympl/labextension *.*
 
-recursive-include js *.*
+graft js/src
+include js/package.json
+include js/webpack.config.js
 include LICENSE
 include jupyter-matplotlib.json
 
