@@ -52,7 +52,7 @@ setup_args = dict(
     include_package_data=True,
     install_requires=[
         'ipykernel>=4.7',
-        'ipywidgets>=7.5.0',
+        'ipywidgets>=7.6.0',
         'matplotlib>=2.0.0'
     ],
     packages=find_packages(),
