@@ -1,6 +1,6 @@
 {
   "name": "jupyter-matplotlib",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Matplotlib Jupyter Interactive Widget",
   "author": "Matplotlib Development team",
   "license": "BSD-3-Clause",
@@ -44,7 +44,7 @@
     "prettier": "^2.0.2",
     "rimraf": "^2.6.1",
     "style-loader": "^0.23.1",
-    "webpack": "^4.41.6",
+    "webpack": "^5",
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
