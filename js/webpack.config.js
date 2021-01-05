@@ -42,6 +42,7 @@ module.exports = [
             filename: 'index.js',
             path: nbextensionDir,
             libraryTarget: 'amd',
+            publicPath: '',
         },
         devtool: 'source-map',
         module: {
