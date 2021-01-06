@@ -19,8 +19,7 @@ from matplotlib.backends.backend_webagg_core import (FigureManagerWebAgg,
                                                      FigureCanvasWebAggCore,
                                                      NavigationToolbar2WebAgg,
                                                      TimerTornado)
-from matplotlib.backend_bases import (ShowBase, NavigationToolbar2,
-                                      FigureCanvasBase, cursors)
+from matplotlib.backend_bases import ShowBase, NavigationToolbar2, cursors
 
 from ._version import js_semver
 
@@ -241,12 +240,6 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)
-
-    def start_event_loop(self, timeout):
-        FigureCanvasBase.start_event_loop_default(self, timeout)
-
-    def stop_event_loop(self):
-        FigureCanvasBase.stop_event_loop_default(self)
 
 
 class FigureManager(FigureManagerWebAgg):
