@@ -19,8 +19,7 @@ from matplotlib.backends.backend_webagg_core import (FigureManagerWebAgg,
                                                      FigureCanvasWebAggCore,
                                                      NavigationToolbar2WebAgg,
                                                      TimerTornado)
-from matplotlib.backend_bases import (ShowBase, NavigationToolbar2,
-                                      FigureCanvasBase, cursors)
+from matplotlib.backend_bases import ShowBase, NavigationToolbar2, cursors
 
 from ._version import js_semver
 
