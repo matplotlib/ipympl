@@ -10,16 +10,16 @@
     "url": "https://github.com/matplotlib/jupyter-matplotlib.git"
   },
   "scripts": {
-    "build": "webpack && npm run build:labextension",
+    "build": "webpack && yarn run build:labextension",
     "build:labextension": "jupyter labextension build .",
     "clean": "rimraf dist/ && rimraf ../ipympl/labextension/ && rimraf ../ipympl/nbextension",
     "eslint": "eslint . --fix --ignore-path ../.gitignore",
     "eslint:check": "eslint . --ignore-path ../.gitignore",
-    "lint": "npm run prettier && npm run eslint",
-    "lint:check": "npm run prettier:check && npm run eslint:check",
-    "postinstall": "npm run build",
-    "prepack": "npm run postinstall",
-    "prepublish": "npm run clean && npm run build",
+    "lint": "yarn run prettier && yarn run eslint",
+    "lint:check": "yarn run prettier:check && yarn run eslint:check",
+    "postinstall": "yarn run build",
+    "prepack": "yarn run postinstall",
+    "prepublish": "yarn run clean && yarn run build",
     "prettier": "prettier --ignore-path ../.gitignore --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "prettier:check": "prettier --check --ignore-path ../.gitignore \"**/*{.ts,.tsx,.js,.jsx,.css,.json}\"",
     "watch": "webpack --watch"
@@ -48,7 +48,8 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
-    "@jupyter-widgets/base": "^2 || ^3 || ^4.0.0"
+    "@jupyter-widgets/base": "^2 || ^3 || ^4.0.0",
+    "@jupyter-widgets/jupyterlab-manager": "^3.0.0"
   },
   "keywords": [
     "jupyter",

@@ -5,6 +5,7 @@ require('./mpl_widget.css');
 
 const version = require('../package.json').version;
 
+
 export class MPLCanvasModel extends widgets.DOMWidgetModel {
     defaults() {
         return {
@@ -37,6 +38,8 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
 
     initialize(attributes, options) {
         super.initialize(attributes, options);
+
+        MPLCanvasModel.registry[this.id] = this;
 
         this.offscreen_canvas = document.createElement('canvas');
         this.offscreen_context = this.offscreen_canvas.getContext('2d');
@@ -244,6 +247,8 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
         this.send_message('closing');
     }
 }
+
+MPLCanvasModel.registry = {};
 
 MPLCanvasModel.serializers = {
     ...widgets.DOMWidgetModel.serializers,
