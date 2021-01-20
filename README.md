@@ -43,6 +43,13 @@ pip install ipympl
 
 If you want to use ipympl in JupyterLab, we recommend using JupyterLab >= 3.
 
+If you use JupyterLab 2, you still need to install the labextension manually:
+
+```bash
+conda install -c conda-forge nodejs
+jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-matplotlib
+```
+
 #### Install an old JupyterLab extension
 
 If you are using JupyterLab 1 or 2, you will need to install the right `jupyter-matplotlib` version, according to the `ipympl` and `jupyterlab` versions you installed.
