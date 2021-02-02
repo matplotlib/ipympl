@@ -46,7 +46,7 @@
     "webpack-cli": "^4"
   },
   "dependencies": {
-    "@jupyter-widgets/base": "^4"
+    "@jupyter-widgets/base": "^2 || ^3 || ^4.0.0"
   },
   "keywords": [
     "jupyter",

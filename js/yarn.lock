@@ -44,7 +44,7 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@jupyter-widgets/base@^4":
+"@jupyter-widgets/base@^2 || ^3 || ^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@jupyter-widgets/base/-/base-4.0.0.tgz#6935461a3bd78df5523022e1c3d370ae24c9a454"
   integrity sha512-lBQgLYzq6C+XjfVJTidk+rckKo/+xlTgIm1XUtACA3BUz8bgi2du2zmbYkcrplJMwGub4QWP6GnKgM5ZZRhzYg==
