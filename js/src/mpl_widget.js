@@ -240,6 +240,13 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
         }
     }
 
+    generateMimeBundle() {
+        return Promise.resolve({
+            'text/html': `<img src="${this.offscreen_canvas.toDataURL('image/jpeg', 1.0)}"
+                           width="${this.offscreen_canvas.width}" height="${this.offscreen_canvas.height}"/>`
+        });
+    }
+
     remove() {
         this.send_message('closing');
     }
