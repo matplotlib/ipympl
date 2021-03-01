@@ -13,13 +13,13 @@ from traitlets import (
 )
 
 from matplotlib import rcParams
-from matplotlib.figure import Figure
 from matplotlib import is_interactive
 from matplotlib.backends.backend_webagg_core import (FigureManagerWebAgg,
                                                      FigureCanvasWebAggCore,
                                                      NavigationToolbar2WebAgg,
                                                      TimerTornado)
-from matplotlib.backend_bases import ShowBase, NavigationToolbar2, cursors
+from matplotlib.backend_bases import NavigationToolbar2, cursors, _Backend
+from matplotlib._pylab_helpers import Gcf
 
 from ._version import js_semver
 
@@ -30,43 +30,6 @@ cursors_str = {
     cursors.MOVE: 'move',
     cursors.WAIT: 'wait'
 }
-
-
-class Show(ShowBase):
-
-    def __call__(self, block=None):
-        from matplotlib._pylab_helpers import Gcf
-
-        managers = Gcf.get_all_fig_managers()
-        if not managers:
-            return
-
-        interactive = is_interactive()
-
-        for manager in managers:
-            manager.show()
-
-            # plt.figure adds an event which puts the figure in focus
-            # in the activeQue. Disable this behaviour, as it results in
-            # figures being put as the active figure after they have been
-            # shown, even in non-interactive mode.
-            if hasattr(manager, '_cidgcf'):
-                manager.canvas.mpl_disconnect(manager._cidgcf)
-
-            if not interactive and manager in Gcf._activeQue:
-                Gcf._activeQue.remove(manager)
-
-
-show = Show()
-
-
-def draw_if_interactive():
-    import matplotlib._pylab_helpers as pylab_helpers
-
-    if is_interactive():
-        manager = pylab_helpers.Gcf.get_active()
-        if manager is not None:
-            manager.show()
 
 
 def connection_info():
@@ -260,33 +223,47 @@ class FigureManager(FigureManagerWebAgg):
         self.canvas.close()
 
 
-def new_figure_manager(num, *args, **kwargs):
-    """
-    Create a new figure manager instance
-    """
-    figure_class = kwargs.pop('FigureClass', Figure)
-    this_fig = figure_class(*args, **kwargs)
-    return new_figure_manager_given_figure(num, this_fig)
+@_Backend.export
+class _Backend_ipympl(_Backend):
+    FigureCanvas = Canvas
+    FigureManager = FigureManager
 
+    @staticmethod
+    def new_figure_manager_given_figure(num, figure):
+        canvas = Canvas(figure)
+        if 'nbagg.transparent' in rcParams and rcParams['nbagg.transparent']:
+            figure.patch.set_alpha(0)
+        manager = FigureManager(canvas, num)
+        if is_interactive():
+            manager.show()
+            figure.canvas.draw_idle()
 
-def new_figure_manager_given_figure(num, figure):
-    """
-    Create a new figure manager instance for the given figure.
-    """
-    from matplotlib._pylab_helpers import Gcf
+        def destroy(event):
+            canvas.mpl_disconnect(cid)
+            Gcf.destroy(manager)
 
-    def closer(event):
-        Gcf.destroy(num)
+        cid = canvas.mpl_connect('close_event', destroy)
+        return manager
 
-    canvas = Canvas(figure)
-    if 'nbagg.transparent' in rcParams and rcParams['nbagg.transparent']:
-        figure.patch.set_alpha(0)
-    manager = FigureManager(canvas, num)
+    @staticmethod
+    def show(block=None):
+        # TODO: something to do when keyword block==False ?
 
-    if is_interactive():
-        manager.show()
-        figure.canvas.draw_idle()
+        managers = Gcf.get_all_fig_managers()
+        if not managers:
+            return
 
-    canvas.mpl_connect('close_event', closer)
+        interactive = is_interactive()
 
-    return manager
+        for manager in managers:
+            manager.show()
+
+            # plt.figure adds an event which makes the figure in focus the
+            # active one. Disable this behaviour, as it results in
+            # figures being put as the active figure after they have been
+            # shown, even in non-interactive mode.
+            if hasattr(manager, '_cidgcf'):
+                manager.canvas.mpl_disconnect(manager._cidgcf)
+
+            if not interactive:
+                Gcf.figs.pop(manager.num, None)
