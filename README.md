@@ -78,27 +78,43 @@ Versions lookup table:
 
 ### For a development installation (requires nodejs):
 
-```bash
-git clone https://github.com/matplotlib/ipympl.git
-cd ipympl
-pip install -e .
+Create a dev environment that has nodejs installed. The instructions here use
+[mamba](https://github.com/mamba-org/mamba#the-fast-cross-platform-package-manager) but you
+can also use conda.
 
-# If using classic Jupyter Notebook
+```bash
+mamba env create --file dev-environment.yml
+conda activate ipympl-dev
+```
+
+Install the Python Packge
+```bash
+pip install -e .
+```
+
+When developing your extensions, you need to manually enable your extensions with the
+notebook / lab frontend. For lab, this is done by the command:
+
+```bash
+jupyter labextension develop --overwrite .
+npm run build
+```
+
+For classic notebook, you need to run:
+```bash
 jupyter nbextension install --py --symlink --sys-prefix ipympl
 jupyter nbextension enable --py --sys-prefix ipympl
-
-# If using JupyterLab
-jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build
-jupyter labextension install ./js
 ```
 
 #### How to see your changes
+
 **Javascript**:
 
-To continuously monitor the project for changes and automatically trigger a rebuild, start Jupyter in watch mode:
+You need to rebuild the JS when you make a code change:
 
 ```bash
-jupyter lab --watch
+cd js
+yarn run watch
 ```
 
 After a change wait for the build to finish and then refresh your browser and the changes should take effect.
