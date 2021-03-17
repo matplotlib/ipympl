@@ -644,31 +644,27 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
             event.preventDefault();
 
             // Prevent repeat events
-            if (name == 'key_press') {
-                if (event.which === this._key) {
+            if (name === 'key_press') {
+                if (event.key === this._key) {
                     return;
                 } else {
-                    this._key = event.which;
+                    this._key = event.key;
                 }
             }
-            if (name == 'key_release') {
+            if (name === 'key_release') {
                 this._key = null;
             }
 
             var value = '';
-            if (event.ctrlKey && event.which != 17) {
+            if (event.ctrlKey && event.key !== 'Control') {
                 value += 'ctrl+';
-            }
-            if (event.altKey && event.which != 18) {
+            } else if (event.altKey && event.key !== 'Alt') {
                 value += 'alt+';
-            }
-            if (event.shiftKey && event.which != 16) {
+            } else if (event.shiftKey && event.key !== 'Shift') {
                 value += 'shift+';
             }
 
-            value += 'k';
-            value += event.which.toString();
-
+            value += 'k' + event.key;
             this.model.send_message(name, {
                 key: value,
                 guiEvent: utils.get_simple_keys(event),

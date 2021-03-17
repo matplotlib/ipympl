@@ -12,6 +12,7 @@ from traitlets import (
     default
 )
 
+import matplotlib
 from matplotlib import rcParams
 from matplotlib.figure import Figure
 from matplotlib import is_interactive
@@ -240,6 +241,68 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)
+
+    if matplotlib.__version__ < '3.4':
+        # backport the Python side changes to match the js changes
+        def _handle_key(self, event):
+            _SPECIAL_KEYS_LUT = {'Alt': 'alt',
+                                 'AltGraph': 'alt',
+                                 'CapsLock': 'caps_lock',
+                                 'Control': 'control',
+                                 'Meta': 'meta',
+                                 'NumLock': 'num_lock',
+                                 'ScrollLock': 'scroll_lock',
+                                 'Shift': 'shift',
+                                 'Super': 'super',
+                                 'Enter': 'enter',
+                                 'Tab': 'tab',
+                                 'ArrowDown': 'down',
+                                 'ArrowLeft': 'left',
+                                 'ArrowRight': 'right',
+                                 'ArrowUp': 'up',
+                                 'End': 'end',
+                                 'Home': 'home',
+                                 'PageDown': 'pagedown',
+                                 'PageUp': 'pageup',
+                                 'Backspace': 'backspace',
+                                 'Delete': 'delete',
+                                 'Insert': 'insert',
+                                 'Escape': 'escape',
+                                 'Pause': 'pause',
+                                 'Select': 'select',
+                                 'Dead': 'dead',
+                                 'F1': 'f1',
+                                 'F2': 'f2',
+                                 'F3': 'f3',
+                                 'F4': 'f4',
+                                 'F5': 'f5',
+                                 'F6': 'f6',
+                                 'F7': 'f7',
+                                 'F8': 'f8',
+                                 'F9': 'f9',
+                                 'F10': 'f10',
+                                 'F11': 'f11',
+                                 'F12': 'f12'}
+
+            def handle_key(key):
+                """Handle key values"""
+                value = key[key.index('k') + 1:]
+                if 'shift+' in key:
+                    if len(value) == 1:
+                        key = key.replace('shift+', '')
+                if value in _SPECIAL_KEYS_LUT:
+                    value = _SPECIAL_KEYS_LUT[value]
+                key = key[:key.index('k')] + value
+                return key
+
+            key = handle_key(event['key'])
+            e_type = event['type']
+            guiEvent = event.get('guiEvent', None)
+            if e_type == 'key_press':
+                self.key_press_event(key, guiEvent=guiEvent)
+            elif e_type == 'key_release':
+                self.key_release_event(key, guiEvent=guiEvent)
+        handle_key_press = handle_key_release = _handle_key
 
 
 class FigureManager(FigureManagerWebAgg):
