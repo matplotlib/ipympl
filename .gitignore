@@ -13,3 +13,6 @@ js/*.tgz
 
 # OS X
 .DS_Store
+
+# vscode
+.vscode/
