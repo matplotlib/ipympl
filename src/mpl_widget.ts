@@ -1,11 +1,21 @@
-const widgets = require('@jupyter-widgets/base');
-const utils = require('./utils.js');
+import {
+    DOMWidgetModel,
+    DOMWidgetView,
+    ISerializers,
+    unpack_models,
+} from '@jupyter-widgets/base';
+import * as utils from './utils';
 
-require('./mpl_widget.css');
+import { MODULE_VERSION } from './version';
 
-const version = require('../package.json').version;
-
-export class MPLCanvasModel extends widgets.DOMWidgetModel {
+export class MPLCanvasModel extends DOMWidgetModel {
+    offscreen_canvas: HTMLCanvasElement;
+    offscreen_context: CanvasRenderingContext2D;
+    requested_size: Array<number> | null;
+    resize_requested: boolean;
+    ratio: number;
+    waiting: any;
+    image: HTMLImageElement;
     defaults() {
         return {
             ...super.defaults(),
@@ -13,8 +23,8 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
             _view_name: 'MPLCanvasView',
             _model_module: 'jupyter-matplotlib',
             _view_module: 'jupyter-matplotlib',
-            _model_module_version: '^' + version,
-            _view_module_version: '^' + version,
+            _model_module_version: '^' + MODULE_VERSION,
+            _view_module_version: '^' + MODULE_VERSION,
             header_visible: true,
             footer_visible: true,
             toolbar: null,
@@ -35,17 +45,26 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
         };
     }
 
-    initialize(attributes, options) {
+    static serializers: ISerializers = {
+        ...DOMWidgetModel.serializers,
+        toolbar: { deserialize: unpack_models as any },
+    };
+
+    initialize(attributes: any, options: any) {
         super.initialize(attributes, options);
 
         this.offscreen_canvas = document.createElement('canvas');
-        this.offscreen_context = this.offscreen_canvas.getContext('2d');
+        this.offscreen_context = utils.getContext(this.offscreen_canvas);
+
+        // use `as any` to avoid typescript complaining that
+        // these browser specific attributes don't exist.
+        const context = this.offscreen_context as any;
         const backingStore =
-            this.offscreen_context.backingStorePixelRatio ||
-            this.offscreen_context.webkitBackingStorePixelRatio ||
-            this.offscreen_context.mozBackingStorePixelRatio ||
-            this.offscreen_context.msBackingStorePixelRatio ||
-            this.offscreen_context.oBackingStorePixelRatio ||
+            context.backingStorePixelRatio ||
+            context.webkitBackingStorePixelRatio ||
+            context.mozBackingStorePixelRatio ||
+            context.msBackingStorePixelRatio ||
+            context.oBackingStorePixelRatio ||
             1;
 
         this.requested_size = null;
@@ -55,7 +74,7 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
 
         this.on('msg:custom', this.on_comm_message.bind(this));
         this.on('change:resizable', () => {
-            this._for_each_view(function (view) {
+            this._for_each_view((view: MPLCanvasView) => {
                 view.update_canvas();
             });
         });
@@ -63,14 +82,14 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
         this.send_initialization_message();
     }
 
-    send_message(type, message = {}) {
+    send_message(type: string, message: { [index: string]: any } = {}) {
         message['type'] = type;
 
-        this.send(message);
+        this.send(message, {});
     }
 
     send_initialization_message() {
-        if (this.ratio != 1) {
+        if (this.ratio !== 1) {
             this.send_message('set_dpi_ratio', { dpi_ratio: this.ratio });
             this.send_message('set_device_pixel_ratio', {
                 device_pixel_ratio: this.ratio,
@@ -99,13 +118,13 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
         document.body.removeChild(save);
     }
 
-    handle_resize(msg) {
+    handle_resize(msg: { [index: string]: any }) {
         const size = msg['size'];
         this.resize_canvas(size[0], size[1]);
         this.offscreen_context.drawImage(this.image, 0, 0);
 
         if (!this.resize_requested) {
-            this._for_each_view(function (view) {
+            this._for_each_view((view: MPLCanvasView) => {
                 view.resize_canvas(size[0], size[1]);
             });
         }
@@ -120,13 +139,13 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
         }
     }
 
-    resize(width, height) {
+    resize(width: number, height: number) {
         // Do not request a super small size, as it seems to break the back-end
         if (width <= 5 || height <= 5) {
             return;
         }
 
-        this._for_each_view(function (view) {
+        this._for_each_view((view: MPLCanvasView) => {
             // Do an initial resize of each view, stretching the old canvas.
             view.resize_canvas(width, height);
         });
@@ -140,12 +159,12 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
         }
     }
 
-    resize_canvas(width, height) {
-        this.offscreen_canvas.setAttribute('width', width * this.ratio);
-        this.offscreen_canvas.setAttribute('height', height * this.ratio);
+    resize_canvas(width: number, height: number) {
+        this.offscreen_canvas.setAttribute('width', `${width * this.ratio}`);
+        this.offscreen_canvas.setAttribute('height', `${height * this.ratio}`);
     }
 
-    handle_rubberband(msg) {
+    handle_rubberband(msg: any) {
         let x0 = msg['x0'] / this.ratio;
         let y0 = (this.offscreen_canvas.height - msg['y0']) / this.ratio;
         let x1 = msg['x1'] / this.ratio;
@@ -161,17 +180,17 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
         this.set('_rubberband_height', Math.abs(y1 - y0));
         this.save_changes();
 
-        this._for_each_view(function (view) {
+        this._for_each_view((view: MPLCanvasView) => {
             view.update_canvas();
         });
     }
 
-    handle_draw(_msg) {
+    handle_draw(_msg: any) {
         // Request the server to send over a new figure.
         this.send_draw_message();
     }
 
-    handle_binary(msg, dataviews) {
+    handle_binary(msg: any, dataviews: any) {
         const url_creator = window.URL || window.webkitURL;
 
         const buffer = new Uint8Array(dataviews[0].buffer);
@@ -188,7 +207,7 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
         this.waiting = false;
     }
 
-    on_comm_message(evt, dataviews) {
+    on_comm_message(evt: any, dataviews: any) {
         const msg = JSON.parse(evt.data);
         const msg_type = msg['type'];
         let callback;
@@ -196,7 +215,7 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
         // Call the  'handle_{type}' callback, which takes
         // the figure and JSON message as its only arguments.
         try {
-            callback = this['handle_' + msg_type].bind(this);
+            callback = (this as any)['handle_' + msg_type].bind(this);
         } catch (e) {
             console.log(
                 "No handler for the '" + msg_type + "' message type: ",
@@ -213,7 +232,7 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
     _init_image() {
         this.image = document.createElement('img');
         this.image.onload = () => {
-            if (this.get('_image_mode') == 'full') {
+            if (this.get('_image_mode') === 'full') {
                 // Full images could contain transparency (where diff images
                 // almost always do), so we need to clear the canvas so that
                 // there is no ghosting.
@@ -226,13 +245,13 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
             }
             this.offscreen_context.drawImage(this.image, 0, 0);
 
-            this._for_each_view(function (view) {
+            this._for_each_view((view: MPLCanvasView) => {
                 view.update_canvas();
             });
         };
     }
 
-    _for_each_view(callback) {
+    _for_each_view(callback: any) {
         for (const view_id in this.views) {
             this.views[view_id].then((view) => {
                 callback(view);
@@ -245,23 +264,35 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
     }
 }
 
-MPLCanvasModel.serializers = {
-    ...widgets.DOMWidgetModel.serializers,
-    toolbar: { deserialize: widgets.unpack_models },
-};
-
-export class MPLCanvasView extends widgets.DOMWidgetView {
+export class MPLCanvasView extends DOMWidgetView {
+    figure: HTMLDivElement;
+    canvas_div: HTMLDivElement;
+    canvas: HTMLCanvasElement;
+    header: HTMLDivElement;
+    toolbar_view: DOMWidgetView;
+    resize_handle_size: number;
+    resizing: boolean;
+    context: CanvasRenderingContext2D;
+    top_canvas: HTMLCanvasElement;
+    top_context: CanvasRenderingContext2D;
+    waiting: boolean;
+    footer: HTMLDivElement;
+    model: MPLCanvasModel;
+    private _key: string | null;
+    private _resize_event: (event: MouseEvent) => void;
+    private _stop_resize_event: () => void;
     render() {
-        this.canvas = undefined;
-        this.context = undefined;
-        this.top_canvas = undefined;
-        this.top_context = undefined;
         this.resizing = false;
         this.resize_handle_size = 20;
 
         this.figure = document.createElement('div');
-        this.figure.classList =
-            'jupyter-matplotlib-figure jupyter-widgets widget-container widget-box widget-vbox';
+        this.figure.classList.add(
+            'jupyter-matplotlib-figure',
+            'jupyter-widgets',
+            'widget-container',
+            'widget-box',
+            'widget-vbox'
+        );
 
         this._init_header();
         this._init_canvas();
@@ -334,14 +365,19 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
 
     _update_toolbar_position() {
         const toolbar_position = this.model.get('toolbar_position');
-        if (toolbar_position == 'top' || toolbar_position == 'bottom') {
-            this.el.classList =
-                'jupyter-widgets widget-container widget-box widget-vbox jupyter-matplotlib';
+        if (toolbar_position === 'top' || toolbar_position === 'bottom') {
+            this.el.classList.add(
+                'jupyter-widgets',
+                'widget-container',
+                'widget-box',
+                'widget-vbox',
+                'jupyter-matplotlib'
+            );
             this.model.get('toolbar').set('orientation', 'horizontal');
 
             this.clear();
 
-            if (toolbar_position == 'top') {
+            if (toolbar_position === 'top') {
                 this.el.appendChild(this.toolbar_view.el);
                 this.el.appendChild(this.figure);
             } else {
@@ -349,13 +385,18 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
                 this.el.appendChild(this.toolbar_view.el);
             }
         } else {
-            this.el.classList =
-                'jupyter-widgets widget-container widget-box widget-hbox jupyter-matplotlib';
+            this.el.classList.add(
+                'jupyter-widgets',
+                'widget-container',
+                'widget-box',
+                'widget-hbox',
+                'jupyter-matplotlib'
+            );
             this.model.get('toolbar').set('orientation', 'vertical');
 
             this.clear();
 
-            if (toolbar_position == 'left') {
+            if (toolbar_position === 'left') {
                 this.el.appendChild(this.toolbar_view.el);
                 this.el.appendChild(this.figure);
             } else {
@@ -374,48 +415,53 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
     _init_header() {
         this.header = document.createElement('div');
         this.header.style.textAlign = 'center';
-        this.header.classList = 'jupyter-widgets widget-label';
+        this.header.classList.add('jupyter-widgets', 'widget-label');
         this._update_figure_label();
         this.figure.appendChild(this.header);
     }
 
-    _update_figure_label(_msg) {
+    _update_figure_label() {
         this.header.textContent = this.model.get('_figure_label');
     }
 
     _init_canvas() {
         const canvas_container = document.createElement('div');
-        canvas_container.classList =
-            'jupyter-widgets jupyter-matplotlib-canvas-container';
+        canvas_container.classList.add(
+            'jupyter-widgets',
+            'jupyter-matplotlib-canvas-container'
+        );
         this.figure.appendChild(canvas_container);
 
         const canvas_div = (this.canvas_div = document.createElement('div'));
         canvas_div.style.position = 'relative';
         canvas_div.style.clear = 'both';
-        canvas_div.classList = 'jupyter-widgets jupyter-matplotlib-canvas-div';
+        canvas_div.classList.add(
+            'jupyter-widgets',
+            'jupyter-matplotlib-canvas-div'
+        );
 
         canvas_div.addEventListener('keydown', this.key_event('key_press'));
         canvas_div.addEventListener('keyup', this.key_event('key_release'));
 
         // this is important to make the div 'focusable'
-        canvas_div.setAttribute('tabindex', 0);
+        canvas_div.setAttribute('tabindex', '0');
         canvas_container.appendChild(canvas_div);
 
         const canvas = (this.canvas = document.createElement('canvas'));
         canvas.style.display = 'block';
         canvas.style.position = 'absolute';
-        canvas.style.left = 0;
-        canvas.style.top = 0;
-        canvas.style.zIndex = 0;
+        canvas.style.left = '0';
+        canvas.style.top = '0';
+        canvas.style.zIndex = '0';
 
-        this.context = canvas.getContext('2d');
+        this.context = utils.getContext(canvas);
 
         const top_canvas = (this.top_canvas = document.createElement('canvas'));
         top_canvas.style.display = 'block';
         top_canvas.style.position = 'absolute';
-        top_canvas.style.left = 0;
-        top_canvas.style.top = 0;
-        top_canvas.style.zIndex = 1;
+        top_canvas.style.left = '0';
+        top_canvas.style.top = '0';
+        top_canvas.style.zIndex = '1';
 
         top_canvas.addEventListener(
             'mousedown',
@@ -444,13 +490,13 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
         canvas_div.appendChild(canvas);
         canvas_div.appendChild(top_canvas);
 
-        this.top_context = top_canvas.getContext('2d');
+        this.top_context = utils.getContext(top_canvas);
         this.top_context.strokeStyle = 'rgba(0, 0, 0, 255)';
 
         // Disable right mouse context menu.
-        this.top_canvas.addEventListener('contextmenu', function (_e) {
-            event.preventDefault();
-            event.stopPropagation();
+        this.top_canvas.addEventListener('contextmenu', (_e) => {
+            _e.preventDefault();
+            _e.stopPropagation();
             return false;
         });
 
@@ -459,7 +505,7 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
     }
 
     update_canvas() {
-        if (this.canvas.width == 0 || this.canvas.height == 0) {
+        if (this.canvas.width === 0 || this.canvas.height === 0) {
             return;
         }
 
@@ -475,8 +521,8 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
 
         // Draw rubberband
         if (
-            this.model.get('_rubberband_width') != 0 &&
-            this.model.get('_rubberband_height') != 0
+            this.model.get('_rubberband_width') !== 0 &&
+            this.model.get('_rubberband_height') !== 0
         ) {
             this.top_context.strokeRect(
                 this.model.get('_rubberband_x'),
@@ -490,7 +536,7 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
         if (this.model.get('resizable')) {
             this.top_context.save();
 
-            var gradient = this.top_context.createLinearGradient(
+            const gradient = this.top_context.createLinearGradient(
                 this.top_canvas.width - this.resize_handle_size / 3,
                 this.top_canvas.height - this.resize_handle_size / 3,
                 this.top_canvas.width - this.resize_handle_size / 4,
@@ -529,7 +575,7 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
     _init_footer() {
         this.footer = document.createElement('div');
         this.footer.style.textAlign = 'center';
-        this.footer.classList = 'jupyter-widgets widget-label';
+        this.footer.classList.add('jupyter-widgets', 'widget-label');
         this._update_message();
         this.figure.appendChild(this.footer);
     }
@@ -538,15 +584,15 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
         this.footer.textContent = this.model.get('_message');
     }
 
-    resize_canvas(width, height) {
+    resize_canvas(width: number, height: number) {
         // Keep the size of the canvas, and rubber band canvas in sync.
-        this.canvas.setAttribute('width', width * this.model.ratio);
-        this.canvas.setAttribute('height', height * this.model.ratio);
+        this.canvas.setAttribute('width', `${width * this.model.ratio}`);
+        this.canvas.setAttribute('height', `${height * this.model.ratio}`);
         this.canvas.style.width = width + 'px';
         this.canvas.style.height = height + 'px';
 
-        this.top_canvas.setAttribute('width', width);
-        this.top_canvas.setAttribute('height', height);
+        this.top_canvas.setAttribute('width', String(width));
+        this.top_canvas.setAttribute('height', String(height));
 
         this.canvas_div.style.width = width + 'px';
         this.canvas_div.style.height = height + 'px';
@@ -554,9 +600,9 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
         this.update_canvas();
     }
 
-    mouse_event(name) {
+    mouse_event(name: string) {
         let last_update = 0;
-        return (event) => {
+        return (event: any) => {
             const canvas_pos = utils.get_mouse_position(event, this.top_canvas);
 
             if (name === 'scroll') {
@@ -612,8 +658,8 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
             if (Date.now() > last_update + 16) {
                 last_update = Date.now();
 
-                var x = canvas_pos.x * this.model.ratio;
-                var y = canvas_pos.y * this.model.ratio;
+                const x = canvas_pos.x * this.model.ratio;
+                const y = canvas_pos.y * this.model.ratio;
 
                 this.model.send_message(name, {
                     x: x,
@@ -626,7 +672,7 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
         };
     }
 
-    resize_event(event) {
+    resize_event(event: MouseEvent) {
         if (this.resizing) {
             const new_size = utils.get_mouse_position(event, this.top_canvas);
 
@@ -638,8 +684,8 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
         this.resizing = false;
     }
 
-    key_event(name) {
-        return (event) => {
+    key_event(name: string) {
+        return (event: KeyboardEvent) => {
             event.stopPropagation();
             event.preventDefault();
 
@@ -655,7 +701,7 @@ export class MPLCanvasView extends widgets.DOMWidgetView {
                 this._key = null;
             }
 
-            var value = '';
+            let value = '';
             if (event.ctrlKey && event.key !== 'Control') {
                 value += 'ctrl+';
             } else if (event.altKey && event.key !== 'Alt') {

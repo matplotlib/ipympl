@@ -4,7 +4,13 @@
   "description": "Matplotlib Jupyter Interactive Widget",
   "author": "Matplotlib Development team",
   "license": "BSD-3-Clause",
-  "main": "src/index.js",
+  "main": "lib/index.js",
+  "types": "./lib/index.d.ts",
+  "files": [
+    "lib/**/*.js",
+    "dist/*.js",
+    "src/**/*.css"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/matplotlib/jupyter-matplotlib.git"
@@ -15,7 +21,7 @@
     "build:labextension": "jupyter labextension build .",
     "build:labextension:dev": "jupyter labextension build --development True .",
     "build:lib": "tsc",
-    "build:nbextension": "webpack",
+    "build:nbextension": "webpack --mode=production",
     "clean": "yarn run clean:lib && yarn run clean:nbextension && yarn run clean:labextension",
     "clean:lib": "rimraf lib",
     "clean:labextension": "rimraf ipympl/labextension",
@@ -24,7 +30,8 @@
     "test": "jest",
     "watch": "npm-run-all -p watch:*",
     "watch:lib": "tsc -w",
-    "watch:nbextension": "webpack --watch",
+    "watch:nbextension": "webpack --watch --mode=development",
+    "watch:labextension": "jupyter labextension watch .",
     "eslint": "eslint . --fix --ignore-path ../.gitignore",
     "eslint:check": "eslint . --ignore-path ../.gitignore",
     "lint": "yarn run prettier && yarn run eslint",

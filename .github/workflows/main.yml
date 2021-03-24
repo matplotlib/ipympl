@@ -58,8 +58,7 @@ jobs:
     - name: Test flake8
       run: flake8 ipympl --ignore=E501,W504,W503
 
-    - name: Test JS linters
-      working-directory: js
+    - name: Test TS linters
       run: |
         npm run eslint:check
         npm run prettier:check
@@ -138,7 +137,7 @@ jobs:
 
       - name: Manually install labextension for lab2
         if: ${{ matrix.jlab_version }} == 2
-        run: jupyter labextension install js
+        run: jupyter labextension install .
 
       - name: Test installation files
         run: |
