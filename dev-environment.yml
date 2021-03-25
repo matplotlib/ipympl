@@ -13,3 +13,5 @@ dependencies:
     - matplotlib
     - pytest
     - nbval
+    - pip:
+        - build

@@ -37,7 +37,9 @@ jobs:
         channels: conda-forge
 
     - name: Install ipympl
-      run: pip install -e .
+      run: |
+        python -m build
+        pip install dist/*.whl
 
     - name: Check installation files
       run: |
