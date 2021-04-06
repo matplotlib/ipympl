@@ -86,8 +86,11 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
         # Figure width in pixels
         pwidth = (self.canvas.figure.get_figwidth() *
                   self.canvas.figure.get_dpi())
-        # Scale size to match widget on HiPD monitors
-        width = pwidth / self.canvas._dpi_ratio
+        # Scale size to match widget on HiDPI monitors.
+        if hasattr(self.canvas, 'device_pixel_ratio'):  # Matplotlib 3.5+
+            width = pwidth / self.canvas.device_pixel_ratio
+        else:
+            width = pwidth / self.canvas._dpi_ratio
         data = "<img src='data:image/png;base64,{0}' width={1}/>"
         data = data.format(b64encode(buf.getvalue()).decode('utf-8'), width)
         display(HTML(data))
