@@ -3,3 +3,4 @@ dist
 coverage
 **/*.d.ts
 tests
+ipympl/nbextension/extension.js
