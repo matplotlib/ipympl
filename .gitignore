@@ -5,12 +5,6 @@ build/
 *.py[cod]
 node_modules/
 
-# Generated Javascript
-ipympl/nbextension/
-ipympl/labextension/
-ipympl/*.tgz
-js/*.tgz
-
 # OS X
 .DS_Store
 
@@ -18,11 +12,13 @@ js/*.tgz
 .vscode/
 
 lib/
+
 # NPM
 # ----
 
 **/node_modules/
 ipympl/nbextension/index.*
+ipympl/nbextension/package.json
 ipympl/labextension/*.tgz
 
 # Coverage data
