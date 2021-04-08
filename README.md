@@ -99,7 +99,7 @@ notebook / lab frontend. For lab, this is done by the command:
 
 ```bash
 jupyter labextension develop --overwrite .
-npm run build
+yarn run build
 ```
 
 For classic notebook, you need to run:
@@ -110,13 +110,15 @@ jupyter nbextension enable --py --sys-prefix ipympl
 
 #### How to see your changes
 
-**Javascript**:
+**Typescript**:
 
-You need to rebuild the JS when you make a code change:
+If you use JupyterLab to develop then you can watch the source directory and run JupyterLab at the same time in different terminals to watch for changes in the extension's source and automatically rebuild the widget.
 
 ```bash
-cd js
+# Watch the source directory in one terminal, automatically rebuilding when needed
 yarn run watch
+# Run JupyterLab in another terminal
+jupyter lab
 ```
 
 After a change wait for the build to finish and then refresh your browser and the changes should take effect.
