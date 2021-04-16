@@ -72,6 +72,9 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
     send_initialization_message() {
         if (this.ratio != 1) {
             this.send_message('set_dpi_ratio', { dpi_ratio: this.ratio });
+            this.send_message('set_device_pixel_ratio', {
+                device_pixel_ratio: this.ratio,
+            });
         }
 
         this.send_message('send_image_mode');
