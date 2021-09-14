@@ -241,10 +241,31 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
     }
 
     generateMimeBundle() {
-        return Promise.resolve({
-            'text/html': `<img src="${this.offscreen_canvas.toDataURL('image/jpeg', 1.0)}"
-                           width="${this.offscreen_canvas.width}" height="${this.offscreen_canvas.height}"/>`
-        });
+        const width = this.offscreen_canvas.width;
+        const height = this.offscreen_canvas.height;
+
+        let header = '';
+        if (this.get('header_visible')) {
+            header = `
+                <div style="text-align: center;">${this.get('_figure_label')}</div>
+            `
+        }
+
+        return {
+            'text/html': `
+                <div>
+                    ${header}
+                    <img src="${this.offscreen_canvas.toDataURL('image/png', 1.0)}"
+                    width="${width}" height="${height}"
+                    style="width: ${width / this.ratio}px; height: ${height / this.ratio}px;"/>
+                </div?
+            `
+        };
+    }
+
+    // We want the static figure to overwrite the widget mimebundle on Notebook save
+    shouldOverwriteMimeBundle() {
+        return true;
     }
 
     remove() {
