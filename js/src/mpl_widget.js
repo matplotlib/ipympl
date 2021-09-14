@@ -53,6 +53,8 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
         this.ratio = (window.devicePixelRatio || 1) / backingStore;
         this._init_image();
 
+        this.acknowledged_rendered = false;
+
         this.on('msg:custom', this.on_comm_message.bind(this));
         this.on('change:resizable', () => {
             this._for_each_view(function (view) {
@@ -186,7 +188,11 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
         this.image.src = image_url;
 
         // Tell Jupyter that the notebook contents must change.
-        this.send_message('ack');
+        if (!this.acknowledged_rendered) {
+            this.send_message('ack');
+
+            this.acknowledged_rendered = true;
+        }
 
         this.waiting = false;
     }

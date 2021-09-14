@@ -161,6 +161,8 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
         self.on_msg(self._handle_message)
 
+        self._rendered = False
+
     def _handle_message(self, object, content, buffers):
         # Every content has a "type".
         if content['type'] == 'closing':
@@ -168,6 +170,11 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         elif content['type'] == 'initialized':
             _, _, w, h = self.figure.bbox.bounds
             self.manager.resize(w, h)
+        elif content['type'] == 'ack':
+            update_display(
+                self._repr_mimebundle_(),
+                raw=True, display_id='matplotlib_{0}'.format(self._model_id)
+            )
         else:
             self.manager.handle_json(content)
 
@@ -197,39 +204,32 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     def send_binary(self, data):
         self.send({'data': '{"type": "binary"}'}, buffers=[data])
-        update_display(self, display_id='matplotlib_{0}'.format(self.figure.number))
 
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)
 
     def _repr_mimebundle_(self, **kwargs):
-        if self._view_name is not None:
-            # now happens before the actual display call.
-            self._handle_displayed(**kwargs)
-            plaintext = repr(self)
-            if len(plaintext) > 110:
-                plaintext = plaintext[:110] + '…'
-            # The 'application/vnd.jupyter.widget-view+json' mimetype has not been registered yet.
-            # See the registration process and naming convention at
-            # http://tools.ietf.org/html/rfc6838
-            # and the currently registered mimetypes at
-            # http://www.iana.org/assignments/media-types/media-types.xhtml.
+        # now happens before the actual display call.
+        self._handle_displayed(**kwargs)
+        plaintext = repr(self)
+        if len(plaintext) > 110:
+            plaintext = plaintext[:110] + '…'
 
-            buf = io.BytesIO()
-            self.figure.savefig(buf, format='png', dpi='figure')
-            data = "<img src='data:image/png;base64,{0}'/>"
-            data = data.format(b64encode(buf.getvalue()).decode('utf-8'))
+        buf = io.BytesIO()
+        self.figure.savefig(buf, format='png', dpi='figure')
+        data_url = b64encode(buf.getvalue()).decode('utf-8')
 
-            data = {
-                'text/plain': plaintext,
-                'text/html': data,
-                'application/vnd.jupyter.widget-view+json': {
-                    'version_major': 2,
-                    'version_minor': 0,
-                    'model_id': self._model_id
-                }
+        data = {
+            'text/plain': plaintext,
+            'image/png': data_url,
+            'application/vnd.jupyter.widget-view+json': {
+                'version_major': 2,
+                'version_minor': 0,
+                'model_id': self._model_id
             }
-            return data
+        }
+
+        return data
 
     def _ipython_display_(self, **kwargs):
         """Called when `IPython.display.display` is called on a widget.
@@ -240,9 +240,10 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         if ipython_version_info >= (6, 1):
             raise NotImplementedError
 
-        data = self._repr_mimebundle_(**kwargs)
-        if data:
-            display(data, raw=True, display_id='matplotlib_{0}'.format(self.number))
+        display(
+            self._repr_mimebundle_(**kwargs),
+            raw=True, display_id='matplotlib_{0}'.format(self._model_id)
+        )
 
     if matplotlib.__version__ < '3.4':
         # backport the Python side changes to match the js changes
@@ -317,7 +318,10 @@ class FigureManager(FigureManagerWebAgg):
     def show(self):
         if self.canvas._closed:
             self.canvas._closed = False
-            display(self.canvas)
+            display(
+                self.canvas,
+                display_id='matplotlib_{0}'.format(self.canvas._model_id)
+            )
         else:
             self.canvas.draw_idle()
 
