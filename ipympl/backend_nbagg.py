@@ -210,7 +210,8 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     def _repr_mimebundle_(self, **kwargs):
         # now happens before the actual display call.
-        self._handle_displayed(**kwargs)
+        if hasattr(self, '_handle_displayed'):
+            self._handle_displayed(**kwargs)
         plaintext = repr(self)
         if len(plaintext) > 110:
             plaintext = plaintext[:110] + '…'
