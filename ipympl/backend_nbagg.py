@@ -154,7 +154,9 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     _png_is_old = Bool()
     _force_full = Bool()
     _current_image_mode = Unicode()
-    _dpi_ratio = Float(1.0)
+
+    # Static as it should be the same for all canvases
+    current_dpi_ratio = 1.0
 
     def __init__(self, figure, *args, **kwargs):
         DOMWidget.__init__(self, *args, **kwargs)
@@ -174,6 +176,9 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         elif content['type'] == 'initialized':
             _, _, w, h = self.figure.bbox.bounds
             self.manager.resize(w, h)
+        elif content['type'] == 'set_dpi_ratio':
+            Canvas.current_dpi_ratio = content['dpi_ratio']
+            self.manager.handle_json(content)
         else:
             self.manager.handle_json(content)
 
@@ -231,6 +236,13 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         return TimerTornado(*args, **kwargs)
 
     def force_initialize(self):
+        self._handle_message(
+            self,
+            {
+                'type': 'set_dpi_ratio', 'dpi_ratio': Canvas.current_dpi_ratio
+            },
+            []
+        )
         self._handle_message(self, {'type': 'send_image_mode'}, [])
         self._handle_message(self, {'type': 'refresh'}, [])
         self._handle_message(self, {'type': 'initialized'}, [])
