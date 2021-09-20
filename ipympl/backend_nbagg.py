@@ -6,11 +6,11 @@ import io
 
 import numpy as np
 
-from IPython.display import display, HTML
+from IPython.display import update_display, display, HTML
 
 from ipywidgets import DOMWidget, widget_serialization
 from traitlets import (
-    Unicode, Bool, CInt, Float, List, Instance, CaselessStrEnum, Enum,
+    Unicode, Bool, CInt, List, Instance, CaselessStrEnum, Enum,
     default
 )
 
@@ -169,16 +169,21 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
         self._has_data = False
 
+        self._display_id = 'matplotlib_{0}'.format(self._model_id)
+
     def _handle_message(self, object, content, buffers):
         # Every content has a "type".
         if content['type'] == 'closing':
             self._closed = True
+
         elif content['type'] == 'initialized':
             _, _, w, h = self.figure.bbox.bounds
             self.manager.resize(w, h)
+
         elif content['type'] == 'set_dpi_ratio':
             Canvas.current_dpi_ratio = content['dpi_ratio']
             self.manager.handle_json(content)
+
         else:
             self.manager.handle_json(content)
 
@@ -222,9 +227,9 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
         if (self._has_data and self._display_requested
                 and not self._displayed_once):
-            display(
+            update_display(
                 self._repr_mimebundle_(**self._display_requested_kwargs),
-                raw=True, display_id='matplotlib_{0}'.format(self._model_id)
+                raw=True, display_id=self._display_id
             )
 
             self._display_requested = False
@@ -278,10 +283,13 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         if not self._displayed_once and not self._has_data:
             self._display_requested = True
             self._display_requested_kwargs = kwargs
+
+            # Display a dummy, so we can update it later:
+            display(None, display_id=self._display_id)
         else:
             display(
                 self._repr_mimebundle_(**kwargs),
-                raw=True, display_id='matplotlib_{0}'.format(self._model_id)
+                raw=True, display_id=self._display_id
             )
 
     if matplotlib.__version__ < '3.4':

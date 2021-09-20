@@ -79,8 +79,6 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
 
         this.send_message('send_image_mode');
         this.send_message('refresh');
-
-        this.send_message('draw');
     }
 
     send_draw_message() {
