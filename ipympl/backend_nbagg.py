@@ -4,8 +4,9 @@ from base64 import b64encode
 import json
 import io
 
-from IPython.display import update_display, display, HTML
-from IPython import version_info as ipython_version_info
+import numpy as np
+
+from IPython.display import display, HTML
 
 from ipywidgets import DOMWidget, widget_serialization
 from traitlets import (
@@ -161,7 +162,10 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
         self.on_msg(self._handle_message)
 
-        self._rendered = False
+        self._display_requested = False
+        self._displayed_once = False
+
+        self._has_data = False
 
     def _handle_message(self, object, content, buffers):
         # Every content has a "type".
@@ -170,11 +174,6 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         elif content['type'] == 'initialized':
             _, _, w, h = self.figure.bbox.bounds
             self.manager.resize(w, h)
-        elif content['type'] == 'ack':
-            update_display(
-                self._repr_mimebundle_(),
-                raw=True, display_id='matplotlib_{0}'.format(self._model_id)
-            )
         else:
             self.manager.handle_json(content)
 
@@ -203,10 +202,39 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
             self.send({'data': json.dumps(content)})
 
     def send_binary(self, data):
+        if not self._has_data:
+            renderer = self.get_renderer()
+
+            buff = (np.frombuffer(renderer.buffer_rgba(), dtype=np.uint32)
+                    .reshape((renderer.height, renderer.width)))
+
+            # If any pixels have transparency, we need to force a full
+            # draw as we cannot overlay new on top of old.
+            pixels = buff.view(dtype=np.uint8).reshape(buff.shape + (4,))
+
+            if np.any(pixels[:, :, :2] != 255):
+                self._has_data = True
+
+        if (self._has_data and self._display_requested
+                and not self._displayed_once):
+            display(
+                self._repr_mimebundle_(**self._display_requested_kwargs),
+                raw=True, display_id='matplotlib_{0}'.format(self._model_id)
+            )
+
+            self._display_requested = False
+            self._displayed_once = True
+
         self.send({'data': '{"type": "binary"}'}, buffers=[data])
 
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)
+
+    def force_initialize(self):
+        self._handle_message(self, {'type': 'send_image_mode'}, [])
+        self._handle_message(self, {'type': 'refresh'}, [])
+        self._handle_message(self, {'type': 'initialized'}, [])
+        self._handle_message(self, {'type': 'draw'}, [])
 
     def _repr_mimebundle_(self, **kwargs):
         # now happens before the actual display call.
@@ -233,18 +261,16 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         return data
 
     def _ipython_display_(self, **kwargs):
-        """Called when `IPython.display.display` is called on a widget.
-
-        Note: if we are in IPython 6.1 or later, we return NotImplemented so
-        that _repr_mimebundle_ is used directly.
-        """
-        if ipython_version_info >= (6, 1):
-            raise NotImplementedError
-
-        display(
-            self._repr_mimebundle_(**kwargs),
-            raw=True, display_id='matplotlib_{0}'.format(self._model_id)
-        )
+        """Called when `IPython.display.display` is called on a widget."""
+        # We defer the first display if we don't have any plot data yet
+        if not self._displayed_once and not self._has_data:
+            self._display_requested = True
+            self._display_requested_kwargs = kwargs
+        else:
+            display(
+                self._repr_mimebundle_(**kwargs),
+                raw=True, display_id='matplotlib_{0}'.format(self._model_id)
+            )
 
     if matplotlib.__version__ < '3.4':
         # backport the Python side changes to match the js changes
@@ -341,6 +367,9 @@ class _Backend_ipympl(_Backend):
         if 'nbagg.transparent' in rcParams and rcParams['nbagg.transparent']:
             figure.patch.set_alpha(0)
         manager = FigureManager(canvas, num)
+
+        canvas.force_initialize()
+
         if is_interactive():
             manager.show()
             figure.canvas.draw_idle()
