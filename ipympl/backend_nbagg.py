@@ -4,9 +4,9 @@ from base64 import b64encode
 import json
 import io
 
-import numpy as np
-
-from IPython.display import update_display, display, HTML
+from IPython.display import display, HTML
+from IPython import get_ipython
+from IPython import version_info as ipython_version_info
 
 from ipywidgets import DOMWidget, widget_serialization
 from traitlets import (
@@ -15,8 +15,7 @@ from traitlets import (
 )
 
 import matplotlib
-from matplotlib import rcParams
-from matplotlib import is_interactive
+from matplotlib import rcParams, is_interactive
 from matplotlib.backends.backend_webagg_core import (FigureManagerWebAgg,
                                                      FigureCanvasWebAggCore,
                                                      NavigationToolbar2WebAgg,
@@ -42,7 +41,6 @@ def connection_info():
     use.
 
     """
-    from matplotlib._pylab_helpers import Gcf
     result = []
     for manager in Gcf.get_all_fig_managers():
         fig = manager.canvas.figure
@@ -164,12 +162,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
         self.on_msg(self._handle_message)
 
-        self._display_requested = False
-        self._displayed_once = False
-
-        self._has_data = False
-
-        self._display_id = 'matplotlib_{0}'.format(self._model_id)
+        self.display_id = 'matplotlib_{0}'.format(self._model_id)
 
     def _handle_message(self, object, content, buffers):
         # Every content has a "type".
@@ -212,46 +205,23 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
             self.send({'data': json.dumps(content)})
 
     def send_binary(self, data):
-        if not self._has_data:
-            renderer = self.get_renderer()
-
-            buff = (np.frombuffer(renderer.buffer_rgba(), dtype=np.uint32)
-                    .reshape((renderer.height, renderer.width)))
-
-            # If any pixels have transparency, we need to force a full
-            # draw as we cannot overlay new on top of old.
-            pixels = buff.view(dtype=np.uint8).reshape(buff.shape + (4,))
-
-            if np.any(pixels[:, :, :2] != 255):
-                self._has_data = True
-
-        if (self._has_data and self._display_requested
-                and not self._displayed_once):
-            update_display(
-                self._repr_mimebundle_(**self._display_requested_kwargs),
-                raw=True, display_id=self._display_id
-            )
-
-            self._display_requested = False
-            self._displayed_once = True
-
         self.send({'data': '{"type": "binary"}'}, buffers=[data])
 
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)
 
-    def force_initialize(self):
-        self._handle_message(
-            self,
-            {
-                'type': 'set_dpi_ratio', 'dpi_ratio': Canvas.current_dpi_ratio
-            },
-            []
-        )
-        self._handle_message(self, {'type': 'send_image_mode'}, [])
-        self._handle_message(self, {'type': 'refresh'}, [])
-        self._handle_message(self, {'type': 'initialized'}, [])
-        self._handle_message(self, {'type': 'draw'}, [])
+    # def force_initialize(self):
+    #     self._handle_message(
+    #         self,
+    #         {
+    #             'type': 'set_dpi_ratio', 'dpi_ratio': Canvas.current_dpi_ratio
+    #         },
+    #         []
+    #     )
+    #     self._handle_message(self, {'type': 'send_image_mode'}, [])
+    #     self._handle_message(self, {'type': 'refresh'}, [])
+    #     self._handle_message(self, {'type': 'initialized'}, [])
+    #     self._handle_message(self, {'type': 'draw'}, [])
 
     def _repr_mimebundle_(self, **kwargs):
         # now happens before the actual display call.
@@ -278,19 +248,15 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         return data
 
     def _ipython_display_(self, **kwargs):
-        """Called when `IPython.display.display` is called on a widget."""
-        # We defer the first display if we don't have any plot data yet
-        if not self._displayed_once and not self._has_data:
-            self._display_requested = True
-            self._display_requested_kwargs = kwargs
+        """Called when `IPython.display.display` is called on a widget.
+        Note: if we are in IPython 6.1 or later, we return NotImplemented so
+        that _repr_mimebundle_ is used directly.
+        """
+        if ipython_version_info >= (6, 1):
+            raise NotImplementedError
 
-            # Display a dummy, so we can update it later:
-            display(None, display_id=self._display_id)
-        else:
-            display(
-                self._repr_mimebundle_(**kwargs),
-                raw=True, display_id=self._display_id
-            )
+        data = self._repr_mimebundle_(**kwargs)
+        display(data, raw=True, display_id=self.display_id)
 
     if matplotlib.__version__ < '3.4':
         # backport the Python side changes to match the js changes
@@ -367,7 +333,7 @@ class FigureManager(FigureManagerWebAgg):
             self.canvas._closed = False
             display(
                 self.canvas,
-                display_id='matplotlib_{0}'.format(self.canvas._model_id)
+                display_id=self.canvas.display_id
             )
         else:
             self.canvas.draw_idle()
@@ -381,6 +347,9 @@ class _Backend_ipympl(_Backend):
     FigureCanvas = Canvas
     FigureManager = FigureManager
 
+    _to_show = []
+    _draw_called = False
+
     @staticmethod
     def new_figure_manager_given_figure(num, figure):
         canvas = Canvas(figure)
@@ -388,10 +357,11 @@ class _Backend_ipympl(_Backend):
             figure.patch.set_alpha(0)
         manager = FigureManager(canvas, num)
 
-        canvas.force_initialize()
+        # TODO For early animations?????
+        # canvas.force_initialize()
 
         if is_interactive():
-            manager.show()
+            _Backend_ipympl._to_show.append(figure)
             figure.canvas.draw_idle()
 
         def destroy(event):
@@ -402,24 +372,89 @@ class _Backend_ipympl(_Backend):
         return manager
 
     @staticmethod
-    def show(block=None):
-        # TODO: something to do when keyword block==False ?
-
-        managers = Gcf.get_all_fig_managers()
-        if not managers:
-            return
-
+    def show(close=None, block=None):
+        # # TODO: something to do when keyword block==False ?
         interactive = is_interactive()
 
-        for manager in managers:
-            manager.show()
+        try:
+            for manager in Gcf.get_all_fig_managers():
+                display(
+                    manager.canvas,
+                    display_id=manager.canvas.display_id
+                    # metadata=_fetch_figure_metadata(manager.canvas.figure)
+                )
 
-            # plt.figure adds an event which makes the figure in focus the
-            # active one. Disable this behaviour, as it results in
-            # figures being put as the active figure after they have been
-            # shown, even in non-interactive mode.
-            if hasattr(manager, '_cidgcf'):
-                manager.canvas.mpl_disconnect(manager._cidgcf)
+                # plt.figure adds an event which makes the figure in focus the
+                # active one. Disable this behaviour, as it results in
+                # figures being put as the active figure after they have been
+                # shown, even in non-interactive mode.
+                if hasattr(manager, '_cidgcf'):
+                    manager.canvas.mpl_disconnect(manager._cidgcf)
 
-            if not interactive:
-                Gcf.figs.pop(manager.num, None)
+                if not interactive:
+                    Gcf.figs.pop(manager.num, None)
+        finally:
+            _Backend_ipympl._to_show = []
+            # only call close('all') if any to close
+            # close triggers gc.collect, which can be slow
+            if close and Gcf.get_all_fig_managers():
+                matplotlib.pyplot.close('all')
+
+    @staticmethod
+    def draw_if_interactive():
+        # If matplotlib was manually set to non-interactive mode, this function
+        # should be a no-op (otherwise we'll generate duplicate plots, since a
+        # user who set ioff() manually expects to make separate draw/show
+        # calls).
+        if not is_interactive():
+            return
+
+        manager = Gcf.get_active()
+        if manager is None:
+            return
+        fig = manager.canvas.figure
+
+        # ensure current figure will be drawn, and each subsequent call
+        # of draw_if_interactive() moves the active figure to ensure it is
+        # drawn last
+        try:
+            _Backend_ipympl._to_show.remove(fig)
+        except ValueError:
+            # ensure it only appears in the draw list once
+            pass
+        # Queue up the figure for drawing in next show() call
+        _Backend_ipympl._to_show.append(fig)
+        _Backend_ipympl._draw_called = True
+
+
+def flush_figures():
+    if rcParams['backend'] == 'module://ipympl.backend_nbagg':
+        if not _Backend_ipympl._draw_called:
+            return
+
+        try:
+            # exclude any figures that were closed:
+            active = set([
+                fm.canvas.figure for fm in Gcf.get_all_fig_managers()
+            ])
+            for fig in [
+                    fig for fig in _Backend_ipympl._to_show if fig in active]:
+                try:
+                    # display(fig.canvas, metadata=_fetch_figure_metadata(fig))
+                    display(fig.canvas, display_id=fig.canvas.display_id)
+                except Exception as e:
+                    # safely show traceback if in IPython, else raise
+                    ip = get_ipython()
+                    if ip is None:
+                        raise e
+                    else:
+                        ip.showtraceback()
+                        return
+        finally:
+            # clear flags for next round
+            _Backend_ipympl._to_show = []
+            _Backend_ipympl._draw_called = False
+
+
+ip = get_ipython()
+ip.events.register('post_execute', flush_figures)
