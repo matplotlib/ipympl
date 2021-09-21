@@ -6,7 +6,7 @@ define(function() {
     window['requirejs'].config({
         map: {
             '*': {
-                'jupyter-matplotlib': 'nbextensions/ipympl/index',
+                'jupyter-matplotlib': 'nbextensions/jupyter-matplotlib/index',
             },
         }
     });
