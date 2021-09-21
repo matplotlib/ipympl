@@ -162,8 +162,6 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
         self.on_msg(self._handle_message)
 
-        self.display_id = 'matplotlib_{0}'.format(self._model_id)
-
     def _handle_message(self, object, content, buffers):
         # Every content has a "type".
         if content['type'] == 'closing':
@@ -210,19 +208,6 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)
 
-    # def force_initialize(self):
-    #     self._handle_message(
-    #         self,
-    #         {
-    #             'type': 'set_dpi_ratio', 'dpi_ratio': Canvas.current_dpi_ratio
-    #         },
-    #         []
-    #     )
-    #     self._handle_message(self, {'type': 'send_image_mode'}, [])
-    #     self._handle_message(self, {'type': 'refresh'}, [])
-    #     self._handle_message(self, {'type': 'initialized'}, [])
-    #     self._handle_message(self, {'type': 'draw'}, [])
-
     def _repr_mimebundle_(self, **kwargs):
         # now happens before the actual display call.
         if hasattr(self, '_handle_displayed'):
@@ -256,7 +241,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
             raise NotImplementedError
 
         data = self._repr_mimebundle_(**kwargs)
-        display(data, raw=True, display_id=self.display_id)
+        display(data, raw=True)
 
     if matplotlib.__version__ < '3.4':
         # backport the Python side changes to match the js changes
@@ -331,10 +316,7 @@ class FigureManager(FigureManagerWebAgg):
     def show(self):
         if self.canvas._closed:
             self.canvas._closed = False
-            display(
-                self.canvas,
-                display_id=self.canvas.display_id
-            )
+            display(self.canvas)
         else:
             self.canvas.draw_idle()
 
@@ -357,9 +339,6 @@ class _Backend_ipympl(_Backend):
             figure.patch.set_alpha(0)
         manager = FigureManager(canvas, num)
 
-        # TODO For early animations?????
-        # canvas.force_initialize()
-
         if is_interactive():
             _Backend_ipympl._to_show.append(figure)
             figure.canvas.draw_idle()
@@ -376,16 +355,13 @@ class _Backend_ipympl(_Backend):
         # # TODO: something to do when keyword block==False ?
         interactive = is_interactive()
 
-        try:
-            manager = Gcf.get_active()
-            if manager is None:
-                return
+        manager = Gcf.get_active()
+        if manager is None:
+            return
 
-            display(
-                manager.canvas,
-                display_id=manager.canvas.display_id
-                # metadata=_fetch_figure_metadata(manager.canvas.figure)
-            )
+        try:
+            display(manager.canvas)
+            # metadata=_fetch_figure_metadata(manager.canvas.figure)
 
             # plt.figure adds an event which makes the figure in focus the
             # active one. Disable this behaviour, as it results in
@@ -397,11 +373,8 @@ class _Backend_ipympl(_Backend):
             if not interactive:
                 Gcf.figs.pop(manager.num, None)
         finally:
-            _Backend_ipympl._to_show = []
-            # only call close('all') if any to close
-            # close triggers gc.collect, which can be slow
-            if close and Gcf.get_all_fig_managers():
-                matplotlib.pyplot.close('all')
+            if manager.canvas.figure in _Backend_ipympl._to_show:
+                _Backend_ipympl._to_show.remove(manager.canvas.figure)
 
     @staticmethod
     def draw_if_interactive():
@@ -444,7 +417,7 @@ def flush_figures():
             for fig in [
                     fig for fig in _Backend_ipympl._to_show if fig in active]:
                 # display(fig.canvas, metadata=_fetch_figure_metadata(fig))
-                display(fig.canvas, display_id=fig.canvas.display_id)
+                display(fig.canvas)
         finally:
             # clear flags for next round
             _Backend_ipympl._to_show = []
