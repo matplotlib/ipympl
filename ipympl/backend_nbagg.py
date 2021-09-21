@@ -181,7 +181,10 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     def send_json(self, content):
         # Change in the widget state?
         if content['type'] == 'cursor':
-            self._cursor = cursors_str[content['cursor']]
+            cursor = content['cursor']
+            self._cursor = (
+                cursors_str[cursor] if cursor in cursors_str else cursor
+            )
 
         elif content['type'] == 'message':
             self._message = content['message']
