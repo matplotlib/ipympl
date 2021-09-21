@@ -1,0 +1,37 @@
+.jupyter-matplotlib {
+    width: auto;
+    height: auto;
+    flex: 1 1 auto;
+}
+
+/* Toolbar */
+
+.jupyter-matplotlib-toolbar {
+    overflow: visible;
+}
+
+.jupyter-matplotlib-button {
+    width: calc(var(--jp-widgets-inline-width-tiny) / 2 - 2px);
+    padding: 0 !important;
+}
+
+/* Figure */
+
+.jupyter-matplotlib-figure {
+    width: auto;
+    height: auto;
+    overflow: hidden;
+}
+
+.jupyter-matplotlib-canvas-container {
+    overflow: auto;
+}
+
+.jupyter-matplotlib-canvas-div {
+    margin: 2px;
+    flex: 1 1 auto;
+}
+
+.jupyter-matplotlib-canvas-div:focus {
+    outline: 1px solid var(--jp-widgets-input-focus-border-color);
+}

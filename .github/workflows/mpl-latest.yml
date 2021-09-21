@@ -30,12 +30,14 @@ jobs:
     - name: Install dependencies
       shell: bash -l {0}
       run: |
-        mamba install python=${{ matrix.python-version }} pip nodejs ipywidgets=7.6 jupyter jupyterlab=3 pillow numpy flake8 pytest nbval
+        mamba install python=${{ matrix.python-version }} pip nodejs ipywidgets=7.6 jupyter jupyterlab=3 pillow numpy flake8 pytest nbval yarn build
         pip install git+https://github.com/matplotlib/matplotlib.git
 
     - name: Install ipympl
       shell: bash -l {0}
-      run: pip install -e .
+      run: |
+        python -m build
+        pip install dist/*.whl
 
     - name: Check installation files
       shell: bash -l {0}
