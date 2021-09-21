@@ -377,22 +377,25 @@ class _Backend_ipympl(_Backend):
         interactive = is_interactive()
 
         try:
-            for manager in Gcf.get_all_fig_managers():
-                display(
-                    manager.canvas,
-                    display_id=manager.canvas.display_id
-                    # metadata=_fetch_figure_metadata(manager.canvas.figure)
-                )
+            manager = Gcf.get_active()
+            if manager is None:
+                return
 
-                # plt.figure adds an event which makes the figure in focus the
-                # active one. Disable this behaviour, as it results in
-                # figures being put as the active figure after they have been
-                # shown, even in non-interactive mode.
-                if hasattr(manager, '_cidgcf'):
-                    manager.canvas.mpl_disconnect(manager._cidgcf)
+            display(
+                manager.canvas,
+                display_id=manager.canvas.display_id
+                # metadata=_fetch_figure_metadata(manager.canvas.figure)
+            )
 
-                if not interactive:
-                    Gcf.figs.pop(manager.num, None)
+            # plt.figure adds an event which makes the figure in focus the
+            # active one. Disable this behaviour, as it results in
+            # figures being put as the active figure after they have been
+            # shown, even in non-interactive mode.
+            if hasattr(manager, '_cidgcf'):
+                manager.canvas.mpl_disconnect(manager._cidgcf)
+
+            if not interactive:
+                Gcf.figs.pop(manager.num, None)
         finally:
             _Backend_ipympl._to_show = []
             # only call close('all') if any to close
@@ -437,19 +440,13 @@ def flush_figures():
             active = set([
                 fm.canvas.figure for fm in Gcf.get_all_fig_managers()
             ])
+
+            print('flush active ', active, ', toshow ', _Backend_ipympl._to_show)
+
             for fig in [
                     fig for fig in _Backend_ipympl._to_show if fig in active]:
-                try:
-                    # display(fig.canvas, metadata=_fetch_figure_metadata(fig))
-                    display(fig.canvas, display_id=fig.canvas.display_id)
-                except Exception as e:
-                    # safely show traceback if in IPython, else raise
-                    ip = get_ipython()
-                    if ip is None:
-                        raise e
-                    else:
-                        ip.showtraceback()
-                        return
+                # display(fig.canvas, metadata=_fetch_figure_metadata(fig))
+                display(fig.canvas, display_id=fig.canvas.display_id)
         finally:
             # clear flags for next round
             _Backend_ipympl._to_show = []
