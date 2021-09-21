@@ -441,8 +441,6 @@ def flush_figures():
                 fm.canvas.figure for fm in Gcf.get_all_fig_managers()
             ])
 
-            print('flush active ', active, ', toshow ', _Backend_ipympl._to_show)
-
             for fig in [
                     fig for fig in _Backend_ipympl._to_show if fig in active]:
                 # display(fig.canvas, metadata=_fetch_figure_metadata(fig))
