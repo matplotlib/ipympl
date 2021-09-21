@@ -104,7 +104,7 @@ yarn run build
 
 For classic notebook, you need to run:
 ```bash
-jupyter nbextension install --py --symlink --sys-prefix ipympl
+jupyter nbextension install --py --symlink --sys-prefix --overwrite ipympl
 jupyter nbextension enable --py --sys-prefix ipympl
 ```
 
