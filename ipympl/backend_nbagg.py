@@ -5,16 +5,17 @@ import json
 import io
 
 from IPython.display import display, HTML
+from IPython import get_ipython
+from IPython import version_info as ipython_version_info
 
 from ipywidgets import DOMWidget, widget_serialization
 from traitlets import (
-    Unicode, Bool, CInt, Float, List, Instance, CaselessStrEnum, Enum,
+    Unicode, Bool, CInt, List, Instance, CaselessStrEnum, Enum,
     default
 )
 
 import matplotlib
-from matplotlib import rcParams
-from matplotlib import is_interactive
+from matplotlib import rcParams, is_interactive
 from matplotlib.backends.backend_webagg_core import (FigureManagerWebAgg,
                                                      FigureCanvasWebAggCore,
                                                      NavigationToolbar2WebAgg,
@@ -40,7 +41,6 @@ def connection_info():
     use.
 
     """
-    from matplotlib._pylab_helpers import Gcf
     result = []
     for manager in Gcf.get_all_fig_managers():
         fig = manager.canvas.figure
@@ -83,16 +83,8 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
     def export(self):
         buf = io.BytesIO()
         self.canvas.figure.savefig(buf, format='png', dpi='figure')
-        # Figure width in pixels
-        pwidth = (self.canvas.figure.get_figwidth() *
-                  self.canvas.figure.get_dpi())
-        # Scale size to match widget on HiDPI monitors.
-        if hasattr(self.canvas, 'device_pixel_ratio'):  # Matplotlib 3.5+
-            width = pwidth / self.canvas.device_pixel_ratio
-        else:
-            width = pwidth / self.canvas._dpi_ratio
-        data = "<img src='data:image/png;base64,{0}' width={1}/>"
-        data = data.format(b64encode(buf.getvalue()).decode('utf-8'), width)
+        data = "<img src='data:image/png;base64,{0}'/>"
+        data = data.format(b64encode(buf.getvalue()).decode('utf-8'))
         display(HTML(data))
 
     @default('toolitems')
@@ -160,7 +152,9 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     _png_is_old = Bool()
     _force_full = Bool()
     _current_image_mode = Unicode()
-    _dpi_ratio = Float(1.0)
+
+    # Static as it should be the same for all canvases
+    current_dpi_ratio = 1.0
 
     def __init__(self, figure, *args, **kwargs):
         DOMWidget.__init__(self, *args, **kwargs)
@@ -172,9 +166,15 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         # Every content has a "type".
         if content['type'] == 'closing':
             self._closed = True
+
         elif content['type'] == 'initialized':
             _, _, w, h = self.figure.bbox.bounds
             self.manager.resize(w, h)
+
+        elif content['type'] == 'set_dpi_ratio':
+            Canvas.current_dpi_ratio = content['dpi_ratio']
+            self.manager.handle_json(content)
+
         else:
             self.manager.handle_json(content)
 
@@ -207,6 +207,41 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)
+
+    def _repr_mimebundle_(self, **kwargs):
+        # now happens before the actual display call.
+        if hasattr(self, '_handle_displayed'):
+            self._handle_displayed(**kwargs)
+        plaintext = repr(self)
+        if len(plaintext) > 110:
+            plaintext = plaintext[:110] + '…'
+
+        buf = io.BytesIO()
+        self.figure.savefig(buf, format='png', dpi='figure')
+        data_url = b64encode(buf.getvalue()).decode('utf-8')
+
+        data = {
+            'text/plain': plaintext,
+            'image/png': data_url,
+            'application/vnd.jupyter.widget-view+json': {
+                'version_major': 2,
+                'version_minor': 0,
+                'model_id': self._model_id
+            }
+        }
+
+        return data
+
+    def _ipython_display_(self, **kwargs):
+        """Called when `IPython.display.display` is called on a widget.
+        Note: if we are in IPython 6.1 or later, we return NotImplemented so
+        that _repr_mimebundle_ is used directly.
+        """
+        if ipython_version_info >= (6, 1):
+            raise NotImplementedError
+
+        data = self._repr_mimebundle_(**kwargs)
+        display(data, raw=True)
 
     if matplotlib.__version__ < '3.4':
         # backport the Python side changes to match the js changes
@@ -294,14 +329,18 @@ class _Backend_ipympl(_Backend):
     FigureCanvas = Canvas
     FigureManager = FigureManager
 
+    _to_show = []
+    _draw_called = False
+
     @staticmethod
     def new_figure_manager_given_figure(num, figure):
         canvas = Canvas(figure)
         if 'nbagg.transparent' in rcParams and rcParams['nbagg.transparent']:
             figure.patch.set_alpha(0)
         manager = FigureManager(canvas, num)
+
         if is_interactive():
-            manager.show()
+            _Backend_ipympl._to_show.append(figure)
             figure.canvas.draw_idle()
 
         def destroy(event):
@@ -312,17 +351,17 @@ class _Backend_ipympl(_Backend):
         return manager
 
     @staticmethod
-    def show(block=None):
-        # TODO: something to do when keyword block==False ?
-
-        managers = Gcf.get_all_fig_managers()
-        if not managers:
-            return
-
+    def show(close=None, block=None):
+        # # TODO: something to do when keyword block==False ?
         interactive = is_interactive()
 
-        for manager in managers:
-            manager.show()
+        manager = Gcf.get_active()
+        if manager is None:
+            return
+
+        try:
+            display(manager.canvas)
+            # metadata=_fetch_figure_metadata(manager.canvas.figure)
 
             # plt.figure adds an event which makes the figure in focus the
             # active one. Disable this behaviour, as it results in
@@ -333,3 +372,57 @@ class _Backend_ipympl(_Backend):
 
             if not interactive:
                 Gcf.figs.pop(manager.num, None)
+        finally:
+            if manager.canvas.figure in _Backend_ipympl._to_show:
+                _Backend_ipympl._to_show.remove(manager.canvas.figure)
+
+    @staticmethod
+    def draw_if_interactive():
+        # If matplotlib was manually set to non-interactive mode, this function
+        # should be a no-op (otherwise we'll generate duplicate plots, since a
+        # user who set ioff() manually expects to make separate draw/show
+        # calls).
+        if not is_interactive():
+            return
+
+        manager = Gcf.get_active()
+        if manager is None:
+            return
+        fig = manager.canvas.figure
+
+        # ensure current figure will be drawn, and each subsequent call
+        # of draw_if_interactive() moves the active figure to ensure it is
+        # drawn last
+        try:
+            _Backend_ipympl._to_show.remove(fig)
+        except ValueError:
+            # ensure it only appears in the draw list once
+            pass
+        # Queue up the figure for drawing in next show() call
+        _Backend_ipympl._to_show.append(fig)
+        _Backend_ipympl._draw_called = True
+
+
+def flush_figures():
+    if rcParams['backend'] == 'module://ipympl.backend_nbagg':
+        if not _Backend_ipympl._draw_called:
+            return
+
+        try:
+            # exclude any figures that were closed:
+            active = set([
+                fm.canvas.figure for fm in Gcf.get_all_fig_managers()
+            ])
+
+            for fig in [
+                    fig for fig in _Backend_ipympl._to_show if fig in active]:
+                # display(fig.canvas, metadata=_fetch_figure_metadata(fig))
+                display(fig.canvas)
+        finally:
+            # clear flags for next round
+            _Backend_ipympl._to_show = []
+            _Backend_ipympl._draw_called = False
+
+
+ip = get_ipython()
+ip.events.register('post_execute', flush_figures)

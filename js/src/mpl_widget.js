@@ -185,9 +185,6 @@ export class MPLCanvasModel extends widgets.DOMWidgetModel {
 
         this.image.src = image_url;
 
-        // Tell Jupyter that the notebook contents must change.
-        this.send_message('ack');
-
         this.waiting = false;
     }
 
