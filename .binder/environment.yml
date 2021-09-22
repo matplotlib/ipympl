@@ -2,6 +2,8 @@ name: ipympl
 channels:
   - conda-forge
 dependencies:
+  - yarn
   - numpy
   - jupyterlab>=3
   - matplotlib-base>=2.2.2
+  - jupyter-packaging=0.7
