@@ -6,4 +6,4 @@ dependencies:
   - numpy
   - jupyterlab>=3
   - matplotlib-base>=2.2.2
-  - jupyter-packaging=0.7
+  - ipympl=0.8
