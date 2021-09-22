@@ -1,3 +1,3 @@
-version_info = (0, 7, 0)
+version_info = (0, 8, 0)
 __version__ = '.'.join(map(str, version_info))
-js_semver = '^0.9.0'
+js_semver = '^0.10.0'
