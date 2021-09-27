@@ -428,4 +428,5 @@ def flush_figures():
 
 
 ip = get_ipython()
-ip.events.register('post_execute', flush_figures)
+if ip is not None:
+    ip.events.register('post_execute', flush_figures)
