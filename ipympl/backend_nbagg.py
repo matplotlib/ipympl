@@ -1,27 +1,33 @@
 """Interactive figures in the Jupyter notebook"""
 
-from base64 import b64encode
-import json
 import io
-
-from IPython.display import display, HTML
-from IPython import get_ipython
-from IPython import version_info as ipython_version_info
-
-from ipywidgets import DOMWidget, widget_serialization
-from traitlets import (
-    Unicode, Bool, CInt, List, Instance, CaselessStrEnum, Enum,
-    default
-)
+import json
+from base64 import b64encode
 
 import matplotlib
-from matplotlib import rcParams, is_interactive
-from matplotlib.backends.backend_webagg_core import (FigureManagerWebAgg,
-                                                     FigureCanvasWebAggCore,
-                                                     NavigationToolbar2WebAgg,
-                                                     TimerTornado)
-from matplotlib.backend_bases import NavigationToolbar2, cursors, _Backend
+from IPython import get_ipython
+from IPython import version_info as ipython_version_info
+from IPython.display import HTML, display
+from ipywidgets import DOMWidget, widget_serialization
+from matplotlib import is_interactive, rcParams
 from matplotlib._pylab_helpers import Gcf
+from matplotlib.backend_bases import NavigationToolbar2, _Backend, cursors
+from matplotlib.backends.backend_webagg_core import (
+    FigureCanvasWebAggCore,
+    FigureManagerWebAgg,
+    NavigationToolbar2WebAgg,
+    TimerTornado,
+)
+from traitlets import (
+    Bool,
+    CaselessStrEnum,
+    CInt,
+    Enum,
+    Instance,
+    List,
+    Unicode,
+    default,
+)
 
 from ._version import js_semver
 
@@ -30,7 +36,7 @@ cursors_str = {
     cursors.POINTER: 'default',
     cursors.SELECT_REGION: 'crosshair',
     cursors.MOVE: 'move',
-    cursors.WAIT: 'wait'
+    cursors.WAIT: 'wait',
 }
 
 
@@ -44,11 +50,14 @@ def connection_info():
     result = []
     for manager in Gcf.get_all_fig_managers():
         fig = manager.canvas.figure
-        result.append('{0} - {1}'.format((fig.get_label() or
-                                          "Figure {}".format(manager.num)),
-                                         manager.web_sockets))
+        result.append(
+            '{} - {}'.format(
+                (fig.get_label() or f"Figure {manager.num}"),
+                manager.web_sockets,
+            )
+        )
     if not is_interactive():
-        result.append('Figures pending show: {0}'.format(len(Gcf._activeQue)))
+        result.append(f'Figures pending show: {len(Gcf._activeQue)}')
     return '\n'.join(result)
 
 
@@ -63,16 +72,17 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
     _view_name = Unicode('ToolbarView').tag(sync=True)
 
     toolitems = List().tag(sync=True)
-    orientation = Enum(['horizontal', 'vertical'],
-                       default_value='vertical').tag(sync=True)
+    orientation = Enum(['horizontal', 'vertical'], default_value='vertical').tag(
+        sync=True
+    )
     button_style = CaselessStrEnum(
         values=['primary', 'success', 'info', 'warning', 'danger', ''],
         default_value='',
-        help="""Use a predefined styling for the button.""").tag(sync=True)
+        help="""Use a predefined styling for the button.""",
+    ).tag(sync=True)
     collapsed = Bool(True).tag(sync=True)
 
-    _current_action = Enum(values=['pan', 'zoom', ''],
-                           default_value='').tag(sync=True)
+    _current_action = Enum(values=['pan', 'zoom', ''], default_value='').tag(sync=True)
 
     def __init__(self, canvas, *args, **kwargs):
         DOMWidget.__init__(self, *args, **kwargs)
@@ -96,18 +106,18 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
             'zoom_to_rect': 'square-o',
             'move': 'arrows',
             'download': 'floppy-o',
-            'export': 'file-picture-o'
+            'export': 'file-picture-o',
         }
 
-        download_item = ('Download', 'Download plot', 'download',
-                         'save_figure')
+        download_item = ('Download', 'Download plot', 'download', 'save_figure')
 
-        toolitems = (NavigationToolbar2.toolitems + (download_item,))
+        toolitems = NavigationToolbar2.toolitems + (download_item,)
 
-        return [(text, tooltip, icons[icon_name], method_name)
-                for text, tooltip, icon_name, method_name
-                in toolitems
-                if icon_name in icons]
+        return [
+            (text, tooltip, icons[icon_name], method_name)
+            for text, tooltip, icon_name, method_name in toolitems
+            if icon_name in icons
+        ]
 
 
 class Canvas(DOMWidget, FigureCanvasWebAggCore):
@@ -120,11 +130,11 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     _view_module_version = Unicode(js_semver).tag(sync=True)
     _view_name = Unicode('MPLCanvasView').tag(sync=True)
 
-    toolbar = Instance(Toolbar,
-                       allow_none=True).tag(sync=True, **widget_serialization)
+    toolbar = Instance(Toolbar, allow_none=True).tag(sync=True, **widget_serialization)
     toolbar_visible = Bool(True).tag(sync=True)
-    toolbar_position = Enum(['top', 'bottom', 'left', 'right'],
-                            default_value='left').tag(sync=True)
+    toolbar_position = Enum(
+        ['top', 'bottom', 'left', 'right'], default_value='left'
+    ).tag(sync=True)
 
     header_visible = Bool(True).tag(sync=True)
     footer_visible = Bool(True).tag(sync=True)
@@ -182,9 +192,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         # Change in the widget state?
         if content['type'] == 'cursor':
             cursor = content['cursor']
-            self._cursor = (
-                cursors_str[cursor] if cursor in cursors_str else cursor
-            )
+            self._cursor = cursors_str[cursor] if cursor in cursors_str else cursor
 
         elif content['type'] == 'message':
             self._message = content['message']
@@ -229,8 +237,8 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
             'application/vnd.jupyter.widget-view+json': {
                 'version_major': 2,
                 'version_minor': 0,
-                'model_id': self._model_id
-            }
+                'model_id': self._model_id,
+            },
         }
 
         return data
@@ -249,54 +257,56 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     if matplotlib.__version__ < '3.4':
         # backport the Python side changes to match the js changes
         def _handle_key(self, event):
-            _SPECIAL_KEYS_LUT = {'Alt': 'alt',
-                                 'AltGraph': 'alt',
-                                 'CapsLock': 'caps_lock',
-                                 'Control': 'control',
-                                 'Meta': 'meta',
-                                 'NumLock': 'num_lock',
-                                 'ScrollLock': 'scroll_lock',
-                                 'Shift': 'shift',
-                                 'Super': 'super',
-                                 'Enter': 'enter',
-                                 'Tab': 'tab',
-                                 'ArrowDown': 'down',
-                                 'ArrowLeft': 'left',
-                                 'ArrowRight': 'right',
-                                 'ArrowUp': 'up',
-                                 'End': 'end',
-                                 'Home': 'home',
-                                 'PageDown': 'pagedown',
-                                 'PageUp': 'pageup',
-                                 'Backspace': 'backspace',
-                                 'Delete': 'delete',
-                                 'Insert': 'insert',
-                                 'Escape': 'escape',
-                                 'Pause': 'pause',
-                                 'Select': 'select',
-                                 'Dead': 'dead',
-                                 'F1': 'f1',
-                                 'F2': 'f2',
-                                 'F3': 'f3',
-                                 'F4': 'f4',
-                                 'F5': 'f5',
-                                 'F6': 'f6',
-                                 'F7': 'f7',
-                                 'F8': 'f8',
-                                 'F9': 'f9',
-                                 'F10': 'f10',
-                                 'F11': 'f11',
-                                 'F12': 'f12'}
+            _SPECIAL_KEYS_LUT = {
+                'Alt': 'alt',
+                'AltGraph': 'alt',
+                'CapsLock': 'caps_lock',
+                'Control': 'control',
+                'Meta': 'meta',
+                'NumLock': 'num_lock',
+                'ScrollLock': 'scroll_lock',
+                'Shift': 'shift',
+                'Super': 'super',
+                'Enter': 'enter',
+                'Tab': 'tab',
+                'ArrowDown': 'down',
+                'ArrowLeft': 'left',
+                'ArrowRight': 'right',
+                'ArrowUp': 'up',
+                'End': 'end',
+                'Home': 'home',
+                'PageDown': 'pagedown',
+                'PageUp': 'pageup',
+                'Backspace': 'backspace',
+                'Delete': 'delete',
+                'Insert': 'insert',
+                'Escape': 'escape',
+                'Pause': 'pause',
+                'Select': 'select',
+                'Dead': 'dead',
+                'F1': 'f1',
+                'F2': 'f2',
+                'F3': 'f3',
+                'F4': 'f4',
+                'F5': 'f5',
+                'F6': 'f6',
+                'F7': 'f7',
+                'F8': 'f8',
+                'F9': 'f9',
+                'F10': 'f10',
+                'F11': 'f11',
+                'F12': 'f12',
+            }
 
             def handle_key(key):
                 """Handle key values"""
-                value = key[key.index('k') + 1:]
+                value = key[key.index('k') + 1 :]
                 if 'shift+' in key:
                     if len(value) == 1:
                         key = key.replace('shift+', '')
                 if value in _SPECIAL_KEYS_LUT:
                     value = _SPECIAL_KEYS_LUT[value]
-                key = key[:key.index('k')] + value
+                key = key[: key.index('k')] + value
                 return key
 
             key = handle_key(event['key'])
@@ -306,6 +316,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
                 self.key_press_event(key, guiEvent=guiEvent)
             elif e_type == 'key_release':
                 self.key_release_event(key, guiEvent=guiEvent)
+
         handle_key_press = handle_key_release = _handle_key
 
 
@@ -413,12 +424,9 @@ def flush_figures():
 
         try:
             # exclude any figures that were closed:
-            active = set([
-                fm.canvas.figure for fm in Gcf.get_all_fig_managers()
-            ])
+            active = {fm.canvas.figure for fm in Gcf.get_all_fig_managers()}
 
-            for fig in [
-                    fig for fig in _Backend_ipympl._to_show if fig in active]:
+            for fig in [fig for fig in _Backend_ipympl._to_show if fig in active]:
                 # display(fig.canvas, metadata=_fetch_figure_metadata(fig))
                 display(fig.canvas)
         finally:
