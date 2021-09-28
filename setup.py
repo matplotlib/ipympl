@@ -1,17 +1,16 @@
-from __future__ import print_function
-from distutils import log
-from setuptools import setup, find_packages
 import os
+from distutils import log
 from os.path import join as pjoin
 
 from jupyter_packaging import (
-    create_cmdclass,
-    install_npm,
-    ensure_targets,
     combine_commands,
+    create_cmdclass,
+    ensure_targets,
     get_version,
-    skip_if_exists
+    install_npm,
+    skip_if_exists,
 )
+from setuptools import find_packages, setup
 
 # Name of the project
 name = 'ipympl'
@@ -34,10 +33,8 @@ jstargets = [
 ]
 
 data_files_spec = [
-    ('share/jupyter/nbextensions/jupyter-matplotlib',
-     'ipympl/nbextension', '**'),
-    ('share/jupyter/labextensions/jupyter-matplotlib',
-     'ipympl/labextension', "**"),
+    ('share/jupyter/nbextensions/jupyter-matplotlib', 'ipympl/nbextension', '**'),
+    ('share/jupyter/labextensions/jupyter-matplotlib', 'ipympl/labextension', "**"),
     ('etc/jupyter/nbconfig/notebook.d', '.', 'jupyter-matplotlib.json'),
 ]
 
@@ -60,11 +57,7 @@ setup_args = dict(
     long_description=long_description,
     license='BSD License',
     include_package_data=True,
-    install_requires=[
-        'ipykernel>=4.7',
-        'ipywidgets>=7.6.0',
-        'matplotlib>=2.0.0'
-    ],
+    install_requires=['ipykernel>=4.7', 'ipywidgets>=7.6.0', 'matplotlib>=2.0.0'],
     packages=find_packages(),
     zip_safe=False,
     cmdclass=cmdclass,
