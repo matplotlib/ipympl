@@ -16,15 +16,15 @@ repos:
       - id: autoflake
         args: ["--in-place", "--remove-all-unused-imports", "--ignore-init-module-imports", "--remove-unused-variables"]
   - repo: https://github.com/PyCQA/isort
-    rev: 5.8.0
+    rev: 5.9.3
     hooks:
       - id: isort
   - repo: https://github.com/psf/black
-    rev: 21.5b2
+    rev: 21.9b0
     hooks:
       - id: black
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.19.0
+    rev: v2.29.0
     hooks:
       - id: pyupgrade
         args: [--py37-plus]
@@ -35,7 +35,7 @@ repos:
         types: [ts]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: 'v7.32.0'
+    rev: 'v8.0.0-rc.0'
     hooks:
     - id: eslint
       files: \.ts$  # *.ts
