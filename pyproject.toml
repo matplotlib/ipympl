@@ -12,7 +12,7 @@ norecursedirs = [
     "node_modules",
     ".ipynb_checkpoints",
 ]
-addopts = "--nbval --current-env"
+addopts = "--nbval-lax --current-env"
 
 [tool.isort]
 profile = "black"
