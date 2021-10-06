@@ -109,7 +109,7 @@ jobs:
             jlab_version: 3
           - python: '3.9'
             dist: 'ipympl*.whl'
-            jlab_version: 2
+            jlab_version: 2.3.2
 
     steps:
 
@@ -138,7 +138,7 @@ jobs:
           pip install -vv ${{ matrix.dist }}
 
       - name: Manually install labextension for lab2
-        if: ${{ matrix.jlab_version }} == 2
+        if: ${{ matrix.jlab_version }} == 2.3.2
         run: jupyter labextension install --debug .
 
       - name: Test installation files
