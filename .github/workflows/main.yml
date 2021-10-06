@@ -139,7 +139,7 @@ jobs:
 
       - name: Manually install labextension for lab2
         if: ${{ matrix.jlab_version }} == 2
-        run: jupyter labextension install .
+        run: jupyter labextension install --debug .
 
       - name: Test installation files
         run: |
