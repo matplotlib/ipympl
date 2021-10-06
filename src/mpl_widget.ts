@@ -207,6 +207,16 @@ export class MPLCanvasModel extends DOMWidgetModel {
         this.waiting = false;
     }
 
+    handle_history_buttons(msg: any) {
+        // No-op
+    }
+
+    handle_navigate_mode(msg: any) {
+        // TODO: Remove _current_action property in the toolbar and use
+        // this message instead to know which is the current mode/which
+        // button to toggle?
+    }
+
     on_comm_message(evt: any, dataviews: any) {
         const msg = JSON.parse(evt.data);
         const msg_type = msg['type'];
