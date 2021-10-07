@@ -519,6 +519,8 @@ export class MPLCanvasView extends DOMWidgetView {
             return;
         }
 
+        this.top_context.save();
+
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.drawImage(this.model.offscreen_canvas, 0, 0);
 
@@ -534,6 +536,13 @@ export class MPLCanvasView extends DOMWidgetView {
             this.model.get('_rubberband_width') !== 0 &&
             this.model.get('_rubberband_height') !== 0
         ) {
+            this.top_context.strokeStyle = 'gray';
+            this.top_context.lineWidth = 1;
+            this.top_context.shadowColor = 'black';
+            this.top_context.shadowBlur = 2;
+            this.top_context.shadowOffsetX = 1;
+            this.top_context.shadowOffsetY = 1;
+
             this.top_context.strokeRect(
                 this.model.get('_rubberband_x'),
                 this.model.get('_rubberband_y'),
@@ -544,18 +553,19 @@ export class MPLCanvasView extends DOMWidgetView {
 
         // Draw resize handle
         if (this.model.get('resizable')) {
-            this.top_context.save();
-
             const gradient = this.top_context.createLinearGradient(
-                this.top_canvas.width - this.resize_handle_size / 3,
-                this.top_canvas.height - this.resize_handle_size / 3,
-                this.top_canvas.width - this.resize_handle_size / 4,
-                this.top_canvas.height - this.resize_handle_size / 4
+                // Start
+                this.top_canvas.width - this.resize_handle_size,
+                this.top_canvas.height - this.resize_handle_size,
+                // Stop
+                this.top_canvas.width,
+                this.top_canvas.height
             );
-            gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-            gradient.addColorStop(1, 'rgba(0, 0, 0, 255)');
+            gradient.addColorStop(0, 'white');
+            gradient.addColorStop(1, 'black');
 
             this.top_context.fillStyle = gradient;
+            this.top_context.strokeStyle = 'gray';
 
             this.top_context.globalAlpha = 0.3;
             this.top_context.beginPath();
@@ -573,9 +583,10 @@ export class MPLCanvasView extends DOMWidgetView {
             );
             this.top_context.closePath();
             this.top_context.fill();
-
-            this.top_context.restore();
+            this.top_context.stroke();
         }
+
+        this.top_context.restore();
     }
 
     _update_cursor() {
