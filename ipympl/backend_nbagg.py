@@ -4,21 +4,12 @@ import io
 import json
 from base64 import b64encode
 
-import matplotlib
-from IPython import get_ipython
-from IPython import version_info as ipython_version_info
-from IPython.display import HTML, display
-from ipywidgets import DOMWidget, widget_serialization
-from matplotlib import is_interactive, rcParams
-from matplotlib._pylab_helpers import Gcf
-from matplotlib.backend_bases import NavigationToolbar2, _Backend, cursors
-from matplotlib.backends.backend_webagg_core import (
-    FigureCanvasWebAggCore,
-    FigureManagerWebAgg,
-    NavigationToolbar2WebAgg,
-    TimerTornado,
-)
+from PIL import Image
+
+import numpy as np
+
 from traitlets import (
+    Any,
     Bool,
     CaselessStrEnum,
     CInt,
@@ -27,6 +18,23 @@ from traitlets import (
     List,
     Unicode,
     default,
+)
+
+from IPython import get_ipython
+from IPython import version_info as ipython_version_info
+from IPython.display import HTML, display
+
+from ipywidgets import DOMWidget, widget_serialization
+
+import matplotlib
+from matplotlib import is_interactive, rcParams
+from matplotlib._pylab_helpers import Gcf
+from matplotlib.backend_bases import NavigationToolbar2, _Backend, cursors
+from matplotlib.backends.backend_webagg_core import (
+    FigureCanvasWebAggCore,
+    FigureManagerWebAgg,
+    NavigationToolbar2WebAgg,
+    TimerTornado,
 )
 
 from ._version import js_semver
@@ -38,6 +46,12 @@ cursors_str = {
     cursors.MOVE: 'move',
     cursors.WAIT: 'wait',
 }
+
+
+def image_serialization(image, owner):
+    if image is None:
+        return None
+    return memoryview(image)
 
 
 def connection_info():
@@ -142,14 +156,14 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     resizable = Bool(True).tag(sync=True)
     capture_scroll = Bool(False).tag(sync=True)
 
+    _image = Any().tag(sync=True, to_json=image_serialization)
+
     _width = CInt().tag(sync=True)
     _height = CInt().tag(sync=True)
 
     _figure_label = Unicode('Figure').tag(sync=True)
     _message = Unicode().tag(sync=True)
     _cursor = Unicode('pointer').tag(sync=True)
-
-    _image_mode = Unicode('full').tag(sync=True)
 
     _rubberband_x = CInt(0).tag(sync=True)
     _rubberband_y = CInt(0).tag(sync=True)
@@ -169,6 +183,8 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     def __init__(self, figure, *args, **kwargs):
         DOMWidget.__init__(self, *args, **kwargs)
         FigureCanvasWebAggCore.__init__(self, figure, *args, **kwargs)
+
+        self.set_image_mode('full')
 
         self.on_msg(self._handle_message)
 
@@ -206,15 +222,34 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
             # Send resize message anyway
             self.send({'data': json.dumps(content)})
 
-        elif content['type'] == 'image_mode':
-            self._image_mode = content['mode']
-
         else:
             # Default: send the message to the front-end
             self.send({'data': json.dumps(content)})
 
     def send_binary(self, data):
-        self.send({'data': '{"type": "binary"}'}, buffers=[data])
+        if self._image == data:
+            # We need this, otherwise the front-end is stuck waiting
+            # for new image data that never comes
+            self.send({'data': '{"type": "stop_waiting"}'})
+        else:
+            self._image = data
+
+    def get_image(self):
+        if self._png_is_old:
+            renderer = self.get_renderer()
+
+            # The buffer is created as type uint32 so that entire
+            # pixels can be compared in one numpy call, rather than
+            # needing to compare each plane separately.
+            output = (np.frombuffer(renderer.buffer_rgba(), dtype=np.uint32)
+                      .reshape((renderer.height, renderer.width)))
+
+            self._png_is_old = False
+
+            data = output.view(dtype=np.uint8).reshape((*output.shape, 4))
+            with io.BytesIO() as png:
+                Image.fromarray(data).save(png, format="png")
+                return png.getvalue()
 
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)
@@ -336,6 +371,13 @@ class FigureManager(FigureManagerWebAgg):
 
     def destroy(self):
         self.canvas.close()
+
+    def refresh_all(self):
+        if self.web_sockets:
+            image = self.canvas.get_image()
+            if image is not None:
+                for s in self.web_sockets:
+                    s.send_binary(image)
 
 
 @_Backend.export

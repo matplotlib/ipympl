@@ -8,14 +8,38 @@ import * as utils from './utils';
 
 import { MODULE_VERSION } from './version';
 
+function deserialize_image(image: DataView | null): Uint8Array | null {
+    // No image
+    if (image === null) {
+        return null;
+    }
+    // Base64 image
+    if (typeof image === 'string') {
+        return new Uint8Array(
+            Array.from(atob(image)).map(c => c.charCodeAt(0))
+        )
+    }
+    // Array of pixels
+    return new Uint8Array(image.buffer);
+}
+
+// Useful for saving widget state in Notebook, we save as base64
+function serialize_image(image: Uint8Array | null): string | null {
+    if (image === null) {
+        return null;
+    }
+    return btoa(String.fromCharCode.apply(null, Array.from(image)));
+}
+
 export class MPLCanvasModel extends DOMWidgetModel {
     offscreen_canvas: HTMLCanvasElement;
     offscreen_context: CanvasRenderingContext2D;
     requested_size: Array<number> | null;
     resize_requested: boolean;
     ratio: number;
-    waiting: any;
+    waiting_for_image: boolean;
     image: HTMLImageElement;
+
     defaults() {
         return {
             ...super.defaults(),
@@ -32,12 +56,12 @@ export class MPLCanvasModel extends DOMWidgetModel {
             toolbar_position: 'horizontal',
             resizable: true,
             capture_scroll: false,
+            _image: null,
             _width: 0,
             _height: 0,
             _figure_label: 'Figure',
             _message: '',
             _cursor: 'pointer',
-            _image_mode: 'full',
             _rubberband_x: 0,
             _rubberband_y: 0,
             _rubberband_width: 0,
@@ -48,6 +72,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
     static serializers: ISerializers = {
         ...DOMWidgetModel.serializers,
         toolbar: { deserialize: unpack_models as any },
+        _image: { deserialize: deserialize_image, serialize: serialize_image },
     };
 
     initialize(attributes: any, options: any) {
@@ -71,6 +96,8 @@ export class MPLCanvasModel extends DOMWidgetModel {
         this.resize_requested = false;
         this.ratio = (window.devicePixelRatio || 1) / backingStore;
         this._init_image();
+        this.resize_canvas(this.get('_width'), this.get('_height'));
+        this.on_image_change();
 
         this.on('msg:custom', this.on_comm_message.bind(this));
         this.on('change:resizable', () => {
@@ -78,6 +105,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
                 view.update_canvas();
             });
         });
+        this.on('change:_image', this.on_image_change.bind(this));
 
         this.send_initialization_message();
     }
@@ -96,15 +124,14 @@ export class MPLCanvasModel extends DOMWidgetModel {
             });
         }
 
-        this.send_message('send_image_mode');
         this.send_message('refresh');
 
         this.send_message('initialized');
     }
 
     send_draw_message() {
-        if (!this.waiting) {
-            this.waiting = true;
+        if (!this.waiting_for_image) {
+            this.waiting_for_image = true;
             this.send_message('draw');
         }
     }
@@ -190,23 +217,6 @@ export class MPLCanvasModel extends DOMWidgetModel {
         this.send_draw_message();
     }
 
-    handle_binary(msg: any, dataviews: any) {
-        const url_creator = window.URL || window.webkitURL;
-
-        const buffer = new Uint8Array(dataviews[0].buffer);
-        const blob = new Blob([buffer], { type: 'image/png' });
-        const image_url = url_creator.createObjectURL(blob);
-
-        // Free the memory for the previous frames
-        if (this.image.src) {
-            url_creator.revokeObjectURL(this.image.src);
-        }
-
-        this.image.src = image_url;
-
-        this.waiting = false;
-    }
-
     handle_history_buttons(msg: any) {
         // No-op
     }
@@ -215,6 +225,10 @@ export class MPLCanvasModel extends DOMWidgetModel {
         // TODO: Remove _current_action property in the toolbar and use
         // this message instead to know which is the current mode/which
         // button to toggle?
+    }
+
+    handle_stop_waiting(msg: any) {
+        this.waiting_for_image = false;
     }
 
     on_comm_message(evt: any, dataviews: any) {
@@ -239,20 +253,44 @@ export class MPLCanvasModel extends DOMWidgetModel {
         }
     }
 
+    on_image_change() {
+        const image = this.get('_image') as Uint8Array | null;
+
+        if (image === null) {
+            this.offscreen_context.clearRect(
+                0,
+                0,
+                this.offscreen_canvas.width,
+                this.offscreen_canvas.height
+            );
+
+            return;
+        }
+
+        const url_creator = window.URL || window.webkitURL;
+
+        const blob = new Blob([image], { type: 'image/png' });
+        const image_url = url_creator.createObjectURL(blob);
+
+        // Free the memory for the previous frames
+        if (this.image.src) {
+            url_creator.revokeObjectURL(this.image.src);
+        }
+
+        this.image.src = image_url;
+
+        this.waiting_for_image = false;
+    }
+
     _init_image() {
         this.image = document.createElement('img');
         this.image.onload = () => {
-            if (this.get('_image_mode') === 'full') {
-                // Full images could contain transparency (where diff images
-                // almost always do), so we need to clear the canvas so that
-                // there is no ghosting.
-                this.offscreen_context.clearRect(
-                    0,
-                    0,
-                    this.offscreen_canvas.width,
-                    this.offscreen_canvas.height
-                );
-            }
+            this.offscreen_context.clearRect(
+                0,
+                0,
+                this.offscreen_canvas.width,
+                this.offscreen_canvas.height
+            );
             this.offscreen_context.drawImage(this.image, 0, 0);
 
             this._for_each_view((view: MPLCanvasView) => {
@@ -285,7 +323,6 @@ export class MPLCanvasView extends DOMWidgetView {
     context: CanvasRenderingContext2D;
     top_canvas: HTMLCanvasElement;
     top_context: CanvasRenderingContext2D;
-    waiting: boolean;
     footer: HTMLDivElement;
     model: MPLCanvasModel;
     private _key: string | null;
@@ -312,8 +349,6 @@ export class MPLCanvasView extends DOMWidgetView {
         this._stop_resize_event = this.stop_resize_event.bind(this);
         window.addEventListener('mousemove', this._resize_event);
         window.addEventListener('mouseup', this._stop_resize_event);
-
-        this.waiting = false;
 
         return this.create_child_view(this.model.get('toolbar')).then(
             (toolbar_view) => {
