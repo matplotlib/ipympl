@@ -32,13 +32,13 @@
         "watch:lib": "tsc -w",
         "watch:nbextension": "webpack --watch --mode=development",
         "watch:labextension": "jupyter labextension watch .",
-        "eslint": "eslint . --fix --ignore-path .gitignore --ext .ts",
-        "eslint:check": "eslint . --ignore-path .gitignore --ext .ts",
+        "eslint": "eslint . --fix --ignore-path .eslintignore --ext .ts",
+        "eslint:check": "eslint . --ignore-path .eslintignore --ext .ts",
         "lint": "yarn run prettier && yarn run eslint",
         "lint:check": "yarn run prettier:check && yarn run eslint:check",
         "prepublish": "yarn run clean && yarn run build",
-        "prettier": "prettier --ignore-path .gitignore --write \"**/*{.ts,.css,.json}\"",
-        "prettier:check": "prettier --check --ignore-path .gitignore \"**/*{.ts,.css,.json}\""
+        "prettier": "prettier --ignore-path .eslintignore --write \"**/*{.ts,.css,.json}\"",
+        "prettier:check": "prettier --check --ignore-path .eslintignore \"**/*{.ts,.css,.json}\""
     },
     "jupyterlab": {
         "extension": "lib/plugin",

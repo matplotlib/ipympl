@@ -3,4 +3,6 @@ dist
 coverage
 **/*.d.ts
 tests
+ui-tests/**
+ipympl/labextension/**
 ipympl/nbextension/extension.js
