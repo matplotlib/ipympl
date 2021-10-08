@@ -21,6 +21,8 @@ ipympl/nbextension/index.*
 ipympl/nbextension/package.json
 ipympl/labextension/*.tgz
 
+ui-tests/test-output
+
 # Coverage data
 # -------------
 **/coverage/

@@ -155,3 +155,61 @@ jobs:
 
       - name: Validate the labextension
         run: jupyter labextension list 2>&1 | grep jupyter-matplotlib
+
+
+  visual-regression-tests:
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    strategy:
+      fail-fast: false
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.9
+          mamba-version: "*"
+          auto-activate-base: false
+          channels: conda-forge
+
+      - name: Install dependencies
+        run: mamba install pip yarn jupyterlab=3.0.11 ipywidgets jupyter-packaging
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist ${{ github.run_number }}
+          path: ./dist
+
+      - name: Install the package
+        run: pip install -vv ipympl*.whl
+        working-directory: dist
+
+      - name: Install test dependencies
+        run: yarn install
+        working-directory: ui-tests
+
+      - name: Launch JupyterLab
+        run: yarn run start-jlab:detached
+        working-directory: ui-tests
+
+      - name: Wait for JupyterLab
+        uses: ifaxity/wait-on-action@v1
+        with:
+          resource: http-get://localhost:8888/api
+          timeout: 20000
+
+      - name: Run UI Tests
+        run: yarn run test
+        working-directory: ui-tests
+
+      - name: Upload UI Test artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: ui-test-output
+          path: ui-tests/test-output
