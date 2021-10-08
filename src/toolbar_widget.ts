@@ -25,6 +25,13 @@ export class ToolbarView extends DOMWidgetView {
     toggle_button: HTMLButtonElement;
     toolbar: HTMLDivElement;
     buttons: { [index: string]: HTMLButtonElement };
+
+    initialize(parameters: any) {
+        super.initialize(parameters);
+
+        this.on('comm_live_update', this.update_disabled.bind(this));
+    }
+
     render(): void {
         this.el.classList.add(
             'jupyter-widgets',
@@ -100,6 +107,20 @@ export class ToolbarView extends DOMWidgetView {
         this.set_orientation(this.el);
         this.set_orientation(this.toolbar);
         this.set_buttons_style();
+
+        this.update_disabled();
+    }
+
+    get disabled(): boolean {
+        return !this.model.comm_live;
+    }
+
+    update_disabled(): void {
+        // Disable buttons
+        this.toggle_button.disabled = this.disabled;
+        if (this.disabled) {
+            this.toolbar.style.display = 'none';
+        }
     }
 
     set_orientation(el: HTMLElement): void {

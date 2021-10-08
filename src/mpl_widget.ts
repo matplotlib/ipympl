@@ -1,9 +1,11 @@
 import {
     DOMWidgetModel,
     DOMWidgetView,
+    WidgetModel,
     ISerializers,
     unpack_models,
 } from '@jupyter-widgets/base';
+
 import * as utils from './utils';
 
 import { MODULE_VERSION } from './version';
@@ -14,8 +16,9 @@ export class MPLCanvasModel extends DOMWidgetModel {
     requested_size: Array<number> | null;
     resize_requested: boolean;
     ratio: number;
-    waiting: any;
+    waiting_for_image: boolean;
     image: HTMLImageElement;
+
     defaults() {
         return {
             ...super.defaults(),
@@ -32,6 +35,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
             toolbar_position: 'horizontal',
             resizable: true,
             capture_scroll: false,
+            _data_url: null,
             _width: 0,
             _height: 0,
             _figure_label: 'Figure',
@@ -70,6 +74,9 @@ export class MPLCanvasModel extends DOMWidgetModel {
         this.requested_size = null;
         this.resize_requested = false;
         this.ratio = (window.devicePixelRatio || 1) / backingStore;
+
+        this.resize_canvas(this.get('_width'), this.get('_height'));
+
         this._init_image();
 
         this.on('msg:custom', this.on_comm_message.bind(this));
@@ -78,8 +85,28 @@ export class MPLCanvasModel extends DOMWidgetModel {
                 view.update_canvas();
             });
         });
+        this.on('comm_live_update', this.update_disabled.bind(this));
+
+        this.update_disabled();
 
         this.send_initialization_message();
+    }
+
+    get disabled(): boolean {
+        return !this.comm_live;
+    }
+
+    update_disabled(): void {
+        this.set('resizable', !this.disabled);
+    }
+
+    sync(method: string, model: WidgetModel, options: any = {}) {
+        // Make sure we don't sync the data_url, we don't need it to be synced
+        if (options.attrs) {
+            delete options.attrs['_data_url'];
+        }
+
+        super.sync(method, model, options);
     }
 
     send_message(type: string, message: { [index: string]: any } = {}) {
@@ -96,15 +123,15 @@ export class MPLCanvasModel extends DOMWidgetModel {
             });
         }
 
-        this.send_message('send_image_mode');
         this.send_message('refresh');
+        this.send_message('send_image_mode');
 
         this.send_message('initialized');
     }
 
     send_draw_message() {
-        if (!this.waiting) {
-            this.waiting = true;
+        if (!this.waiting_for_image) {
+            this.waiting_for_image = true;
             this.send_message('draw');
         }
     }
@@ -160,8 +187,8 @@ export class MPLCanvasModel extends DOMWidgetModel {
     }
 
     resize_canvas(width: number, height: number) {
-        this.offscreen_canvas.setAttribute('width', `${width * this.ratio}`);
-        this.offscreen_canvas.setAttribute('height', `${height * this.ratio}`);
+        this.offscreen_canvas.width = width * this.ratio;
+        this.offscreen_canvas.height = height * this.ratio;
     }
 
     handle_rubberband(msg: any) {
@@ -204,7 +231,9 @@ export class MPLCanvasModel extends DOMWidgetModel {
 
         this.image.src = image_url;
 
-        this.waiting = false;
+        this.set('_data_url', this.offscreen_canvas.toDataURL());
+
+        this.waiting_for_image = false;
     }
 
     handle_history_buttons(msg: any) {
@@ -240,7 +269,8 @@ export class MPLCanvasModel extends DOMWidgetModel {
     }
 
     _init_image() {
-        this.image = document.createElement('img');
+        this.image = new Image();
+
         this.image.onload = () => {
             if (this.get('_image_mode') === 'full') {
                 // Full images could contain transparency (where diff images
@@ -259,6 +289,12 @@ export class MPLCanvasModel extends DOMWidgetModel {
                 view.update_canvas();
             });
         };
+
+        const dataUrl = this.get('_data_url');
+
+        if (dataUrl !== null) {
+            this.image.src = dataUrl;
+        }
     }
 
     _for_each_view(callback: any) {
@@ -285,12 +321,12 @@ export class MPLCanvasView extends DOMWidgetView {
     context: CanvasRenderingContext2D;
     top_canvas: HTMLCanvasElement;
     top_context: CanvasRenderingContext2D;
-    waiting: boolean;
     footer: HTMLDivElement;
     model: MPLCanvasModel;
     private _key: string | null;
     private _resize_event: (event: MouseEvent) => void;
     private _stop_resize_event: () => void;
+
     render() {
         this.resizing = false;
         this.resize_handle_size = 20;
@@ -312,8 +348,6 @@ export class MPLCanvasView extends DOMWidgetView {
         this._stop_resize_event = this.stop_resize_event.bind(this);
         window.addEventListener('mousemove', this._resize_event);
         window.addEventListener('mouseup', this._stop_resize_event);
-
-        this.waiting = false;
 
         return this.create_child_view(this.model.get('toolbar')).then(
             (toolbar_view) => {

@@ -4,10 +4,18 @@ import io
 import json
 from base64 import b64encode
 
+try:
+    from collections.abc import Iterable
+except ImportError:
+    # Python 2.7
+    from collections import Iterable
+
 import matplotlib
+import numpy as np
 from IPython import get_ipython
 from IPython import version_info as ipython_version_info
 from IPython.display import HTML, display
+from ipython_genutils.py3compat import string_types
 from ipywidgets import DOMWidget, widget_serialization
 from matplotlib import is_interactive, rcParams
 from matplotlib._pylab_helpers import Gcf
@@ -18,7 +26,9 @@ from matplotlib.backends.backend_webagg_core import (
     NavigationToolbar2WebAgg,
     TimerTornado,
 )
+from PIL import Image
 from traitlets import (
+    Any,
     Bool,
     CaselessStrEnum,
     CInt,
@@ -142,6 +152,14 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     resizable = Bool(True).tag(sync=True)
     capture_scroll = Bool(False).tag(sync=True)
 
+    # This is a very special widget trait:
+    # We set "sync=True" because we want ipywidgets to consider this
+    # as part of the widget state, but we overwrite send_state so that
+    # it never sync the value with the front-end, the front-end keeps its
+    # own value.
+    # This will still be used by ipywidgets in the case of embedding.
+    _data_url = Any(None).tag(sync=True)
+
     _width = CInt().tag(sync=True)
     _height = CInt().tag(sync=True)
 
@@ -172,12 +190,34 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
         self.on_msg(self._handle_message)
 
+        # This will stay True for cases where there is no
+        # front-end (e.g. nbconvert --execute)
+        self.syncing_data_url = True
+
+    # Overwrite ipywidgets's send_state so we don't sync the data_url
+    def send_state(self, key=None):
+        if key is None:
+            keys = self.keys
+        elif isinstance(key, string_types):
+            keys = [key]
+        elif isinstance(key, Iterable):
+            keys = key
+
+        if not self.syncing_data_url:
+            keys = [k for k in keys if k != '_data_url']
+
+        DOMWidget.send_state(self, key=keys)
+
     def _handle_message(self, object, content, buffers):
         # Every content has a "type".
         if content['type'] == 'closing':
             self._closed = True
 
         elif content['type'] == 'initialized':
+            # We stop syncing data url, the front-end is there and
+            # ready to receive diffs
+            self.syncing_data_url = False
+
             _, _, w, h = self.figure.bbox.bounds
             self.manager.resize(w, h)
 
@@ -214,6 +254,19 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
             self.send({'data': json.dumps(content)})
 
     def send_binary(self, data):
+        # TODO we should maybe rework the FigureCanvasWebAggCore implementation
+        # so that it has a "refresh" method that we can overwrite
+
+        # Update _data_url
+        if self.syncing_data_url:
+            data = self._last_buff.view(dtype=np.uint8).reshape(
+                (*self._last_buff.shape, 4)
+            )
+            with io.BytesIO() as png:
+                Image.fromarray(data).save(png, format="png")
+                self._data_url = b64encode(png.getvalue()).decode('utf-8')
+
+        # Actually send the data
         self.send({'data': '{"type": "binary"}'}, buffers=[data])
 
     def new_timer(self, *args, **kwargs):
@@ -229,11 +282,11 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
         buf = io.BytesIO()
         self.figure.savefig(buf, format='png', dpi='figure')
-        data_url = b64encode(buf.getvalue()).decode('utf-8')
+        self._data_url = b64encode(buf.getvalue()).decode('utf-8')
 
         data = {
             'text/plain': plaintext,
-            'image/png': data_url,
+            'image/png': self._data_url,
             'application/vnd.jupyter.widget-view+json': {
                 'version_major': 2,
                 'version_minor': 0,
