@@ -16,8 +16,8 @@ function deserialize_image(image: DataView | null): Uint8Array | null {
     // Base64 image
     if (typeof image === 'string') {
         return new Uint8Array(
-            Array.from(atob(image)).map(c => c.charCodeAt(0))
-        )
+            Array.from(atob(image)).map((c) => c.charCodeAt(0))
+        );
     }
     // Array of pixels
     return new Uint8Array(image.buffer);

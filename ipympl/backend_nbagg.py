@@ -4,10 +4,22 @@ import io
 import json
 from base64 import b64encode
 
-from PIL import Image
-
+import matplotlib
 import numpy as np
-
+from IPython import get_ipython
+from IPython import version_info as ipython_version_info
+from IPython.display import HTML, display
+from ipywidgets import DOMWidget, widget_serialization
+from matplotlib import is_interactive, rcParams
+from matplotlib._pylab_helpers import Gcf
+from matplotlib.backend_bases import NavigationToolbar2, _Backend, cursors
+from matplotlib.backends.backend_webagg_core import (
+    FigureCanvasWebAggCore,
+    FigureManagerWebAgg,
+    NavigationToolbar2WebAgg,
+    TimerTornado,
+)
+from PIL import Image
 from traitlets import (
     Any,
     Bool,
@@ -18,23 +30,6 @@ from traitlets import (
     List,
     Unicode,
     default,
-)
-
-from IPython import get_ipython
-from IPython import version_info as ipython_version_info
-from IPython.display import HTML, display
-
-from ipywidgets import DOMWidget, widget_serialization
-
-import matplotlib
-from matplotlib import is_interactive, rcParams
-from matplotlib._pylab_helpers import Gcf
-from matplotlib.backend_bases import NavigationToolbar2, _Backend, cursors
-from matplotlib.backends.backend_webagg_core import (
-    FigureCanvasWebAggCore,
-    FigureManagerWebAgg,
-    NavigationToolbar2WebAgg,
-    TimerTornado,
 )
 
 from ._version import js_semver
@@ -241,8 +236,9 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
             # The buffer is created as type uint32 so that entire
             # pixels can be compared in one numpy call, rather than
             # needing to compare each plane separately.
-            output = (np.frombuffer(renderer.buffer_rgba(), dtype=np.uint32)
-                      .reshape((renderer.height, renderer.width)))
+            output = np.frombuffer(renderer.buffer_rgba(), dtype=np.uint32).reshape(
+                (renderer.height, renderer.width)
+            )
 
             self._png_is_old = False
 
