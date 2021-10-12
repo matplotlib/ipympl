@@ -6,7 +6,7 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
   - repo: https://github.com/PyCQA/flake8
-    rev: 3.9.2
+    rev: 4.0.1
     hooks:
       - id: flake8
         additional_dependencies: [flake8-typing-imports==1.7.0]
@@ -35,7 +35,7 @@ repos:
         types: [ts]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: 'v8.0.0-rc.0'
+    rev: 'v8.0.0-1'
     hooks:
     - id: eslint
       files: \.ts$  # *.ts
