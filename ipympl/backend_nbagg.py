@@ -1,5 +1,18 @@
 """Interactive figures in the Jupyter notebook"""
 
+import sys
+import types
+
+# In the case of a pyodide context (JupyterLite)
+# we mock Tornado, as it cannot be imported and would
+# lead to errors. Of course, any code using tornado cannot
+# work with this workaround, we prefer a half-working
+# solution than a non-working solution here.
+try:
+    import micropip  # noqa
+except ImportError:
+    sys.modules['tornado'] = types.ModuleType('tornadofake')
+
 import io
 import json
 from base64 import b64encode
