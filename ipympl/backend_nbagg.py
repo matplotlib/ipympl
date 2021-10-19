@@ -103,8 +103,16 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
     def export(self):
         buf = io.BytesIO()
         self.canvas.figure.savefig(buf, format='png', dpi='figure')
-        data = "<img src='data:image/png;base64,{0}'/>"
-        data = data.format(b64encode(buf.getvalue()).decode('utf-8'))
+        # Figure width in pixels
+        pwidth = (self.canvas.figure.get_figwidth() *
+                  self.canvas.figure.get_dpi())
+        # Scale size to match widget on HiDPI monitors.
+        if hasattr(self.canvas, 'device_pixel_ratio'):  # Matplotlib 3.5+
+            width = pwidth / self.canvas.device_pixel_ratio
+        else:
+            width = pwidth / self.canvas._dpi_ratio
+        data = "<img src='data:image/png;base64,{0}' width={1}/>"
+        data = data.format(b64encode(buf.getvalue()).decode('utf-8'), width)
         display(HTML(data))
 
     @default('toolitems')
@@ -283,10 +291,26 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         buf = io.BytesIO()
         self.figure.savefig(buf, format='png', dpi='figure')
         self._data_url = b64encode(buf.getvalue()).decode('utf-8')
+        # Figure width in pixels
+        pwidth = (self.figure.get_figwidth() *
+                  self.figure.get_dpi())
+        # Scale size to match widget on HiDPI monitors.
+        if hasattr(self, 'device_pixel_ratio'):  # Matplotlib 3.5+
+            width = pwidth / self.device_pixel_ratio
+        else:
+            width = pwidth / self._dpi_ratio
+        html = """
+            <div style="display: inline-block;">
+                <div class="jupyter-widgets widget-label" style="text-align: center;">{0}</div>
+                <img src='data:image/png;base64,{1}' width={2}/>
+            </div>
+        """.format(
+            self._figure_label, self._data_url, width
+        )
 
         data = {
             'text/plain': plaintext,
-            'image/png': self._data_url,
+            'text/html': html,
             'application/vnd.jupyter.widget-view+json': {
                 'version_major': 2,
                 'version_minor': 0,
