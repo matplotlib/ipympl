@@ -104,8 +104,7 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
         buf = io.BytesIO()
         self.canvas.figure.savefig(buf, format='png', dpi='figure')
         # Figure width in pixels
-        pwidth = (self.canvas.figure.get_figwidth() *
-                  self.canvas.figure.get_dpi())
+        pwidth = self.canvas.figure.get_figwidth() * self.canvas.figure.get_dpi()
         # Scale size to match widget on HiDPI monitors.
         if hasattr(self.canvas, 'device_pixel_ratio'):  # Matplotlib 3.5+
             width = pwidth / self.canvas.device_pixel_ratio
@@ -292,8 +291,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         self.figure.savefig(buf, format='png', dpi='figure')
         self._data_url = b64encode(buf.getvalue()).decode('utf-8')
         # Figure width in pixels
-        pwidth = (self.figure.get_figwidth() *
-                  self.figure.get_dpi())
+        pwidth = self.figure.get_figwidth() * self.figure.get_dpi()
         # Scale size to match widget on HiDPI monitors.
         if hasattr(self, 'device_pixel_ratio'):  # Matplotlib 3.5+
             width = pwidth / self.device_pixel_ratio
@@ -301,8 +299,10 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
             width = pwidth / self._dpi_ratio
         html = """
             <div style="display: inline-block;">
-                <div class="jupyter-widgets widget-label" style="text-align: center;">{0}</div>
-                <img src='data:image/png;base64,{1}' width={2}/>
+                <div class="jupyter-widgets widget-label" style="text-align: center;">
+                    {}
+                </div>
+                <img src='data:image/png;base64,{}' width={}/>
             </div>
         """.format(
             self._figure_label, self._data_url, width
