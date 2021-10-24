@@ -10,8 +10,10 @@ import types
 # solution than a non-working solution here.
 try:
     import micropip  # noqa
-except ImportError:
+
     sys.modules['tornado'] = types.ModuleType('tornadofake')
+except ModuleNotFoundError:
+    pass
 
 import io
 import json
