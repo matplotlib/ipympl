@@ -1,6 +1,6 @@
 # ipympl
 
-[![TravisCI build status](https://img.shields.io/travis/com/matplotlib/ipympl/master?logo=travis)](https://travis-ci.com/matplotlib/ipympl)
+[![Test Status](https://github.com/matplotlib/ipympl/actions/workflows/mpl-latest.yml/badge.svg)](https://github.com/matplotlib/ipympl/actions/workflows/mpl-latest.yml?query=branch%3Amaster)
 [![Latest PyPI version](https://img.shields.io/pypi/v/ipympl?logo=pypi)](https://pypi.python.org/pypi/ipympl)
 [![Latest conda-forge version](https://img.shields.io/conda/vn/conda-forge/ipympl?logo=conda-forge)](https://anaconda.org/conda-forge/ipympl)
 [![Latest npm version](https://img.shields.io/npm/v/jupyter-matplotlib?logo=npm)](https://www.npmjs.com/package/jupyter-matplotlib)
