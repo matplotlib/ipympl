@@ -16,7 +16,7 @@ repos:
       - id: autoflake
         args: ["--in-place", "--remove-all-unused-imports", "--ignore-init-module-imports", "--remove-unused-variables"]
   - repo: https://github.com/PyCQA/isort
-    rev: 5.9.3
+    rev: 5.10.0
     hooks:
       - id: isort
   - repo: https://github.com/psf/black
@@ -35,7 +35,7 @@ repos:
         types: [ts]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: 'v8.1.0'
+    rev: 'v8.2.0'
     hooks:
     - id: eslint
       files: \.ts$  # *.ts
