@@ -2,6 +2,8 @@ import { DOMWidgetModel, DOMWidgetView } from '@jupyter-widgets/base';
 
 import { MODULE_VERSION } from './version';
 
+import '../css/mpl_widget.css';
+
 export class ToolbarModel extends DOMWidgetModel {
     defaults() {
         return {
@@ -13,18 +15,17 @@ export class ToolbarModel extends DOMWidgetModel {
             _model_module_version: '^' + MODULE_VERSION,
             _view_module_version: '^' + MODULE_VERSION,
             toolitems: [],
-            orientation: 'vertical',
+            position: 'left',
             button_style: '',
-            collapsed: true,
             _current_action: '',
         };
     }
 }
 
 export class ToolbarView extends DOMWidgetView {
-    toggle_button: HTMLButtonElement;
     toolbar: HTMLDivElement;
     buttons: { [index: string]: HTMLButtonElement };
+    visibility: 'visible' | 'hidden' | 'fade-in-fade-out' = 'fade-in-fade-out';
 
     initialize(parameters: any) {
         super.initialize(parameters);
@@ -40,6 +41,9 @@ export class ToolbarView extends DOMWidgetView {
             'widget-box'
         );
 
+        // Fade-in/fade-out mode by default, the figure will decide
+        this.set_visibility('fade-in-fade-out');
+
         this.create_toolbar();
         this.model_events();
     }
@@ -47,30 +51,10 @@ export class ToolbarView extends DOMWidgetView {
     create_toolbar(): void {
         const toolbar_items = this.model.get('toolitems');
 
-        this.toggle_button = document.createElement('button');
-
-        this.toggle_button.classList.add(
-            'jupyter-matplotlib-button',
-            'jupyter-widgets',
-            'jupyter-button'
-        );
-        this.toggle_button.setAttribute('href', '#');
-        this.toggle_button.setAttribute('title', 'Toggle Interaction');
-        this.toggle_button.style.outline = 'none';
-        this.toggle_button.addEventListener('click', () => {
-            this.model.set('collapsed', !this.model.get('collapsed'));
-            this.model.save_changes();
-        });
-
-        const icon = document.createElement('i');
-        icon.classList.add('center', 'fa', 'fa-fw', 'fa-bars');
-        this.toggle_button.appendChild(icon);
-
-        this.el.appendChild(this.toggle_button);
         this.toolbar = document.createElement('div');
         this.toolbar.classList.add('widget-container', 'widget-box');
         this.el.appendChild(this.toolbar);
-        this.buttons = { toggle_button: this.toggle_button };
+        this.buttons = {};
 
         for (const toolbar_ind in toolbar_items) {
             const name = toolbar_items[toolbar_ind][0];
@@ -104,8 +88,7 @@ export class ToolbarView extends DOMWidgetView {
             this.toolbar.appendChild(button);
         }
 
-        this.set_orientation(this.el);
-        this.set_orientation(this.toolbar);
+        this.set_position();
         this.set_buttons_style();
 
         this.update_disabled();
@@ -117,20 +100,45 @@ export class ToolbarView extends DOMWidgetView {
 
     update_disabled(): void {
         // Disable buttons
-        this.toggle_button.disabled = this.disabled;
         if (this.disabled) {
             this.toolbar.style.display = 'none';
         }
     }
 
-    set_orientation(el: HTMLElement): void {
-        const orientation = this.model.get('orientation');
-        if (orientation === 'vertical') {
-            el.classList.remove('widget-hbox');
-            el.classList.add('widget-vbox');
+    set_position(): void {
+        const position = this.model.get('position');
+        if (position === 'left' || position === 'right') {
+            this.el.classList.remove('widget-hbox');
+            this.el.classList.add('widget-vbox');
+            this.toolbar.classList.remove('widget-hbox');
+            this.toolbar.classList.add('widget-vbox');
+
+            this.el.style.top = '3%';
+            this.el.style.bottom = 'auto';
+
+            if (position === 'left') {
+                this.el.style.left = '3%';
+                this.el.style.right = 'auto';
+            } else {
+                this.el.style.left = 'auto';
+                this.el.style.right = '3%';
+            }
         } else {
-            el.classList.add('widget-hbox');
-            el.classList.remove('widget-vbox');
+            this.el.classList.add('widget-hbox');
+            this.el.classList.remove('widget-vbox');
+            this.toolbar.classList.add('widget-hbox');
+            this.toolbar.classList.remove('widget-vbox');
+
+            this.el.style.right = '3%';
+            this.el.style.left = 'auto';
+
+            if (position === 'top') {
+                this.el.style.top = '3%';
+                this.el.style.bottom = 'auto';
+            } else {
+                this.el.style.top = 'auto';
+                this.el.style.bottom = '3%';
+            }
         }
     }
 
@@ -151,6 +159,59 @@ export class ToolbarView extends DOMWidgetView {
                 name: name,
             });
         };
+    }
+
+    set_visibility(
+        value: 'visible' | 'hidden' | 'fade-in-fade-out' | boolean
+    ): void {
+        // For backward compatibility with the old API
+        if (typeof value === 'boolean') {
+            value = value ? 'visible' : 'hidden';
+        }
+
+        this.visibility = value;
+
+        if (value === 'fade-in-fade-out') {
+            this.el.classList.add('jupyter-matplotlib-toolbar-fadein-fadeout');
+
+            // Hide it by default
+            this.el.style.visibility = 'hidden';
+            this.el.style.opacity = '0';
+            return;
+        }
+
+        this.el.classList.remove('jupyter-matplotlib-toolbar-fadein-fadeout');
+
+        // Always visible
+        if (value === 'visible') {
+            this.el.style.visibility = 'visible';
+            this.el.style.opacity = '1';
+            return;
+        }
+
+        // Always hidden
+        this.el.style.visibility = 'hidden';
+        this.el.style.opacity = '0';
+    }
+
+    fade_in(): void {
+        // This is a no-op if we are not in fade-in/fade-out mode
+        if (this.visibility !== 'fade-in-fade-out') {
+            return;
+        }
+
+        this.el.style.visibility = 'visible';
+        this.el.style.opacity = '1';
+    }
+
+    fade_out(): void {
+        // This is a no-op if we are not in fade-in/fade-out mode
+        if (this.visibility !== 'fade-in-fade-out') {
+            return;
+        }
+
+        this.el.style.visibility = 'hidden';
+        this.el.style.opacity = '0';
     }
 
     set_buttons_style(): void {
@@ -181,22 +242,12 @@ export class ToolbarView extends DOMWidgetView {
         }
     }
 
-    update_collapsed(): void {
-        this.toolbar.style.display = this.model.get('collapsed') ? '' : 'none';
-    }
-
     model_events(): void {
-        this.model.on('change:orientation', this.update_orientation.bind(this));
+        this.model.on('change:position', this.set_position.bind(this));
         this.model.on_some_change(
             ['button_style', '_current_action'],
             this.set_buttons_style,
             this
         );
-        this.model.on('change:collapsed', this.update_collapsed.bind(this));
-    }
-
-    update_orientation(): void {
-        this.set_orientation(this.el);
-        this.set_orientation(this.toolbar);
     }
 }

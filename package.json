@@ -9,7 +9,7 @@
     "files": [
         "lib/**/*.js",
         "dist/*.js",
-        "src/**/*.css"
+        "css/*.css"
     ],
     "repository": {
         "type": "git",

@@ -2,6 +2,7 @@
 
 import sys
 import types
+from warnings import warn
 
 # In the case of a pyodide context (JupyterLite)
 # we mock Tornado, as it cannot be imported and would
@@ -54,6 +55,7 @@ from traitlets import (
     Tuple,
     Unicode,
     default,
+    observe,
 )
 
 from ._version import js_semver
@@ -99,15 +101,19 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
     _view_name = Unicode('ToolbarView').tag(sync=True)
 
     toolitems = List().tag(sync=True)
-    orientation = Enum(['horizontal', 'vertical'], default_value='vertical').tag(
-        sync=True
-    )
     button_style = CaselessStrEnum(
         values=['primary', 'success', 'info', 'warning', 'danger', ''],
         default_value='',
         help="""Use a predefined styling for the button.""",
     ).tag(sync=True)
+
+    #######
+    # Those traits are deprecated
+    orientation = Enum(['horizontal', 'vertical'], default_value='vertical').tag(
+        sync=True
+    )
     collapsed = Bool(True).tag(sync=True)
+    #######
 
     _current_action = Enum(values=['pan', 'zoom', ''], default_value='').tag(sync=True)
 
@@ -153,6 +159,23 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
             if icon_name in icons
         ]
 
+    def __getattr__(self, name):
+        if name in ['orientation', 'collapsed']:
+            warn(
+                "The Toolbar properties 'orientation' and 'collapsed' are deprecated."
+                "Accessing them will raise an error in a coming ipympl release",
+                DeprecationWarning,
+            )
+
+        return super().__getattr__(name)
+
+    @observe('orientation', 'collapsed')
+    def _on_orientation_collapsed_changed(self, change):
+        warn(
+            "The Toolbar properties 'orientation' and 'collapsed' are deprecated.",
+            DeprecationWarning,
+        )
+
 
 class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
@@ -165,7 +188,10 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     _view_name = Unicode('MPLCanvasView').tag(sync=True)
 
     toolbar = Instance(Toolbar, allow_none=True).tag(sync=True, **widget_serialization)
-    toolbar_visible = Bool(True).tag(sync=True)
+    toolbar_visible = Enum(
+        ['visible', 'hidden', 'fade-in-fade-out', True, False],
+        default_value='fade-in-fade-out',
+    ).tag(sync=True)
     toolbar_position = Enum(
         ['top', 'bottom', 'left', 'right'], default_value='left'
     ).tag(sync=True)
