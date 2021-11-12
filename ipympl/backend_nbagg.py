@@ -48,6 +48,7 @@ from traitlets import (
     CaselessStrEnum,
     CInt,
     Enum,
+    Float,
     Instance,
     List,
     Unicode,
@@ -173,6 +174,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     resizable = Bool(True).tag(sync=True)
     capture_scroll = Bool(False).tag(sync=True)
+    pan_zoom_throttle = Float(33).tag(sync=True)
 
     # This is a very special widget trait:
     # We set "sync=True" because we want ipywidgets to consider this
