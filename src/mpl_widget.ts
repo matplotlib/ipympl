@@ -520,7 +520,10 @@ export class MPLCanvasView extends DOMWidgetView {
         );
         top_canvas.addEventListener(
             'mousemove',
-            throttle(this.mouse_event('motion_notify'), this.model.get('pan_zoom_throttle'))
+            throttle(
+                this.mouse_event('motion_notify'),
+                this.model.get('pan_zoom_throttle')
+            )
         );
 
         top_canvas.addEventListener(
@@ -532,7 +535,13 @@ export class MPLCanvasView extends DOMWidgetView {
             this.mouse_event('figure_leave')
         );
 
-        top_canvas.addEventListener('wheel', throttle(this.mouse_event('scroll'), this.model.get('pan_zoom_throttle')));
+        top_canvas.addEventListener(
+            'wheel',
+            throttle(
+                this.mouse_event('scroll'),
+                this.model.get('pan_zoom_throttle')
+            )
+        );
 
         canvas_div.appendChild(canvas);
         canvas_div.appendChild(top_canvas);
