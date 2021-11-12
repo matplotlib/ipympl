@@ -1,3 +1,5 @@
+import { throttle } from 'lodash';
+
 import {
     DOMWidgetModel,
     DOMWidgetView,
@@ -35,6 +37,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
             toolbar_position: 'horizontal',
             resizable: true,
             capture_scroll: false,
+            pan_zoom_throttle: 33,
             _data_url: null,
             _width: 0,
             _height: 0,
@@ -517,7 +520,7 @@ export class MPLCanvasView extends DOMWidgetView {
         );
         top_canvas.addEventListener(
             'mousemove',
-            this.mouse_event('motion_notify')
+            throttle(this.mouse_event('motion_notify'), this.model.get('pan_zoom_throttle'))
         );
 
         top_canvas.addEventListener(
@@ -529,7 +532,7 @@ export class MPLCanvasView extends DOMWidgetView {
             this.mouse_event('figure_leave')
         );
 
-        top_canvas.addEventListener('wheel', this.mouse_event('scroll'));
+        top_canvas.addEventListener('wheel', throttle(this.mouse_event('scroll'), this.model.get('pan_zoom_throttle')));
 
         canvas_div.appendChild(canvas);
         canvas_div.appendChild(top_canvas);
@@ -656,7 +659,6 @@ export class MPLCanvasView extends DOMWidgetView {
     }
 
     mouse_event(name: string) {
-        let last_update = 0;
         return (event: any) => {
             const canvas_pos = utils.get_mouse_position(event, this.top_canvas);
 
@@ -708,22 +710,16 @@ export class MPLCanvasView extends DOMWidgetView {
                 }
             }
 
-            // Rate-limit the position text updates so that we don't overwhelm the
-            // system.
-            if (Date.now() > last_update + 16) {
-                last_update = Date.now();
+            const x = canvas_pos.x * this.model.ratio;
+            const y = canvas_pos.y * this.model.ratio;
 
-                const x = canvas_pos.x * this.model.ratio;
-                const y = canvas_pos.y * this.model.ratio;
-
-                this.model.send_message(name, {
-                    x: x,
-                    y: y,
-                    button: event.button,
-                    step: event.step,
-                    guiEvent: utils.get_simple_keys(event),
-                });
-            }
+            this.model.send_message(name, {
+                x: x,
+                y: y,
+                button: event.button,
+                step: event.step,
+                guiEvent: utils.get_simple_keys(event),
+            });
         };
     }
 
