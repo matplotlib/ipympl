@@ -327,6 +327,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
         data = {
             'text/plain': plaintext,
+            'image/png': self._data_url,
             'text/html': html,
             'application/vnd.jupyter.widget-view+json': {
                 'version_major': 2,
