@@ -51,6 +51,7 @@ from traitlets import (
     Float,
     Instance,
     List,
+    Tuple,
     Unicode,
     default,
 )
@@ -184,8 +185,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     # This will still be used by ipywidgets in the case of embedding.
     _data_url = Any(None).tag(sync=True)
 
-    _width = CInt().tag(sync=True)
-    _height = CInt().tag(sync=True)
+    _size = Tuple([0, 0]).tag(sync=True)
 
     _figure_label = Unicode('Figure').tag(sync=True)
     _message = Unicode().tag(sync=True)
@@ -265,9 +265,11 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
             self._figure_label = content['label']
 
         elif content['type'] == 'resize':
-            self._width = content['size'][0]
-            self._height = content['size'][1]
-            # Send resize message anyway
+            self._size = content['size']
+            # Send resize message anyway:
+            # We absolutely need this instead of a `_size` trait change listening
+            # on the front-end, otherwise ipywidgets might squash multiple changes
+            # and the resizing protocol is not respected anymore
             self.send({'data': json.dumps(content)})
 
         elif content['type'] == 'image_mode':
@@ -306,28 +308,36 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
         buf = io.BytesIO()
         self.figure.savefig(buf, format='png', dpi='figure')
-        self._data_url = b64encode(buf.getvalue()).decode('utf-8')
-        # Figure width in pixels
+
+        base64_image = b64encode(buf.getvalue()).decode('utf-8')
+        self._data_url = f'data:image/png;base64,{base64_image}'
+        # Figure size in pixels
         pwidth = self.figure.get_figwidth() * self.figure.get_dpi()
+        pheight = self.figure.get_figheight() * self.figure.get_dpi()
         # Scale size to match widget on HiDPI monitors.
         if hasattr(self, 'device_pixel_ratio'):  # Matplotlib 3.5+
             width = pwidth / self.device_pixel_ratio
+            height = pheight / self.device_pixel_ratio
         else:
             width = pwidth / self._dpi_ratio
+            height = pheight / self._dpi_ratio
         html = """
             <div style="display: inline-block;">
                 <div class="jupyter-widgets widget-label" style="text-align: center;">
                     {}
                 </div>
-                <img src='data:image/png;base64,{}' width={}/>
+                <img src='{}' width={}/>
             </div>
         """.format(
             self._figure_label, self._data_url, width
         )
 
+        # Update the widget model properly for HTML embedding
+        self._size = (width, height)
+
         data = {
             'text/plain': plaintext,
-            'image/png': self._data_url,
+            'image/png': base64_image,
             'text/html': html,
             'application/vnd.jupyter.widget-view+json': {
                 'version_major': 2,
