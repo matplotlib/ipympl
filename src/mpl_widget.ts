@@ -39,8 +39,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
             capture_scroll: false,
             pan_zoom_throttle: 33,
             _data_url: null,
-            _width: 0,
-            _height: 0,
+            _size: [0, 0],
             _figure_label: 'Figure',
             _message: '',
             _cursor: 'pointer',
@@ -78,7 +77,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
         this.resize_requested = false;
         this.ratio = (window.devicePixelRatio || 1) / backingStore;
 
-        this.resize_canvas(this.get('_width'), this.get('_height'));
+        this.resize_canvas();
 
         this._init_image();
 
@@ -88,11 +87,19 @@ export class MPLCanvasModel extends DOMWidgetModel {
                 view.update_canvas();
             });
         });
+        this.on('change:_size', () => {
+            this.resize_canvas();
+            this.offscreen_context.drawImage(this.image, 0, 0);
+        });
         this.on('comm_live_update', this.update_disabled.bind(this));
 
         this.update_disabled();
 
         this.send_initialization_message();
+    }
+
+    get size(): [number, number] {
+        return this.get('_size');
     }
 
     get disabled(): boolean {
@@ -149,13 +156,12 @@ export class MPLCanvasModel extends DOMWidgetModel {
     }
 
     handle_resize(msg: { [index: string]: any }) {
-        const size = msg['size'];
-        this.resize_canvas(size[0], size[1]);
+        this.resize_canvas();
         this.offscreen_context.drawImage(this.image, 0, 0);
 
         if (!this.resize_requested) {
             this._for_each_view((view: MPLCanvasView) => {
-                view.resize_canvas(size[0], size[1]);
+                view.resize_and_update_canvas(this.size);
             });
         }
 
@@ -169,6 +175,9 @@ export class MPLCanvasModel extends DOMWidgetModel {
         }
     }
 
+    /*
+     * Request a resize to the backend
+     */
     resize(width: number, height: number) {
         // Do not request a super small size, as it seems to break the back-end
         if (width <= 5 || height <= 5) {
@@ -177,7 +186,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
 
         this._for_each_view((view: MPLCanvasView) => {
             // Do an initial resize of each view, stretching the old canvas.
-            view.resize_canvas(width, height);
+            view.resize_and_update_canvas([width, height]);
         });
 
         if (this.resize_requested) {
@@ -189,9 +198,12 @@ export class MPLCanvasModel extends DOMWidgetModel {
         }
     }
 
-    resize_canvas(width: number, height: number) {
-        this.offscreen_canvas.width = width * this.ratio;
-        this.offscreen_canvas.height = height * this.ratio;
+    /*
+     * Resize the offscreen canvas
+     */
+    resize_canvas() {
+        this.offscreen_canvas.width = this.size[0] * this.ratio;
+        this.offscreen_canvas.height = this.size[1] * this.ratio;
     }
 
     handle_rubberband(msg: any) {
@@ -275,10 +287,41 @@ export class MPLCanvasModel extends DOMWidgetModel {
         this.image = new Image();
 
         this.image.onload = () => {
+            // In case of an embedded widget, the initial size is not correct
+            // and we are not receiving any resize event from the server
+            if (this.disabled) {
+                this.offscreen_canvas.width = this.image.width;
+                this.offscreen_canvas.height = this.image.height;
+
+                this.offscreen_context.drawImage(this.image, 0, 0);
+
+                this._for_each_view((view: MPLCanvasView) => {
+                    // TODO Make this part of the CanvasView API?
+                    // It feels out of place in the model
+                    view.canvas.width = this.image.width / this.ratio;
+                    view.canvas.height = this.image.height / this.ratio;
+                    view.canvas.style.width = view.canvas.width + 'px';
+                    view.canvas.style.height = view.canvas.height + 'px';
+
+                    view.top_canvas.width = this.image.width / this.ratio;
+                    view.top_canvas.height = this.image.height / this.ratio;
+                    view.top_canvas.style.width = view.top_canvas.width + 'px';
+                    view.top_canvas.style.height =
+                        view.top_canvas.height + 'px';
+
+                    view.canvas_div.style.width = view.canvas.width + 'px';
+                    view.canvas_div.style.height = view.canvas.height + 'px';
+
+                    view.update_canvas(true);
+                });
+
+                return;
+            }
+
+            // Full images could contain transparency (where diff images
+            // almost always do), so we need to clear the canvas so that
+            // there is no ghosting.
             if (this.get('_image_mode') === 'full') {
-                // Full images could contain transparency (where diff images
-                // almost always do), so we need to clear the canvas so that
-                // there is no ghosting.
                 this.offscreen_context.clearRect(
                     0,
                     0,
@@ -286,6 +329,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
                     this.offscreen_canvas.height
                 );
             }
+
             this.offscreen_context.drawImage(this.image, 0, 0);
 
             this._for_each_view((view: MPLCanvasView) => {
@@ -556,11 +600,13 @@ export class MPLCanvasView extends DOMWidgetView {
             return false;
         });
 
-        this.resize_canvas(this.model.get('_width'), this.model.get('_height'));
-        this.update_canvas();
+        this.resize_and_update_canvas(this.model.size);
     }
 
-    update_canvas() {
+    /*
+     * Update the canvas view
+     */
+    update_canvas(stretch = false) {
         if (this.canvas.width === 0 || this.canvas.height === 0) {
             return;
         }
@@ -568,7 +614,18 @@ export class MPLCanvasView extends DOMWidgetView {
         this.top_context.save();
 
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.context.drawImage(this.model.offscreen_canvas, 0, 0);
+
+        if (stretch) {
+            this.context.drawImage(
+                this.model.offscreen_canvas,
+                0,
+                0,
+                this.canvas.width,
+                this.canvas.height
+            );
+        } else {
+            this.context.drawImage(this.model.offscreen_canvas, 0, 0);
+        }
 
         this.top_context.clearRect(
             0,
@@ -651,18 +708,18 @@ export class MPLCanvasView extends DOMWidgetView {
         this.footer.textContent = this.model.get('_message');
     }
 
-    resize_canvas(width: number, height: number) {
+    resize_and_update_canvas(size: [number, number]) {
         // Keep the size of the canvas, and rubber band canvas in sync.
-        this.canvas.setAttribute('width', `${width * this.model.ratio}`);
-        this.canvas.setAttribute('height', `${height * this.model.ratio}`);
-        this.canvas.style.width = width + 'px';
-        this.canvas.style.height = height + 'px';
+        this.canvas.setAttribute('width', `${size[0] * this.model.ratio}`);
+        this.canvas.setAttribute('height', `${size[1] * this.model.ratio}`);
+        this.canvas.style.width = size[0] + 'px';
+        this.canvas.style.height = size[1] + 'px';
 
-        this.top_canvas.setAttribute('width', String(width));
-        this.top_canvas.setAttribute('height', String(height));
+        this.top_canvas.setAttribute('width', String(size[0]));
+        this.top_canvas.setAttribute('height', String(size[1]));
 
-        this.canvas_div.style.width = width + 'px';
-        this.canvas_div.style.height = height + 'px';
+        this.canvas_div.style.width = size[0] + 'px';
+        this.canvas_div.style.height = size[1] + 'px';
 
         this.update_canvas();
     }
