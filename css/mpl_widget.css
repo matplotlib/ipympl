@@ -7,7 +7,13 @@
 /* Toolbar */
 
 .jupyter-matplotlib-toolbar {
+    position: absolute;
     overflow: visible;
+    z-index: 100;
+}
+
+.jupyter-matplotlib-toolbar-fadein-fadeout {
+    transition: visibility 0.5s linear, opacity 0.5s linear;
 }
 
 .jupyter-matplotlib-button {
@@ -18,9 +24,12 @@
 /* Figure */
 
 .jupyter-matplotlib-figure {
-    width: auto;
+    width: fit-content;
     height: auto;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .jupyter-matplotlib-canvas-container {
@@ -32,6 +41,13 @@
     flex: 1 1 auto;
 }
 
-.jupyter-matplotlib-canvas-div:focus {
-    outline: 1px solid var(--jp-widgets-input-focus-border-color);
+.jupyter-matplotlib-header {
+    width: 100%;
+    text-align: center;
+}
+
+.jupyter-matplotlib-footer {
+    width: 100%;
+    text-align: center;
+    min-height: var(--jp-widgets-inline-height);
 }

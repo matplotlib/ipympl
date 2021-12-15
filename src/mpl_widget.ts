@@ -12,6 +12,8 @@ import * as utils from './utils';
 
 import { MODULE_VERSION } from './version';
 
+import { ToolbarView } from './toolbar_widget';
+
 export class MPLCanvasModel extends DOMWidgetModel {
     offscreen_canvas: HTMLCanvasElement;
     offscreen_context: CanvasRenderingContext2D;
@@ -33,7 +35,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
             header_visible: true,
             footer_visible: true,
             toolbar: null,
-            toolbar_visible: true,
+            toolbar_visible: 'fade-in-fade-out',
             toolbar_position: 'horizontal',
             resizable: true,
             capture_scroll: false,
@@ -362,7 +364,7 @@ export class MPLCanvasView extends DOMWidgetView {
     canvas_div: HTMLDivElement;
     canvas: HTMLCanvasElement;
     header: HTMLDivElement;
-    toolbar_view: DOMWidgetView;
+    toolbar_view: ToolbarView;
     resize_handle_size: number;
     resizing: boolean;
     context: CanvasRenderingContext2D;
@@ -374,21 +376,20 @@ export class MPLCanvasView extends DOMWidgetView {
     private _resize_event: (event: MouseEvent) => void;
     private _stop_resize_event: () => void;
 
-    render() {
+    async render() {
         this.resizing = false;
         this.resize_handle_size = 20;
 
+        this.el.classList.add('jupyter-matplotlib');
+
         this.figure = document.createElement('div');
-        this.figure.classList.add(
-            'jupyter-matplotlib-figure',
-            'jupyter-widgets',
-            'widget-container',
-            'widget-box',
-            'widget-vbox'
-        );
+        this.figure.classList.add('jupyter-matplotlib-figure');
+
+        this.el.appendChild(this.figure);
 
         this._init_header();
         this._init_canvas();
+        await this._init_toolbar();
         this._init_footer();
 
         this._resize_event = this.resize_event.bind(this);
@@ -396,19 +397,14 @@ export class MPLCanvasView extends DOMWidgetView {
         window.addEventListener('mousemove', this._resize_event);
         window.addEventListener('mouseup', this._stop_resize_event);
 
-        return this.create_child_view(this.model.get('toolbar')).then(
-            (toolbar_view) => {
-                this.toolbar_view = toolbar_view;
+        this.figure.addEventListener('mouseenter', () => {
+            this.toolbar_view.fade_in();
+        });
+        this.figure.addEventListener('mouseleave', () => {
+            this.toolbar_view.fade_out();
+        });
 
-                this._update_toolbar_position();
-
-                this._update_header_visible();
-                this._update_footer_visible();
-                this._update_toolbar_visible();
-
-                this.model_events();
-            }
-        );
+        this.model_events();
     }
 
     model_events() {
@@ -449,64 +445,23 @@ export class MPLCanvasView extends DOMWidgetView {
     }
 
     _update_toolbar_visible() {
-        this.toolbar_view.el.style.display = this.model.get('toolbar_visible')
-            ? ''
-            : 'none';
+        this.toolbar_view.set_visibility(this.model.get('toolbar_visible'));
     }
 
     _update_toolbar_position() {
-        const toolbar_position = this.model.get('toolbar_position');
-        if (toolbar_position === 'top' || toolbar_position === 'bottom') {
-            this.el.classList.add(
-                'jupyter-widgets',
-                'widget-container',
-                'widget-box',
-                'widget-vbox',
-                'jupyter-matplotlib'
-            );
-            this.model.get('toolbar').set('orientation', 'horizontal');
-
-            this.clear();
-
-            if (toolbar_position === 'top') {
-                this.el.appendChild(this.toolbar_view.el);
-                this.el.appendChild(this.figure);
-            } else {
-                this.el.appendChild(this.figure);
-                this.el.appendChild(this.toolbar_view.el);
-            }
-        } else {
-            this.el.classList.add(
-                'jupyter-widgets',
-                'widget-container',
-                'widget-box',
-                'widget-hbox',
-                'jupyter-matplotlib'
-            );
-            this.model.get('toolbar').set('orientation', 'vertical');
-
-            this.clear();
-
-            if (toolbar_position === 'left') {
-                this.el.appendChild(this.toolbar_view.el);
-                this.el.appendChild(this.figure);
-            } else {
-                this.el.appendChild(this.figure);
-                this.el.appendChild(this.toolbar_view.el);
-            }
-        }
-    }
-
-    clear() {
-        while (this.el.firstChild) {
-            this.el.removeChild(this.el.firstChild);
-        }
+        this.model
+            .get('toolbar')
+            .set('position', this.model.get('toolbar_position'));
     }
 
     _init_header() {
         this.header = document.createElement('div');
-        this.header.style.textAlign = 'center';
-        this.header.classList.add('jupyter-widgets', 'widget-label');
+        this.header.classList.add(
+            'jupyter-widgets',
+            'widget-label',
+            'jupyter-matplotlib-header'
+        );
+        this._update_header_visible();
         this._update_figure_label();
         this.figure.appendChild(this.header);
     }
@@ -601,6 +556,17 @@ export class MPLCanvasView extends DOMWidgetView {
         });
 
         this.resize_and_update_canvas(this.model.size);
+    }
+
+    async _init_toolbar() {
+        this.toolbar_view = (await this.create_child_view(
+            this.model.get('toolbar')
+        )) as ToolbarView;
+
+        this.figure.appendChild(this.toolbar_view.el);
+
+        this._update_toolbar_position();
+        this._update_toolbar_visible();
     }
 
     /*
@@ -698,8 +664,12 @@ export class MPLCanvasView extends DOMWidgetView {
 
     _init_footer() {
         this.footer = document.createElement('div');
-        this.footer.style.textAlign = 'center';
-        this.footer.classList.add('jupyter-widgets', 'widget-label');
+        this.footer.classList.add(
+            'jupyter-widgets',
+            'widget-label',
+            'jupyter-matplotlib-footer'
+        );
+        this._update_footer_visible();
         this._update_message();
         this.figure.appendChild(this.footer);
     }
