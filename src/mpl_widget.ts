@@ -397,10 +397,10 @@ export class MPLCanvasView extends DOMWidgetView {
         window.addEventListener('mousemove', this._resize_event);
         window.addEventListener('mouseup', this._stop_resize_event);
 
-        this.figure.addEventListener('mouseenter', () => {
+        this.el.addEventListener('mouseenter', () => {
             this.toolbar_view.fade_in();
         });
-        this.figure.addEventListener('mouseleave', () => {
+        this.el.addEventListener('mouseleave', () => {
             this.toolbar_view.fade_out();
         });
 

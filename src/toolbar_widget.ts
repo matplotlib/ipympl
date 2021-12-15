@@ -113,15 +113,15 @@ export class ToolbarView extends DOMWidgetView {
             this.toolbar.classList.remove('widget-hbox');
             this.toolbar.classList.add('widget-vbox');
 
-            this.el.style.top = '3%';
+            this.el.style.top = '3px';
             this.el.style.bottom = 'auto';
 
             if (position === 'left') {
-                this.el.style.left = '3%';
+                this.el.style.left = '3px';
                 this.el.style.right = 'auto';
             } else {
                 this.el.style.left = 'auto';
-                this.el.style.right = '3%';
+                this.el.style.right = '3px';
             }
         } else {
             this.el.classList.add('widget-hbox');
@@ -129,15 +129,15 @@ export class ToolbarView extends DOMWidgetView {
             this.toolbar.classList.add('widget-hbox');
             this.toolbar.classList.remove('widget-vbox');
 
-            this.el.style.right = '3%';
+            this.el.style.right = '3px';
             this.el.style.left = 'auto';
 
             if (position === 'top') {
-                this.el.style.top = '3%';
+                this.el.style.top = '3px';
                 this.el.style.bottom = 'auto';
             } else {
                 this.el.style.top = 'auto';
-                this.el.style.bottom = '3%';
+                this.el.style.bottom = '3px';
             }
         }
     }
