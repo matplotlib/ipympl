@@ -10,20 +10,15 @@ jobs:
 
     - uses: actions/checkout@v2
 
-    - name: Install node
-      uses: actions/setup-node@v1
+    - name: Setup conda
+      uses: conda-incubator/setup-miniconda@v2
       with:
-        node-version: '14.x'
-        registry-url: 'https://registry.npmjs.org'
-
-    - name: Install Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
+        mamba-version: "*"
+        channels: conda-forge
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
+        mamba install -c conda-forge python=3.9 jupyterlab yarn matplotlib ipywidgets jupyter-packaging=0.7
         pip install twine wheel build
 
     - name: Publish the Python package
@@ -36,9 +31,8 @@ jobs:
 
     - name: Publish the NPM package
       run: |
-        echo $PRE_RELEASE
-        if [[ $PRE_RELEASE == "true" ]]; then export TAG="next"; else export TAG="latest"; fi
-        npm publish --tag ${TAG} --access public
+        yarn install && yarn run build
+        npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         PRE_RELEASE: ${{ github.event.release.prerelease }}
