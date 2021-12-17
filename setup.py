@@ -64,7 +64,7 @@ setup_args = dict(
         'pillow',
         'traitlets<6',
         'ipywidgets>=7.6.0,<8',
-        'matplotlib>=2.0.0,<4'
+        'matplotlib>=2.0.0,<4',
     ],
     packages=find_packages(),
     zip_safe=False,
