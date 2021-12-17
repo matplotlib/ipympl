@@ -7,10 +7,10 @@ dependencies:
     - jupyter-packaging
     - jupyterlab=3
     - ipywidgets>=7.6
-    - flake8
     - pillow
     - numpy
     - matplotlib
+    - flake8
     - pytest
     - nbval
     - pip:
