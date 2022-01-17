@@ -58,7 +58,7 @@ setup_args = dict(
     license='BSD License',
     include_package_data=True,
     install_requires=[
-        'ipython<8',
+        'ipython<9',
         'numpy',
         'ipython_genutils',
         'pillow',
