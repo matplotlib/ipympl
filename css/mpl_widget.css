@@ -29,7 +29,6 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    align-items: center;
 }
 
 .jupyter-matplotlib-canvas-container {
