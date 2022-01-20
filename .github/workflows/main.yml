@@ -139,6 +139,8 @@ jobs:
 
       - name: Manually install labextension for lab2
         if: ${{ matrix.jlab_version }} == 2.3.2
+        env:
+          NODE_OPTIONS: --openssl-legacy-provider
         run: jupyter labextension install --debug .
 
       - name: Test installation files
