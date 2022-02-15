@@ -452,11 +452,13 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
 
 class FigureManager(FigureManagerWebAgg):
-    ToolbarCls = Toolbar
+    if matplotlib.__version__ < "3.6":
+        ToolbarCls = Toolbar
 
     def __init__(self, canvas, num):
         FigureManagerWebAgg.__init__(self, canvas, num)
         self.web_sockets = [self.canvas]
+        self.toolbar = Toolbar(self.canvas)
 
     def show(self):
         if self.canvas._closed:
