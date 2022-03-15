@@ -34,13 +34,11 @@ author = "Matplotlib Development Team"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "jupyter_sphinx",
     "myst_nb",
     "sphinx.ext.intersphinx",
     "sphinx.ext.linkcode",
     "sphinx.ext.mathjax",
     "sphinx_copybutton",
-    "sphinx_panels",
     "sphinx_thebe",
     "sphinx_togglebutton",
 ]
@@ -59,8 +57,6 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
 }
 
-# remove panels css to get wider main content
-panels_add_bootstrap_css = False
 
 # Settings for copybutton
 copybutton_prompt_is_regexp = True

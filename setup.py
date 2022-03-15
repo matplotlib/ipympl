@@ -66,12 +66,11 @@ setup_args = dict(
         'ipywidgets>=7.6.0,<8',
         'matplotlib>=2.0.0,<4',
     ],
-    extra_requires={
+    extras_require={
         "docs": [
             "myst-nb",
             "Sphinx >= 1.5",
             "sphinx-copybutton",
-            "sphinx-panels",
             "sphinx-thebe",
             "sphinx-togglebutton",
             "sphinx-book-theme",

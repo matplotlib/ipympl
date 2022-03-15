@@ -1,0 +1,33 @@
+name: Docs
+
+on: [push, pull_request]
+
+
+defaults:
+  run:
+    shell: bash -l {0}
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: ipympl-dev
+          environment-file: dev-environment.yml
+          python-version: ${{ matrix.python-version }}
+          mamba-version: "*"
+          auto-activate-base: false
+          channels: conda-forge
+      - name: Install
+        run: python -m pip install -v .[docs]
+      - name: Build
+        run: make -C docs html
+      - name: Publish
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/_build/html
+          force_orphan: true
