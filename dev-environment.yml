@@ -13,5 +13,14 @@ dependencies:
     - flake8
     - pytest
     - nbval
+    - pre-commit
     - pip:
         - build
+        - myst-nb
+        - Sphinx >= 1.5
+        - sphinx-copybutton
+        - sphinx-panels
+        - sphinx-thebe
+        - sphinx-togglebutton
+        - sphinx-book-theme
+        - sphinx-autobuild

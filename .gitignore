@@ -32,3 +32,6 @@ ipympl/labextension
 
 # OS specific items
 .DS_Store
+
+# sphinx build dir
+docs/_build
