@@ -147,7 +147,7 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
             'move': 'arrows',
             'download': 'floppy-o',
             'export': 'file-picture-o',
-            'make_pdf': 'file-pdf'
+            'make_pdf': 'file-pdf',
         }
 
         download_item = ('Download', 'Download plot', 'download', 'save_figure')
@@ -459,6 +459,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         buf = io.BytesIO()
         self.figure.savefig(buf, format='pdf', dpi='figure')
         self.send({'data': '{"type": "makepdf"}'}, buffers=[buf.getbuffer()])
+
 
 class FigureManager(FigureManagerWebAgg):
     if matplotlib.__version__ < "3.6":
