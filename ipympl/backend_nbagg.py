@@ -147,11 +147,13 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
             'move': 'arrows',
             'download': 'floppy-o',
             'export': 'file-picture-o',
+            'make_pdf': 'file-pdf'
         }
 
         download_item = ('Download', 'Download plot', 'download', 'save_figure')
+        make_pdf = ('Create pdf', 'Create pdf from figure', 'make_pdf', 'makepdf')
 
-        toolitems = NavigationToolbar2.toolitems + (download_item,)
+        toolitems = NavigationToolbar2.toolitems + (download_item,) + (make_pdf,)
 
         return [
             (text, tooltip, icons[icon_name], method_name)
@@ -274,6 +276,9 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
         elif content['type'] == 'set_dpi_ratio':
             Canvas.current_dpi_ratio = content['dpi_ratio']
             self.manager.handle_json(content)
+
+        elif content['type'] == 'toolbar_button' and content['name'] == 'makepdf':
+            self._send_savefig_pdf()
 
         else:
             self.manager.handle_json(content)
@@ -450,6 +455,10 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
         handle_key_press = handle_key_release = _handle_key
 
+    def _send_savefig_pdf(self):
+        buf = io.BytesIO()
+        self.figure.savefig(buf, format='pdf', dpi='figure')
+        self.send({'data': '{"type": "makepdf"}'}, buffers=[buf.getbuffer()])
 
 class FigureManager(FigureManagerWebAgg):
     if matplotlib.__version__ < "3.6":

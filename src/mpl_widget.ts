@@ -157,6 +157,14 @@ export class MPLCanvasModel extends DOMWidgetModel {
         document.body.removeChild(save);
     }
 
+    handle_makepdf(msg: any, dataviews: any) {
+        const url_creator = window.URL || window.webkitURL;
+        const buffer = new Uint8Array(dataviews[0].buffer);
+        const blob = new Blob([buffer], { type: 'application/pdf' });
+        const image_url = url_creator.createObjectURL(blob);
+        window.open(image_url, '_blank');
+    }
+
     handle_resize(msg: { [index: string]: any }) {
         this.resize_canvas();
         this.offscreen_context.drawImage(this.image, 0, 0);
