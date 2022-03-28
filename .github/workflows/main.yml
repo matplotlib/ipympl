@@ -57,14 +57,6 @@ jobs:
     - name: Run tests
       run: pytest .
 
-    - name: Test flake8
-      run: flake8 ipympl --ignore=E501,W504,W503
-
-    - name: Test TS linters
-      run: |
-        npm run eslint:check
-        npm run prettier:check
-
   build:
     runs-on: ubuntu-latest
     steps:
