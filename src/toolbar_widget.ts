@@ -1,6 +1,6 @@
 import { DOMWidgetModel, DOMWidgetView } from '@jupyter-widgets/base';
 
-import { MODULE_VERSION } from './version';
+import { MODEL_VERSION } from './version';
 
 import '../css/mpl_widget.css';
 
@@ -12,8 +12,8 @@ export class ToolbarModel extends DOMWidgetModel {
             _view_name: 'ToolbarView',
             _model_module: 'jupyter-matplotlib',
             _view_module: 'jupyter-matplotlib',
-            _model_module_version: '^' + MODULE_VERSION,
-            _view_module_version: '^' + MODULE_VERSION,
+            _model_module_version: MODEL_VERSION,
+            _view_module_version: MODEL_VERSION,
             toolitems: [],
             position: 'left',
             button_style: '',
