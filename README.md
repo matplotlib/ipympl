@@ -21,7 +21,7 @@ magic:
 ```
 
 ## Example
-See the [example notebook](https://github.com/matplotlib/ipympl/blob/master/docs/examples/full-example.ipynb) for more!
+See the [example notebook](https://github.com/matplotlib/ipympl/blob/main/docs/examples/full-example.ipynb) for more!
 
 ![matplotlib screencast](matplotlib.gif)
 
