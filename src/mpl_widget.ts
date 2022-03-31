@@ -509,6 +509,7 @@ export class MPLCanvasView extends DOMWidgetView {
         top_canvas.style.top = '0';
         top_canvas.style.zIndex = '1';
 
+        top_canvas.addEventListener('dblclick', this.mouse_event('dblclick'));
         top_canvas.addEventListener(
             'mousedown',
             this.mouse_event('button_press')
