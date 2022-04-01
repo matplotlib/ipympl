@@ -42,6 +42,7 @@
     },
     "jupyterlab": {
         "extension": "lib/plugin",
+        "webpackConfig": "webpack.lab.config.js",
         "outputDir": "ipympl/labextension/",
         "sharedPackages": {
             "@jupyter-widgets/base": {
