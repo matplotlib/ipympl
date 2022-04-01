@@ -31,7 +31,7 @@ jobs:
       shell: bash -l {0}
       run: |
         mamba install python=${{ matrix.python-version }} pip nodejs ipywidgets=7.6 jupyter jupyterlab=3 pillow numpy flake8 pytest nbval yarn build
-        pip install git+https://github.com/matplotlib/matplotlib.git
+        pip install --upgrade --pre --index-url https://pypi.anaconda.org/scipy-wheels-nightly/simple --extra-index-url https://pypi.org/simple matplotlib
 
     - name: Install ipympl
       shell: bash -l {0}
