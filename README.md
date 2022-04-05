@@ -11,6 +11,7 @@ Leveraging the Jupyter interactive widgets framework, `ipympl` enables the inter
 
 Besides, the figure `canvas` element is a proper Jupyter interactive widget which can be positioned in interactive widget layouts.
 
+
 ## Usage
 
 To enable the `ipympl` backend, simply use the `matplotlib` Jupyter
@@ -19,7 +20,8 @@ magic:
 ```
 %matplotlib widget
 ```
-
+## Documentation
+See the documentation at: https://matplotlib.org/ipympl/
 ## Example
 See the [example notebook](https://github.com/matplotlib/ipympl/blob/main/docs/examples/full-example.ipynb) for more!
 
