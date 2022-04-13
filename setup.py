@@ -64,7 +64,7 @@ setup_args = dict(
         'pillow',
         'traitlets<6',
         'ipywidgets>=7.6.0,<8',
-        'matplotlib>=2.0.0,<4',
+        'matplotlib>=3.4.0,<4',
     ],
     extras_require={
         "docs": [
