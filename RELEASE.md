@@ -1,18 +1,20 @@
-- To release a new version of ipympl on PyPI:
+ To release a new version of ipympl on PyPI:
 
-# nuke the  `dist` and `node_modules`
-git clean -fdx
+In your local copy  of the repo
 
-Update _version.py (set release version, remove 'dev')
-git add and git commit
-python setup.py sdist upload
-python setup.py bdist_wheel upload
-git tag -a X.X.X -m 'comment'
-Update _version.py (add 'dev' and increment minor)
-git add and git commit
-git push
-git push --tags
+1. Switch to the `main` branch
+2. Update relevant files
+    - `ipympl/_version.py`
+    - `src/version.ts`
+    - The table in the README
+    - The table in `docs/installing.md`
+3. `git commit -m "release X.Y.Z"`
+4. `git push upstream main`
 
-- To release a new version of jupyter-matplotlib on NPM:
-npm install
-npm publish
+Then go to github and draft a new release: https://github.com/matplotlib/ipympl/releases/new
+
+In the "Choose a tag" dropdown enter the to be released version and allow it to auto create the tag.
+
+Give the release a title + fill in release details.
+
+Publish - it should now upload automatically to both pypi and npm.
