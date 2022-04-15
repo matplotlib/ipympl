@@ -63,7 +63,7 @@ setup_args = dict(
         'ipython_genutils',
         'pillow',
         'traitlets<6',
-        'ipywidgets>=7.6.0,<8',
+        'ipywidgets>=7.6.0,<9',
         'matplotlib>=3.4.0,<4',
     ],
     extras_require={

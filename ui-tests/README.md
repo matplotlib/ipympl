@@ -20,7 +20,7 @@ Finally, run the galata tests:
 yarn run test
 ```
 
-If bqplot visuals change, you can re-generate reference images by running:
+If ipympl visuals change, you can re-generate reference images by running:
 ```bash
 yarn run update-references
 ```
