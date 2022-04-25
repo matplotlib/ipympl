@@ -10,7 +10,7 @@ import {
 
 import * as utils from './utils';
 
-import { MODEL_VERSION } from './version';
+import { MODULE_VERSION } from './version';
 
 import { ToolbarView } from './toolbar_widget';
 
@@ -30,8 +30,8 @@ export class MPLCanvasModel extends DOMWidgetModel {
             _view_name: 'MPLCanvasView',
             _model_module: 'jupyter-matplotlib',
             _view_module: 'jupyter-matplotlib',
-            _model_module_version: MODEL_VERSION,
-            _view_module_version: MODEL_VERSION,
+            _model_module_version: '^' + MODULE_VERSION,
+            _view_module_version: '^' + MODULE_VERSION,
             header_visible: true,
             footer_visible: true,
             toolbar: null,

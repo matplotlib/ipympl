@@ -58,7 +58,7 @@ from traitlets import (
     observe,
 )
 
-from ._version import __MODEL_VERSION__
+from ._version import js_semver
 
 cursors_str = {
     cursors.HAND: 'pointer',
@@ -93,11 +93,11 @@ def connection_info():
 class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
 
     _model_module = Unicode('jupyter-matplotlib').tag(sync=True)
-    _model_module_version = Unicode(__MODEL_VERSION__).tag(sync=True)
+    _model_module_version = Unicode(js_semver).tag(sync=True)
     _model_name = Unicode('ToolbarModel').tag(sync=True)
 
     _view_module = Unicode('jupyter-matplotlib').tag(sync=True)
-    _view_module_version = Unicode(__MODEL_VERSION__).tag(sync=True)
+    _view_module_version = Unicode(js_semver).tag(sync=True)
     _view_name = Unicode('ToolbarView').tag(sync=True)
 
     toolitems = List().tag(sync=True)
@@ -180,11 +180,11 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
 class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     _model_module = Unicode('jupyter-matplotlib').tag(sync=True)
-    _model_module_version = Unicode(__MODEL_VERSION__).tag(sync=True)
+    _model_module_version = Unicode(js_semver).tag(sync=True)
     _model_name = Unicode('MPLCanvasModel').tag(sync=True)
 
     _view_module = Unicode('jupyter-matplotlib').tag(sync=True)
-    _view_module_version = Unicode(__MODEL_VERSION__).tag(sync=True)
+    _view_module_version = Unicode(js_semver).tag(sync=True)
     _view_name = Unicode('MPLCanvasView').tag(sync=True)
 
     toolbar = Instance(Toolbar, allow_none=True).tag(sync=True, **widget_serialization)
