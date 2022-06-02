@@ -498,7 +498,7 @@ class _Backend_ipympl(_Backend):
         return manager
 
     @staticmethod
-    def show(close=None, block=None):
+    def show(block=None):
         # # TODO: something to do when keyword block==False ?
         interactive = is_interactive()
 
