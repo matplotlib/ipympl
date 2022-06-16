@@ -495,6 +495,21 @@ class _Backend_ipympl(_Backend):
             Gcf.destroy(manager)
 
         cid = canvas.mpl_connect('close_event', destroy)
+
+        # Only register figure for showing when in interactive mode (otherwise
+        # we'll generate duplicate plots, since a user who set ioff() manually
+        # expects to make separate draw/show calls).
+        if is_interactive():
+            # ensure current figure will be drawn.
+            try:
+                _Backend_ipympl._to_show.remove(figure)
+            except ValueError:
+                # ensure it only appears in the draw list once
+                pass
+            # Queue up the figure for drawing in next show() call
+            _Backend_ipympl._to_show.append(figure)
+            _Backend_ipympl._draw_called = True
+
         return manager
 
     @staticmethod
@@ -522,32 +537,6 @@ class _Backend_ipympl(_Backend):
         finally:
             if manager.canvas.figure in _Backend_ipympl._to_show:
                 _Backend_ipympl._to_show.remove(manager.canvas.figure)
-
-    @staticmethod
-    def draw_if_interactive():
-        # If matplotlib was manually set to non-interactive mode, this function
-        # should be a no-op (otherwise we'll generate duplicate plots, since a
-        # user who set ioff() manually expects to make separate draw/show
-        # calls).
-        if not is_interactive():
-            return
-
-        manager = Gcf.get_active()
-        if manager is None:
-            return
-        fig = manager.canvas.figure
-
-        # ensure current figure will be drawn, and each subsequent call
-        # of draw_if_interactive() moves the active figure to ensure it is
-        # drawn last
-        try:
-            _Backend_ipympl._to_show.remove(fig)
-        except ValueError:
-            # ensure it only appears in the draw list once
-            pass
-        # Queue up the figure for drawing in next show() call
-        _Backend_ipympl._to_show.append(fig)
-        _Backend_ipympl._draw_called = True
 
 
 def flush_figures():
