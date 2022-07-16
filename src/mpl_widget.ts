@@ -544,6 +544,11 @@ export class MPLCanvasView extends DOMWidgetView {
                 this.model.get('pan_zoom_throttle')
             )
         );
+        top_canvas.addEventListener('wheel', (event: any) => {
+            if (this.model.get('capture_scroll')) {
+                event.preventDefault();
+            }
+        });
 
         canvas_div.appendChild(canvas);
         canvas_div.appendChild(top_canvas);
@@ -707,9 +712,6 @@ export class MPLCanvasView extends DOMWidgetView {
                     event.step = 1;
                 } else {
                     event.step = -1;
-                }
-                if (this.model.get('capture_scroll')) {
-                    event.preventDefault();
                 }
             }
 
