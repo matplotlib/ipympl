@@ -1,6 +1,6 @@
 # ipympl
 
-[![Test Status](https://github.com/matplotlib/ipympl/actions/workflows/mpl-latest.yml/badge.svg)](https://github.com/matplotlib/ipympl/actions/workflows/mpl-latest.yml?query=branch%3Amaster)
+[![Test Status](https://github.com/matplotlib/ipympl/actions/workflows/main.yml/badge.svg)](https://github.com/matplotlib/ipympl/actions/workflows/main.yml?query=branch%3Amain)
 [![Latest PyPI version](https://img.shields.io/pypi/v/ipympl?logo=pypi)](https://pypi.python.org/pypi/ipympl)
 [![Latest conda-forge version](https://img.shields.io/conda/vn/conda-forge/ipympl?logo=conda-forge)](https://anaconda.org/conda-forge/ipympl)
 [![Latest npm version](https://img.shields.io/npm/v/jupyter-matplotlib?logo=npm)](https://www.npmjs.com/package/jupyter-matplotlib)
