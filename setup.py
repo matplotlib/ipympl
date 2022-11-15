@@ -1,5 +1,4 @@
 import os
-from distutils import log
 from os.path import join as pjoin
 
 from jupyter_packaging import (
@@ -18,8 +17,6 @@ name = 'ipympl'
 HERE = os.path.dirname(os.path.abspath(__file__))
 long_description = 'Matplotlib Jupyter Extension'
 
-log.info('setup.py entered')
-log.info('$PATH=%s' % os.environ['PATH'])
 
 # Get ipympl version
 version = get_version(os.path.join(name, '_version.py'))
