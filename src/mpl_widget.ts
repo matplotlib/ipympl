@@ -237,7 +237,9 @@ export class MPLCanvasModel extends DOMWidgetModel {
     handle_binary(msg: any, buffers: (ArrayBuffer | ArrayBufferView)[]) {
         const url_creator = window.URL || window.webkitURL;
 
-        const buffer = new Uint8Array(ArrayBuffer.isView(buffers[0]) ? buffers[0].buffer : buffers[0]);
+        const buffer = new Uint8Array(
+            ArrayBuffer.isView(buffers[0]) ? buffers[0].buffer : buffers[0]
+        );
         const blob = new Blob([buffer], { type: 'image/png' });
         const image_url = url_creator.createObjectURL(blob);
 
