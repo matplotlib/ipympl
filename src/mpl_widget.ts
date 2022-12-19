@@ -234,10 +234,12 @@ export class MPLCanvasModel extends DOMWidgetModel {
         this.send_draw_message();
     }
 
-    handle_binary(msg: any, dataviews: any) {
+    handle_binary(msg: any, buffers: (ArrayBuffer | ArrayBufferView)[]) {
         const url_creator = window.URL || window.webkitURL;
 
-        const buffer = new Uint8Array(dataviews[0].buffer);
+        const buffer = new Uint8Array(
+            ArrayBuffer.isView(buffers[0]) ? buffers[0].buffer : buffers[0]
+        );
         const blob = new Blob([buffer], { type: 'image/png' });
         const image_url = url_creator.createObjectURL(blob);
 
@@ -263,7 +265,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
         // button to toggle?
     }
 
-    on_comm_message(evt: any, dataviews: any) {
+    on_comm_message(evt: any, buffers: (ArrayBuffer | ArrayBufferView)[]) {
         const msg = JSON.parse(evt.data);
         const msg_type = msg['type'];
         let callback;
@@ -281,7 +283,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
         }
 
         if (callback) {
-            callback(msg, dataviews);
+            callback(msg, buffers);
         }
     }
 
