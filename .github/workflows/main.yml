@@ -27,7 +27,6 @@ jobs:
       with:
         environment-name: ipympl-dev
         environment-file: dev-environment.yml
-        auto-activate-base: false
         channels: conda-forge
 
     - name: Build packages
@@ -67,9 +66,9 @@ jobs:
         with:
           environment-name: ipympl-dev
           environment-file: dev-environment.yml
-          python-version: ${{ matrix.python }}
-          auto-activate-base: false
           channels: conda-forge
+          extra-specs: |
+            python=${{ matrix.python }}
 
       - if: matrix.mpl-version == 'latest'
         name: Install latest Matplotlib
