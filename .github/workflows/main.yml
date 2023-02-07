@@ -66,12 +66,11 @@ jobs:
       - name: Install Conda environment with Micromamba
         uses: mamba-org/provision-with-micromamba@main
         with:
+          environment-name: ipympl-dev
+          environment-file: dev-environment.yml
           python-version: ${{ matrix.python-version }}
           auto-activate-base: false
           channels: conda-forge
-
-      - name: Install dependencies
-        run: mamba install python=${{ matrix.python-version }} pip yarn nodejs=16 jupyterlab jupyter-packaging nbval pytest ipywidgets
 
       - if: matrix.mpl-version == 'latest'
         name: Install latest Matplotlib
