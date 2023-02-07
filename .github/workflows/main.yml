@@ -27,7 +27,6 @@ jobs:
       with:
         environment-name: ipympl-dev
         environment-file: dev-environment.yml
-        python-version: ${{ matrix.python-version }}
         auto-activate-base: false
         channels: conda-forge
 
@@ -68,7 +67,7 @@ jobs:
         with:
           environment-name: ipympl-dev
           environment-file: dev-environment.yml
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
           auto-activate-base: false
           channels: conda-forge
 
