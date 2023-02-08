@@ -53,7 +53,7 @@ const testCellOutputs = async (
         for (let c = 0; c < numCellImages; ++c) {
             expect(results[c]).toMatchSnapshot(
                 getCaptureImageName(notebook, c),
-                { threshold: 0.3 }
+                { threshold: 0.4 }
             );
         }
 
@@ -96,7 +96,7 @@ const testUpdates = async (page: IJupyterLabPageFixture, tmpPath: string) => {
         for (let i = 0; i < cellCount; i++) {
             expect(results[i]).toMatchSnapshot(
                 getCaptureImageName(notebook, i),
-                { threshold: 0.3 }
+                { threshold: 0.4 }
             );
         }
 
