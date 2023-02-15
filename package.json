@@ -1,6 +1,6 @@
 {
     "name": "jupyter-matplotlib",
-    "version": "0.11.2",
+    "version": "0.11.3",
     "description": "Matplotlib Jupyter Interactive Widget",
     "author": "Matplotlib Development team",
     "license": "BSD-3-Clause",
