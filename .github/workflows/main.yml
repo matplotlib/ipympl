@@ -22,14 +22,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Setup conda
-      uses: conda-incubator/setup-miniconda@v2
+    - name: Install Conda environment with Micromamba
+      uses: mamba-org/provision-with-micromamba@main
       with:
-        activate-environment: ipympl-dev
+        environment-name: ipympl-dev
         environment-file: dev-environment.yml
-        python-version: ${{ matrix.python-version }}
-        mamba-version: "*"
-        auto-activate-base: false
         channels: conda-forge
 
     - name: Build packages
@@ -64,16 +61,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup conda
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/provision-with-micromamba@main
         with:
-          python-version: ${{ matrix.python-version }}
-          mamba-version: "*"
-          auto-activate-base: false
+          environment-name: ipympl-dev
+          environment-file: dev-environment.yml
           channels: conda-forge
-
-      - name: Install dependencies
-        run: mamba install python=${{ matrix.python-version }} pip yarn nodejs=16 jupyterlab jupyter-packaging nbval pytest ipywidgets
+          extra-specs: |
+            python=${{ matrix.python }}
 
       - if: matrix.mpl-version == 'latest'
         name: Install latest Matplotlib
@@ -81,7 +76,7 @@ jobs:
 
       - if: matrix.mpl-version != 'latest'
         name: Install matplotlib pinned
-        run: mamba install matplotlib=${{ matrix.mpl-version}}.*
+        run: micromamba install matplotlib=${{ matrix.mpl-version}}.*
 
       - uses: actions/download-artifact@v2
         with:

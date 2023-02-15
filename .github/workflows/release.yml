@@ -10,10 +10,9 @@ jobs:
 
     - uses: actions/checkout@v2
 
-    - name: Setup conda
-      uses: conda-incubator/setup-miniconda@v2
+    - name: Install Conda environment with Micromamba
+      uses: mamba-org/provision-with-micromamba@main
       with:
-        mamba-version: "*"
         channels: conda-forge
 
     - name: Install dependencies

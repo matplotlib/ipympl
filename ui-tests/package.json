@@ -14,7 +14,7 @@
   "author": "ipympl",
   "license": "Apache-2.0",
   "dependencies": {
-    "@jupyterlab/galata": "^4.3.5",
+    "@jupyterlab/galata": "~4.5.0",
     "klaw-sync": "^6.0.0",
     "rimraf": "^3.0.2"
   }
