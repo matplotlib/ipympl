@@ -759,6 +759,7 @@ export class MPLCanvasView extends DOMWidgetView {
                 y: y,
                 button: event.button,
                 step: event.step,
+                modifiers: utils.getModifiers(event),
                 guiEvent: utils.get_simple_keys(event),
             });
         };
