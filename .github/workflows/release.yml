@@ -14,11 +14,19 @@ jobs:
       uses: mamba-org/provision-with-micromamba@main
       with:
         channels: conda-forge
+        environment-file: false
+        environment-name: ipympl-release
+        extra-specs: |
+          python=3.9
+          jupyterlab
+          yarn
+          matplotlib
+          ipywidgets
+          jupyter-packaging=0.7
 
     - name: Install dependencies
       run: |
-        mamba install -c conda-forge python=3.9 jupyterlab yarn matplotlib ipywidgets jupyter-packaging=0.7
-        pip install twine wheel build
+        python -m pip install twine wheel build
 
     - name: Publish the Python package
       env:
