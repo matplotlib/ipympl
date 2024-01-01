@@ -24,7 +24,7 @@ try:
     from collections.abc import Iterable
 except ImportError:
     # Python 2.7
-    from collections import Iterable
+    from collections.abc import Iterable
 
 import matplotlib
 import numpy as np
@@ -91,7 +91,6 @@ def connection_info():
 
 
 class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
-
     _model_module = Unicode('jupyter-matplotlib').tag(sync=True)
     _model_module_version = Unicode(js_semver).tag(sync=True)
     _model_name = Unicode('ToolbarModel').tag(sync=True)
@@ -178,7 +177,6 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
 
 
 class Canvas(DOMWidget, FigureCanvasWebAggCore):
-
     _model_module = Unicode('jupyter-matplotlib').tag(sync=True)
     _model_module_version = Unicode(js_semver).tag(sync=True)
     _model_name = Unicode('MPLCanvasModel').tag(sync=True)
