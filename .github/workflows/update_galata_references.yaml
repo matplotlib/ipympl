@@ -33,25 +33,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
-          environment-name: ipympl-dev
           environment-file: dev-environment.yml
-          python-version: 3.9
-          auto-activate-base: false
-          channels: conda-forge
-
+          create-args: >-
+            python=3.9
       - name: Install ipympl
         run: pip install .
 
       - name: Install Galata
         run: |
-          yarn install
-          yarn playwright install chromium
+          jlpm install
+          jlpm playwright install chromium
         working-directory: ui-tests
 
       - name: Launch JupyterLab
-        run: yarn run start:detached
+        run: jlpm start:detached
         working-directory: ui-tests
 
       - name: Wait for JupyterLab
@@ -61,7 +58,7 @@ jobs:
           timeout: 20000
 
       - name: Generate updated Galata References
-        run: yarn run test:update
+        run: jlpm test:update
         working-directory: ui-tests
 
       - name: Compress screenshots

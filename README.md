@@ -105,7 +105,7 @@ notebook / lab frontend. For lab, this is done by the command:
 
 ```bash
 jupyter labextension develop --overwrite .
-yarn run build
+jlpm build
 ```
 
 For classic notebook, you need to run:
@@ -122,7 +122,7 @@ If you use JupyterLab to develop then you can watch the source directory and run
 
 ```bash
 # Watch the source directory in one terminal, automatically rebuilding when needed
-yarn run watch
+jlpm watch
 # Run JupyterLab in another terminal
 jupyter lab
 ```
