@@ -46,11 +46,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, macos]
-        python: ['3.10', '3.9']
+        python: ['3.9', '3.12']
         mpl-version: ['3.5', 'latest']
         dist: ['ipympl*.whl']
         include:
-          - python: '3.10'
+          - python: '3.12'
             dist: 'ipympl*.tar.gz'
 
     steps:
