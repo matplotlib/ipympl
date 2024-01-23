@@ -109,7 +109,7 @@ jobs:
 
       - name: Launch JupyterLab
         if: matrix.os == 'ubuntu'
-        run: jlpm run start:detached
+        run: jlpm start:detached
         working-directory: ui-tests
 
       - name: Wait for JupyterLab
@@ -121,7 +121,7 @@ jobs:
 
       - name: Run UI Tests
         if: matrix.os == 'ubuntu'
-        run: jlpm run test
+        run: jlpm test
         working-directory: ui-tests
 
       - name: Upload UI Test artifacts
