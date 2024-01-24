@@ -47,10 +47,18 @@ jobs:
       matrix:
         os: [ubuntu, macos]
         python: ['3.9', '3.12']
-        mpl-version: ['3.5', 'latest']
+        mpl-version: ['latest']
         dist: ['ipympl*.whl']
         include:
-          - python: '3.12'
+          # Earliest supported Matplotlib, needs python <= 3.10
+          - os: ubuntu
+            python: '3.9'
+            mpl-version: '3.5'
+            dist: 'ipympl*.whl'
+          # Install from sdist not wheel
+          - os: ubuntu
+            python: '3.12'
+            mpl-version: 'latest'
             dist: 'ipympl*.tar.gz'
 
     steps:
