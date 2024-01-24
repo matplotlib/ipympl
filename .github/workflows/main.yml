@@ -18,20 +18,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-
     - name: Checkout
       uses: actions/checkout@v2
 
     - name: Install Conda environment with Micromamba
-      uses: mamba-org/provision-with-micromamba@main
+      uses: mamba-org/setup-micromamba@v1
       with:
-        environment-name: ipympl-dev
-        environment-file: dev-environment.yml
-        channels: conda-forge
+          environment-file: dev-environment.yml
 
     - name: Build packages
       run: |
-        python setup.py sdist bdist_wheel
+        python -m build
         cd dist
         sha256sum * | tee SHA256SUMS
 
@@ -49,25 +46,30 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, macos]
-        python: ['3.10', '3.9']
-        mpl-version: ['3.5', 'latest']
+        python: ['3.9', '3.12']
+        mpl-version: ['latest']
+        dist: ['ipympl*.whl']
         include:
-          - python: '3.10'
-            dist: 'ipympl*.tar.gz'
-          - python: '3.9'
+          # Earliest supported Matplotlib, needs python <= 3.10
+          - os: ubuntu
+            python: '3.9'
+            mpl-version: '3.5'
             dist: 'ipympl*.whl'
+          # Install from sdist not wheel
+          - os: ubuntu
+            python: '3.11'
+            mpl-version: 'latest'
+            dist: 'ipympl*.tar.gz'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
-          environment-name: ipympl-dev
           environment-file: dev-environment.yml
-          channels: conda-forge
-          extra-specs: |
+          create-args: >-
             python=${{ matrix.python }}
 
       - if: matrix.mpl-version == 'latest'
@@ -104,18 +106,18 @@ jobs:
         run: jupyter labextension list 2>&1 | grep jupyter-matplotlib
 
       - name: Run pytest
-        run: pytest .
+        run: pytest -v .
 
       - name: Install Galata test dependencies
         if: matrix.os == 'ubuntu'
         run: |
-          yarn install
-          yarn playwright install chromium
+          jlpm install
+          jlpm playwright install chromium
         working-directory: ui-tests
 
       - name: Launch JupyterLab
         if: matrix.os == 'ubuntu'
-        run: yarn run start:detached
+        run: jlpm start:detached
         working-directory: ui-tests
 
       - name: Wait for JupyterLab
@@ -127,7 +129,7 @@ jobs:
 
       - name: Run UI Tests
         if: matrix.os == 'ubuntu'
-        run: yarn run test
+        run: jlpm test
         working-directory: ui-tests
 
       - name: Upload UI Test artifacts
@@ -150,7 +152,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OS: ${{ matrix.os }}
           PYTHON: ${{ matrix.python }}
-          MATPLOLIBT: ${{ matrix.mpl-version }}
+          MATPLOTLIB: ${{ matrix.mpl-version }}
           RUN_ID: ${{ github.run_id }}
           TITLE: '[test-bot] Scheduled Tests are failing'
         with:

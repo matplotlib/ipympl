@@ -1,11 +1,5 @@
-[bdist_wheel]
-universal=1
-
-[metadata]
-license_file = LICENSE
-
 [flake8]
-exclude = docs, _version.py, .eggs, example
+exclude = docs, _version.py, .eggs, example node_modules
 max-line-length = 88
 docstring-convention = "numpy"
 extend-ignore =

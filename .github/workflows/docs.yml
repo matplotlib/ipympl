@@ -7,16 +7,14 @@ defaults:
   run:
     shell: bash -l {0}
 jobs:
-  build:
+  build_docs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/provision-with-micromamba@main
+        uses: mamba-org/setup-micromamba@v1
         with:
-          environment-name: ipympl-dev
           environment-file: dev-environment.yml
-          channels: conda-forge
       - name: Install
         run: python -m pip install -v .[docs]
       - name: Build

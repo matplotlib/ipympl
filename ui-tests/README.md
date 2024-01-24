@@ -7,20 +7,20 @@ In order to run them, you need to install dependencies:
 ```bash
 const install -c conda-forge yarn jupyterlab=3.0.7
 
-yarn install
+jlpm install
 ```
 
 Then start JupyterLab in one terminal (you need to check that it properly starts on port 8888):
 ```bash
-yarn run start-jlab
+jlpm start-jlab
 ```
 
 Finally, run the galata tests:
 ```bash
-yarn run test
+jlpm test
 ```
 
 If ipympl visuals change, you can re-generate reference images by running:
 ```bash
-yarn run update-references
+jlpm update-references
 ```
