@@ -57,7 +57,7 @@ jobs:
             dist: 'ipympl*.whl'
           # Install from sdist not wheel
           - os: ubuntu
-            python: '3.12'
+            python: '3.11'
             mpl-version: 'latest'
             dist: 'ipympl*.tar.gz'
 
