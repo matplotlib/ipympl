@@ -4,7 +4,6 @@ channels:
 dependencies:
   - yarn
   - numpy
-  - jupyterlab>=3,<4
+  - jupyterlab~=4.0
   - retrolab
   - matplotlib-base>=2.2.2
-  - jupyter-packaging=0.7
