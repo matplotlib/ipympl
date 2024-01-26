@@ -1,7 +1,8 @@
 [build-system]
 requires = [
     "hatchling",
-    "jupyterlab>=3.0.0,==3.*",
+    "jupyterlab==4.*",
+    "hatch-nodejs-version>=0.3.2",
 ]
 build-backend = "hatchling.build"
 
@@ -22,8 +23,17 @@ keywords = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "Framework :: IPython",
+    "Framework :: Jupyter",
+    "Framework :: Jupyter :: JupyterLab",
+    "Framework :: Jupyter :: JupyterLab :: 3",
+    "Framework :: Jupyter :: JupyterLab :: 4",
+    "Framework :: Jupyter :: JupyterLab :: Extensions",
+    "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -39,6 +49,7 @@ dependencies = [
     "pillow",
     "traitlets<6",
 ]
+requires-python = ">=3.9"
 version = "0.9.3"
 
 [project.optional-dependencies]
@@ -66,7 +77,7 @@ artifacts = [
 [tool.hatch.build.targets.wheel.shared-data]
 "ipympl/nbextension" = "share/jupyter/nbextensions/jupyter-matplotlib"
 "ipympl/labextension" = "share/jupyter/labextensions/jupyter-matplotlib"
-"./jupyter-matplotlib.json" = "etc/jupyter/nbconfig/notebook.d/jupyter-matplotlib.json"
+"jupyter-matplotlib.json" = "etc/jupyter/nbconfig/notebook.d/jupyter-matplotlib.json"
 
 [tool.hatch.build.targets.sdist]
 exclude = [

@@ -5,17 +5,15 @@
   "private": true,
   "scripts": {
     "start": "jupyter lab --config ./jupyter_server_config.py",
-    "start:detached": "jlpm start&",
-    "test": "playwright test",
-    "test:debug": "PWDEBUG=1 playwright test",
-    "test:report": "http-server ./playwright-report -a localhost -o",
-    "test:update": "playwright test --update-snapshots"
+    "test": "jlpm playwright test",
+    "test:debug": "PWDEBUG=1 jlpm playwright test",
+    "test:update": "jlpm playwright test --update-snapshots"
   },
   "author": "ipympl",
   "license": "Apache-2.0",
-  "dependencies": {
-    "@jupyterlab/galata": "~4.5.0",
-    "@playwright/test": "^1.16.2",
+  "devDependencies": {
+    "@jupyterlab/galata": "^5.0.5",
+    "@playwright/test": "^1.37.0",
     "klaw-sync": "^6.0.0",
     "rimraf": "^3.0.2"
   }

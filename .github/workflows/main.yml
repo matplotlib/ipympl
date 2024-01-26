@@ -92,15 +92,14 @@ jobs:
 
       - name: Test installation files
         run: |
+          ls -l $CONDA_PREFIX/share/jupyter/nbextensions/jupyter-matplotlib
           test -d $CONDA_PREFIX/share/jupyter/nbextensions/jupyter-matplotlib
           test -f $CONDA_PREFIX/share/jupyter/nbextensions/jupyter-matplotlib/extension.js
           test -f $CONDA_PREFIX/share/jupyter/nbextensions/jupyter-matplotlib/index.js
+          ls -l $CONDA_PREFIX/share/jupyter/labextensions/jupyter-matplotlib
           test -d $CONDA_PREFIX/share/jupyter/labextensions/jupyter-matplotlib
           test -f $CONDA_PREFIX/share/jupyter/labextensions/jupyter-matplotlib/package.json
           test -d $CONDA_PREFIX/share/jupyter/labextensions/jupyter-matplotlib/static
-
-      - name: Validate the nbextension
-        run: jupyter nbextension list 2>&1 | grep "jupyter-matplotlib/extension"
 
       - name: Validate the labextension
         run: jupyter labextension list 2>&1 | grep jupyter-matplotlib
@@ -115,21 +114,9 @@ jobs:
           jlpm playwright install chromium
         working-directory: ui-tests
 
-      - name: Launch JupyterLab
-        if: matrix.os == 'ubuntu'
-        run: jlpm start:detached
-        working-directory: ui-tests
-
-      - name: Wait for JupyterLab
-        if: matrix.os == 'ubuntu'
-        uses: ifaxity/wait-on-action@v1
-        with:
-          resource: http-get://localhost:8888/api
-          timeout: 20000
-
       - name: Run UI Tests
         if: matrix.os == 'ubuntu'
-        run: jlpm test
+        run: jlpm playwright test
         working-directory: ui-tests
 
       - name: Upload UI Test artifacts
