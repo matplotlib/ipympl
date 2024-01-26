@@ -84,9 +84,9 @@
         "stylelint-config-standard": "^34.0.0",
         "stylelint-csstree-validator": "^3.0.0",
         "stylelint-prettier": "^4.0.0",
-        "ts-jest": "^26.0.0",
+        "ts-jest": "^29.0.0",
         "ts-loader": "^8.0.0",
-        "typescript": "~5.0.2",
+        "typescript": "~5.3.3",
         "webpack": "^5.61.0",
         "webpack-cli": "^4.0.0",
         "yjs": "^13.5.40"
