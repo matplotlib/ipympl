@@ -19,6 +19,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: React to the triggering comment
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions --raw-field 'content=+1'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -37,7 +43,8 @@ jobs:
         with:
           environment-file: dev-environment.yml
           create-args: >-
-            python=3.9
+            python=3.11
+
       - name: Install ipympl
         run: pip install .
 
@@ -46,16 +53,6 @@ jobs:
           jlpm install
           jlpm playwright install chromium
         working-directory: ui-tests
-
-      - name: Launch JupyterLab
-        run: jlpm start:detached
-        working-directory: ui-tests
-
-      - name: Wait for JupyterLab
-        uses: ifaxity/wait-on-action@v1
-        with:
-          resource: http-get://localhost:8888/api
-          timeout: 20000
 
       - name: Generate updated Galata References
         run: jlpm test:update
