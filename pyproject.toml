@@ -50,7 +50,7 @@ dependencies = [
     "traitlets<6",
 ]
 requires-python = ">=3.9"
-version = "0.9.3"
+version = "0.9.4.dev1"
 
 [project.optional-dependencies]
 docs = [
@@ -65,6 +65,10 @@ docs = [
 [project.urls]
 Homepage = "http://matplotlib.org/ipympl"
 Repository = "https://github.com/matplotlib/ipympl"
+
+[project.entry-points."matplotlib.backend"]
+ipympl = "ipympl.backend_nbagg"
+widget = "ipympl.backend_nbagg"
 
 [tool.hatch.build]
 artifacts = [

@@ -540,7 +540,8 @@ class _Backend_ipympl(_Backend):
 
 
 def flush_figures():
-    if rcParams['backend'] == 'module://ipympl.backend_nbagg':
+    backend = matplotlib.get_backend()
+    if backend in ('widget', 'ipympl', 'module://ipympl.backend_nbagg'):
         if not _Backend_ipympl._draw_called:
             return
 
