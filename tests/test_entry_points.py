@@ -1,5 +1,5 @@
 def test_own_entry_points():
-    from importlib.metadata import entry_points
+    from importlib_metadata import entry_points
 
     entries = entry_points(group="matplotlib.backend")
     for name in ["ipympl", "widget"]:
