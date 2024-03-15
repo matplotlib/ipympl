@@ -1,0 +1,75 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Sphinx-Book-Theme\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fi\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Theme by the"
+msgstr "Teeman tekijä"
+
+msgid "Open an issue"
+msgstr "Avaa ongelma"
+
+msgid "Contents"
+msgstr "Sisällys"
+
+msgid "Download notebook file"
+msgstr "Lataa muistikirjatiedosto"
+
+msgid "Sphinx Book Theme"
+msgstr "Sphinx-kirjan teema"
+
+msgid "Fullscreen mode"
+msgstr "Koko näytön tila"
+
+msgid "Edit this page"
+msgstr "Muokkaa tätä sivua"
+
+msgid "By"
+msgstr "Tekijä"
+
+msgid "Copyright"
+msgstr "Tekijänoikeus"
+
+msgid "Source repository"
+msgstr "Lähteen arkisto"
+
+msgid "previous page"
+msgstr "Edellinen sivu"
+
+msgid "next page"
+msgstr "seuraava sivu"
+
+msgid "Toggle navigation"
+msgstr "Vaihda navigointia"
+
+msgid "repository"
+msgstr "arkisto"
+
+msgid "suggest edit"
+msgstr "ehdottaa muokkausta"
+
+msgid "open issue"
+msgstr "avoin ongelma"
+
+msgid "Launch"
+msgstr "Tuoda markkinoille"
+
+msgid "Print to PDF"
+msgstr "Tulosta PDF-tiedostoon"
+
+msgid "By the"
+msgstr "Mukaan"
+
+msgid "Last updated on"
+msgstr "Viimeksi päivitetty"
+
+msgid "Download source file"
+msgstr "Lataa lähdetiedosto"
+
+msgid "Download this page"
+msgstr "Lataa tämä sivu"
