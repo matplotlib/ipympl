@@ -15,11 +15,11 @@ jobs:
         script: |
           var PR_HEAD_USERREPO = process.env.PR_HEAD_USERREPO;
           var PR_HEAD_REF = process.env.PR_HEAD_REF;
-          github.issues.createComment({
+          github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: `[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/${PR_HEAD_USERREPO}/${PR_HEAD_REF}?urlpath=retro/notebooks/docs/examples/full-example.ipynb) :point_left: Launch a binder notebook on branch _${PR_HEAD_USERREPO}/${PR_HEAD_REF}_`
+            body: `[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/${PR_HEAD_USERREPO}/${PR_HEAD_REF}?urlpath=notebooks/docs/examples/full-example.ipynb) :point_left: Launch a binder notebook on branch _${PR_HEAD_USERREPO}/${PR_HEAD_REF}_`
           })
       env:
         PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
