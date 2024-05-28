@@ -6,3 +6,4 @@ dependencies:
   - jupyterlab~=4.0
   - ipywidgets>=7.6
   - matplotlib
+  - notebook>=7
