@@ -31,7 +31,6 @@ import numpy as np
 from IPython import get_ipython
 from IPython import version_info as ipython_version_info
 from IPython.display import HTML, display
-from ipython_genutils.py3compat import string_types
 from ipywidgets import DOMWidget, widget_serialization
 from matplotlib import is_interactive, rcParams
 from matplotlib._pylab_helpers import Gcf
@@ -248,7 +247,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     def send_state(self, key=None):
         if key is None:
             keys = self.keys
-        elif isinstance(key, string_types):
+        elif isinstance(key, str):
             keys = [key]
         elif isinstance(key, Iterable):
             keys = key
