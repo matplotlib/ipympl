@@ -1,11 +1,11 @@
- To release a new version of ipympl on PyPI:
+To release a new version of ipympl on PyPI:
 
 In your local copy  of the repo
 
 1. Switch to the `main` branch
 2. Update relevant files
     - `ipympl/_version.py`
-    - `src/version.ts`
+    - `version` at the top of `package.json`
     - The table in the README
     - The table in `docs/installing.md`
 3. `git commit -m "release X.Y.Z"`
