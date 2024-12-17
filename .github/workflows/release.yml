@@ -11,12 +11,10 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install Conda environment with Micromamba
-      uses: mamba-org/provision-with-micromamba@main
+      uses: mamba-org/setup-micromamba@v2
       with:
-        channels: conda-forge
-        environment-file: false
         environment-name: ipympl-release
-        extra-specs: |
+        create-args: >-
           python=3.9
           jupyterlab
           yarn
