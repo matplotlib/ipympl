@@ -22,7 +22,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Conda environment with Micromamba
-      uses: mamba-org/setup-micromamba@v1
+      uses: mamba-org/setup-micromamba@v2
       with:
           environment-file: dev-environment.yml
 
@@ -33,7 +33,7 @@ jobs:
         sha256sum * | tee SHA256SUMS
 
     - name: Upload builds
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: dist ${{ github.run_number }}
         path: ./dist
@@ -66,7 +66,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           environment-file: dev-environment.yml
           create-args: >-
@@ -80,7 +80,7 @@ jobs:
         name: Install matplotlib pinned
         run: micromamba install matplotlib=${{ matrix.mpl-version}}.*
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist ${{ github.run_number }}
           path: ./dist
@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload UI Test artifacts
         if: always() && matrix.os == 'ubuntu'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ui-test-output
           path: |
