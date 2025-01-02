@@ -386,7 +386,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
 
 class FigureManager(FigureManagerWebAgg):
-    if matplotlib.__version__ < "3.6":
+    if matplotlib.__version_info__ < (3, 6):
         ToolbarCls = Toolbar
 
     def __init__(self, canvas, num):
