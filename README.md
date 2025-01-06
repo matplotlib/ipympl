@@ -18,7 +18,7 @@ To enable the `ipympl` backend, simply use the `matplotlib` Jupyter
 magic:
 
 ```
-%matplotlib widget
+%matplotlib ipympl
 ```
 ## Documentation
 See the documentation at: https://matplotlib.org/ipympl/
