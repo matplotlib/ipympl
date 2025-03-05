@@ -15,16 +15,14 @@ jobs:
       with:
         environment-name: ipympl-release
         create-args: >-
-          python=3.9
-          jupyterlab
+          python=3.12
           yarn
-          matplotlib
           ipywidgets
-          jupyter-packaging=0.7
+          jupyterlab
 
     - name: Install dependencies
       run: |
-        python -m pip install twine wheel build
+        python -m pip install twine wheel build "packaging>=24.2"
 
     - name: Publish the Python package
       env:
