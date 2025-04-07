@@ -238,7 +238,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
         const url_creator = window.URL || window.webkitURL;
 
         const buffer = new Uint8Array(
-            ArrayBuffer.isView(buffers[0]) ? buffers[0].buffer : buffers[0]
+            ArrayBuffer.isView(buffers[0]) ? buffers[0].buffer : buffers[0],
         );
         const blob = new Blob([buffer], { type: 'image/png' });
         const image_url = url_creator.createObjectURL(blob);
@@ -277,7 +277,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
         } catch (e) {
             console.log(
                 "No handler for the '" + msg_type + "' message type: ",
-                msg
+                msg,
             );
             return;
         }
@@ -330,7 +330,7 @@ export class MPLCanvasModel extends DOMWidgetModel {
                     0,
                     0,
                     this.offscreen_canvas.width,
-                    this.offscreen_canvas.height
+                    this.offscreen_canvas.height,
                 );
             }
 
@@ -412,23 +412,23 @@ export class MPLCanvasView extends DOMWidgetView {
     model_events() {
         this.model.on(
             'change:header_visible',
-            this._update_header_visible.bind(this)
+            this._update_header_visible.bind(this),
         );
         this.model.on(
             'change:footer_visible',
-            this._update_footer_visible.bind(this)
+            this._update_footer_visible.bind(this),
         );
         this.model.on(
             'change:toolbar_visible',
-            this._update_toolbar_visible.bind(this)
+            this._update_toolbar_visible.bind(this),
         );
         this.model.on(
             'change:toolbar_position',
-            this._update_toolbar_position.bind(this)
+            this._update_toolbar_position.bind(this),
         );
         this.model.on(
             'change:_figure_label',
-            this._update_figure_label.bind(this)
+            this._update_figure_label.bind(this),
         );
         this.model.on('change:_message', this._update_message.bind(this));
         this.model.on('change:_cursor', this._update_cursor.bind(this));
@@ -461,7 +461,7 @@ export class MPLCanvasView extends DOMWidgetView {
         this.header.classList.add(
             'jupyter-widgets',
             'widget-label',
-            'jupyter-matplotlib-header'
+            'jupyter-matplotlib-header',
         );
         this._update_header_visible();
         this._update_figure_label();
@@ -476,7 +476,7 @@ export class MPLCanvasView extends DOMWidgetView {
         const canvas_container = document.createElement('div');
         canvas_container.classList.add(
             'jupyter-widgets',
-            'jupyter-matplotlib-canvas-container'
+            'jupyter-matplotlib-canvas-container',
         );
         this.figure.appendChild(canvas_container);
 
@@ -485,7 +485,7 @@ export class MPLCanvasView extends DOMWidgetView {
         canvas_div.style.clear = 'both';
         canvas_div.classList.add(
             'jupyter-widgets',
-            'jupyter-matplotlib-canvas-div'
+            'jupyter-matplotlib-canvas-div',
         );
 
         canvas_div.addEventListener('keydown', this.key_event('key_press'));
@@ -514,35 +514,35 @@ export class MPLCanvasView extends DOMWidgetView {
         top_canvas.addEventListener('dblclick', this.mouse_event('dblclick'));
         top_canvas.addEventListener(
             'mousedown',
-            this.mouse_event('button_press')
+            this.mouse_event('button_press'),
         );
         top_canvas.addEventListener(
             'mouseup',
-            this.mouse_event('button_release')
+            this.mouse_event('button_release'),
         );
         top_canvas.addEventListener(
             'mousemove',
             throttle(
                 this.mouse_event('motion_notify'),
-                this.model.get('pan_zoom_throttle')
-            )
+                this.model.get('pan_zoom_throttle'),
+            ),
         );
 
         top_canvas.addEventListener(
             'mouseenter',
-            this.mouse_event('figure_enter')
+            this.mouse_event('figure_enter'),
         );
         top_canvas.addEventListener(
             'mouseleave',
-            this.mouse_event('figure_leave')
+            this.mouse_event('figure_leave'),
         );
 
         top_canvas.addEventListener(
             'wheel',
             throttle(
                 this.mouse_event('scroll'),
-                this.model.get('pan_zoom_throttle')
-            )
+                this.model.get('pan_zoom_throttle'),
+            ),
         );
         top_canvas.addEventListener('wheel', (event: any) => {
             if (this.model.get('capture_scroll')) {
@@ -568,7 +568,7 @@ export class MPLCanvasView extends DOMWidgetView {
 
     async _init_toolbar() {
         this.toolbar_view = (await this.create_child_view(
-            this.model.get('toolbar')
+            this.model.get('toolbar'),
         )) as ToolbarView;
 
         this.figure.appendChild(this.toolbar_view.el);
@@ -595,7 +595,7 @@ export class MPLCanvasView extends DOMWidgetView {
                 0,
                 0,
                 this.canvas.width,
-                this.canvas.height
+                this.canvas.height,
             );
         } else {
             this.context.drawImage(this.model.offscreen_canvas, 0, 0);
@@ -605,7 +605,7 @@ export class MPLCanvasView extends DOMWidgetView {
             0,
             0,
             this.top_canvas.width,
-            this.top_canvas.height
+            this.top_canvas.height,
         );
 
         // Draw rubberband
@@ -624,7 +624,7 @@ export class MPLCanvasView extends DOMWidgetView {
                 this.model.get('_rubberband_x'),
                 this.model.get('_rubberband_y'),
                 this.model.get('_rubberband_width'),
-                this.model.get('_rubberband_height')
+                this.model.get('_rubberband_height'),
             );
         }
 
@@ -636,7 +636,7 @@ export class MPLCanvasView extends DOMWidgetView {
                 this.top_canvas.height - this.resize_handle_size,
                 // Stop
                 this.top_canvas.width,
-                this.top_canvas.height
+                this.top_canvas.height,
             );
             gradient.addColorStop(0, 'white');
             gradient.addColorStop(1, 'black');
@@ -648,15 +648,15 @@ export class MPLCanvasView extends DOMWidgetView {
             this.top_context.beginPath();
             this.top_context.moveTo(
                 this.top_canvas.width,
-                this.top_canvas.height
+                this.top_canvas.height,
             );
             this.top_context.lineTo(
                 this.top_canvas.width,
-                this.top_canvas.height - this.resize_handle_size
+                this.top_canvas.height - this.resize_handle_size,
             );
             this.top_context.lineTo(
                 this.top_canvas.width - this.resize_handle_size,
-                this.top_canvas.height
+                this.top_canvas.height,
             );
             this.top_context.closePath();
             this.top_context.fill();
@@ -675,7 +675,7 @@ export class MPLCanvasView extends DOMWidgetView {
         this.footer.classList.add(
             'jupyter-widgets',
             'widget-label',
-            'jupyter-matplotlib-footer'
+            'jupyter-matplotlib-footer',
         );
         this._update_footer_visible();
         this._update_message();
