@@ -18,7 +18,7 @@ To enable the `ipympl` backend, simply use the `matplotlib` Jupyter
 magic:
 
 ```
-%matplotlib widget
+%matplotlib ipympl
 ```
 ## Documentation
 See the documentation at: https://matplotlib.org/ipympl/
@@ -66,9 +66,8 @@ Versions lookup table:
 
 | `ipympl` | `jupyter-matplotlib` | `JupyterLab` | `Matplotlib` |
 |----------|----------------------|--------------|--------------|
-| 0.9.5    | 0.11.5               | >=2,<5       | >=3.5.0      |
-| 0.9.4    | 0.11.4               | >=2,<5       | 3.4.0>=      |
-| 0.9.3    | 0.11.3               | >=2,<5       | 3.4.0>=      |
+| 0.9.5-7  | 0.11.5-7             | >=2,<5       | >=3.5.0      |
+| 0.9.3-4  | 0.11.3-4             | >=2,<5       | 3.4.0>=      |
 | 0.9.0-2  | 0.11.0-2             | >=2,<5       | 3.4.0>=  <3.7|
 | 0.8.8    | 0.10.x               | >=2,<5       | 3.3.1>=  <3.7|
 | 0.8.0-7  | 0.10.x               | >=2,<5       | 3.3.1>=, <3.6|

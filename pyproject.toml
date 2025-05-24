@@ -42,9 +42,9 @@ classifiers = [
     "Topic :: Multimedia :: Graphics",
 ]
 dependencies = [
-    "ipython<9",
+    "ipython<10",
     "ipywidgets>=7.6.0,<9",
-    "matplotlib>=3.4.0,<4",
+    "matplotlib>=3.5.0,<4",
     "numpy",
     "pillow",
     "traitlets<6",
