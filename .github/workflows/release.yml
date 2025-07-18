@@ -1,4 +1,6 @@
 name: Publish Package
+permissions:
+  contents: read
 
 on:
   release:

@@ -1,4 +1,6 @@
 name: Tests
+permissions:
+  contents: read
 
 on:
   push:
