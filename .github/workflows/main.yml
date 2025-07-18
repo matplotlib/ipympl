@@ -22,7 +22,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Conda environment with Micromamba
-      uses: mamba-org/setup-micromamba@v2
+      uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2
       with:
           environment-file: dev-environment.yml
 
@@ -66,7 +66,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2
         with:
           environment-file: dev-environment.yml
           create-args: >-
@@ -134,7 +134,7 @@ jobs:
       # https://github.com/pymmcore-plus/pymmcore-widgets/blob/5e233384e223ca00101ef4b741d3c525a5cff9c9/.github/workflows/cron.yml#L49
       - name: Report Failures
         if: failure() && github.event_name == 'schedule'
-        uses: JasonEtco/create-an-issue@v2
+        uses: JasonEtco/create-an-issue@1b14a70e4d8dc185e5cc76d3bec9eab20257b2c5 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OS: ${{ matrix.os }}
