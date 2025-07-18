@@ -20,6 +20,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Install Conda environment with Micromamba
       uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2
@@ -64,6 +66,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2

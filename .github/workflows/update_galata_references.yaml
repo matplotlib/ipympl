@@ -29,6 +29,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: false
 
       - name: Checkout the branch from the PR that triggered the job
         run: gh pr checkout ${{ github.event.issue.number }}
