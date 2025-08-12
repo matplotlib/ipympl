@@ -19,6 +19,7 @@ except ModuleNotFoundError:
 import io
 import json
 from base64 import b64encode
+from threading import Lock
 
 try:
     from collections.abc import Iterable
@@ -67,6 +68,10 @@ cursors_str = {
     cursors.WAIT: 'wait',
 }
 
+# threading.Lock to prevent multiple threads from accessing globals such as Gcf
+_lock = Lock()
+
+
 
 def connection_info():
     """
@@ -75,18 +80,19 @@ def connection_info():
     use.
 
     """
-    result = []
-    for manager in Gcf.get_all_fig_managers():
-        fig = manager.canvas.figure
-        result.append(
-            '{} - {}'.format(
-                (fig.get_label() or f"Figure {manager.num}"),
-                manager.web_sockets,
+    with _lock:
+        result = []
+        for manager in Gcf.get_all_fig_managers():
+            fig = manager.canvas.figure
+            result.append(
+                '{} - {}'.format(
+                    (fig.get_label() or f"Figure {manager.num}"),
+                    manager.web_sockets,
+                )
             )
-        )
-    if not is_interactive():
-        result.append(f'Figures pending show: {len(Gcf._activeQue)}')
-    return '\n'.join(result)
+        if not is_interactive():
+            result.append(f'Figures pending show: {len(Gcf._activeQue)}')
+        return '\n'.join(result)
 
 
 class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
@@ -134,7 +140,8 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
             width = pwidth / self.canvas._dpi_ratio
         data = "<img src='data:image/png;base64,{0}' width={1}/>"
         data = data.format(b64encode(buf.getvalue()).decode('utf-8'), width)
-        display(HTML(data))
+        with _lock:
+            display(HTML(data))
 
     @default('toolitems')
     def _default_toolitems(self):
@@ -397,7 +404,8 @@ class FigureManager(FigureManagerWebAgg):
     def show(self):
         if self.canvas._closed:
             self.canvas._closed = False
-            display(self.canvas)
+            with _lock:
+                display(self.canvas)
         else:
             self.canvas.draw_idle()
 
@@ -415,83 +423,86 @@ class _Backend_ipympl(_Backend):
 
     @staticmethod
     def new_figure_manager_given_figure(num, figure):
-        canvas = Canvas(figure)
-        if 'nbagg.transparent' in rcParams and rcParams['nbagg.transparent']:
-            figure.patch.set_alpha(0)
-        manager = FigureManager(canvas, num)
+        with _lock:
+            canvas = Canvas(figure)
+            if 'nbagg.transparent' in rcParams and rcParams['nbagg.transparent']:
+                figure.patch.set_alpha(0)
+            manager = FigureManager(canvas, num)
 
-        if is_interactive():
-            _Backend_ipympl._to_show.append(figure)
-            figure.canvas.draw_idle()
+            if is_interactive():
+                _Backend_ipympl._to_show.append(figure)
+                figure.canvas.draw_idle()
 
-        def destroy(event):
-            canvas.mpl_disconnect(cid)
-            Gcf.destroy(manager)
+            def destroy(event):
+                canvas.mpl_disconnect(cid)
+                Gcf.destroy(manager)
 
-        cid = canvas.mpl_connect('close_event', destroy)
+            cid = canvas.mpl_connect('close_event', destroy)
 
-        # Only register figure for showing when in interactive mode (otherwise
-        # we'll generate duplicate plots, since a user who set ioff() manually
-        # expects to make separate draw/show calls).
-        if is_interactive():
-            # ensure current figure will be drawn.
-            try:
-                _Backend_ipympl._to_show.remove(figure)
-            except ValueError:
-                # ensure it only appears in the draw list once
-                pass
-            # Queue up the figure for drawing in next show() call
-            _Backend_ipympl._to_show.append(figure)
-            _Backend_ipympl._draw_called = True
+            # Only register figure for showing when in interactive mode (otherwise
+            # we'll generate duplicate plots, since a user who set ioff() manually
+            # expects to make separate draw/show calls).
+            if is_interactive():
+                # ensure current figure will be drawn.
+                try:
+                    _Backend_ipympl._to_show.remove(figure)
+                except ValueError:
+                    # ensure it only appears in the draw list once
+                    pass
+                # Queue up the figure for drawing in next show() call
+                _Backend_ipympl._to_show.append(figure)
+                _Backend_ipympl._draw_called = True
 
-        return manager
+            return manager
 
     @staticmethod
     def show(block=None):
-        # # TODO: something to do when keyword block==False ?
-        interactive = is_interactive()
+        with _lock:
+            # # TODO: something to do when keyword block==False ?
+            interactive = is_interactive()
 
-        manager = Gcf.get_active()
-        if manager is None:
-            return
+            manager = Gcf.get_active()
+            if manager is None:
+                return
 
-        try:
-            display(manager.canvas)
-            # metadata=_fetch_figure_metadata(manager.canvas.figure)
+            try:
+                display(manager.canvas)
+                # metadata=_fetch_figure_metadata(manager.canvas.figure)
 
-            # plt.figure adds an event which makes the figure in focus the
-            # active one. Disable this behaviour, as it results in
-            # figures being put as the active figure after they have been
-            # shown, even in non-interactive mode.
-            if hasattr(manager, '_cidgcf'):
-                manager.canvas.mpl_disconnect(manager._cidgcf)
+                # plt.figure adds an event which makes the figure in focus the
+                # active one. Disable this behaviour, as it results in
+                # figures being put as the active figure after they have been
+                # shown, even in non-interactive mode.
+                if hasattr(manager, '_cidgcf'):
+                    manager.canvas.mpl_disconnect(manager._cidgcf)
 
-            if not interactive:
-                Gcf.figs.pop(manager.num, None)
-        finally:
-            if manager.canvas.figure in _Backend_ipympl._to_show:
-                _Backend_ipympl._to_show.remove(manager.canvas.figure)
+                if not interactive:
+                    Gcf.figs.pop(manager.num, None)
+            finally:
+                if manager.canvas.figure in _Backend_ipympl._to_show:
+                    _Backend_ipympl._to_show.remove(manager.canvas.figure)
 
 
 def flush_figures():
-    backend = matplotlib.get_backend()
-    if backend in ('widget', 'ipympl', 'module://ipympl.backend_nbagg'):
-        if not _Backend_ipympl._draw_called:
-            return
+    with _lock:
+        backend = matplotlib.get_backend()
+        if backend in ('widget', 'ipympl', 'module://ipympl.backend_nbagg'):
+            if not _Backend_ipympl._draw_called:
+                return
 
-        try:
-            # exclude any figures that were closed:
-            active = {fm.canvas.figure for fm in Gcf.get_all_fig_managers()}
+            try:
+                # exclude any figures that were closed:
+                active = {fm.canvas.figure for fm in Gcf.get_all_fig_managers()}
+                for fig in [fig for fig in _Backend_ipympl._to_show if fig in active]:
+                    # display(fig.canvas, metadata=_fetch_figure_metadata(fig))
+                    display(fig.canvas)
+            finally:
+                # clear flags for next round
+                _Backend_ipympl._to_show = []
+                _Backend_ipympl._draw_called = False
 
-            for fig in [fig for fig in _Backend_ipympl._to_show if fig in active]:
-                # display(fig.canvas, metadata=_fetch_figure_metadata(fig))
-                display(fig.canvas)
-        finally:
-            # clear flags for next round
-            _Backend_ipympl._to_show = []
-            _Backend_ipympl._draw_called = False
 
-
-ip = get_ipython()
-if ip is not None:
-    ip.events.register('post_execute', flush_figures)
+with _lock:
+    ip = get_ipython()
+    if ip is not None:
+        ip.events.register('post_execute', flush_figures)
