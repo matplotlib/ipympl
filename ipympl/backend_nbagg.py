@@ -122,10 +122,8 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
 
     _current_action = Enum(values=['pan', 'zoom', ''], default_value='').tag(sync=True)
 
-    def __init__(self, canvas, *args, **kwargs):
-        DOMWidget.__init__(self, *args, **kwargs)
-        NavigationToolbar2WebAgg.__init__(self, canvas, *args, **kwargs)
-
+    def __init__(self, canvas, **kwargs):
+        super().__init__(canvas=canvas, **kwargs)
         self.on_msg(self.canvas._handle_message)
 
     def export(self):
