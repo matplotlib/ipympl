@@ -62,6 +62,7 @@ docs = [
     "sphinx-copybutton",
     "sphinx-thebe",
     "sphinx-togglebutton",
+    "intersphinx_registry",
 ]
 
 [project.urls]
