@@ -46,7 +46,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, macos]
-        python: ['3.9', '3.13']
+        python: ['3.9', '3.13', '3.14']
         mpl-version: ['latest']
         dist: ['ipympl*.whl']
         include:
