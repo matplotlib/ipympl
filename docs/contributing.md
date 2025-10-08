@@ -57,6 +57,7 @@ After a change wait for the build to finish and then refresh your browser and th
 If you make a change to the python code then you will need to restart the notebook kernel to have it take effect.
 
 
+(documentation)=
 ## Documentation
 
 Our documentation is built with [Sphinx](https://www.sphinx-doc.org) from the notebooks in the `docs` folder. It contains both Markdown files and Jupyter notebooks.

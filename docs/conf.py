@@ -64,11 +64,11 @@ copybutton_prompt_text = r">>> |\.\.\. "  # doctest
 linkcheck_anchors = False
 linkcheck_ignore = []  # type: ignore
 
-execution_timeout = -1
-jupyter_execute_notebooks = "off"
+nb_execution_timeout = -1
+nb_execution_mode = "off"
 if "EXECUTE_NB" in os.environ:
     print("\033[93;1mWill run Jupyter notebooks!\033[0m")
-    jupyter_execute_notebooks = "force"
+    nb_execution_mode = "force"
 
 # Settings for myst-parser
 myst_enable_extensions = [
