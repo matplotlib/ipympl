@@ -1,5 +1,7 @@
 # Reference https://mybinder.readthedocs.io/en/latest/howto/gh-actions-badges.html
 name: Binder Badge
+permissions:
+  contents: read
 on:
   pull_request_target:
     types: [opened]
