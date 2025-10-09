@@ -49,7 +49,7 @@ Not all versions of `ipympl` are compatible with different version of Jupyterlab
 
 | `ipympl` | `jupyter-matplotlib` | `JupyterLab` | `Matplotlib` |
 |----------|----------------------|--------------|--------------|
-| 0.9.5-7  | 0.11.5-7             | >=2,<5       | >=3.5.0      |
+| 0.9.5-8  | 0.11.5-8             | >=2,<5       | >=3.5.0      |
 | 0.9.3-4  | 0.11.3-4             | >=2,<5       | 3.4.0>=      |
 | 0.9.0-2  | 0.11.0-2             | >=2,<5       | 3.4.0>=  <3.7|
 | 0.8.8    | 0.10.x               | 3 or 2       | 3.3.1>=  <3.7|
