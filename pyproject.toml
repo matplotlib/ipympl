@@ -140,3 +140,21 @@ add_select = [
 
 [tool.black]
 skip-string-normalization = true
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tool.pixi.pypi-dependencies]
+ipympl = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+jupyterlab = ">=4.5.2,<5"
+yarn = ">=4.12.0,<5"
+nodejs = ">=25.2.1,<25.3"
