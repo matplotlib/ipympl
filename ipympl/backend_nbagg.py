@@ -128,6 +128,10 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
 
         self.on_msg(self.canvas._handle_message)
 
+    def save_figure(self, *args):
+        """Override to use rcParams-aware save."""
+        self.canvas._send_save_buffer()
+
     def export(self):
         buf = io.BytesIO()
         self.canvas.figure.savefig(buf, format='png', dpi='figure')
@@ -326,6 +330,63 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
         # Actually send the data
         self.send({'data': '{"type": "binary"}'}, buffers=[data])
+
+    def download(self):
+        """
+        Trigger a download of the figure respecting savefig rcParams.
+
+        This is a programmatic way to trigger the same download that happens
+        when the user clicks the Download button in the toolbar.
+
+        The figure will be saved using all applicable savefig.* rcParams
+        including format, dpi, transparent, facecolor, etc.
+
+        Examples
+        --------
+        >>> fig, ax = plt.subplots()
+        >>> ax.plot([1, 2, 3], [1, 4, 2])
+        >>> fig.canvas.download()  # Downloads with current rcParams
+
+        >>> # Download as PDF
+        >>> plt.rcParams['savefig.format'] = 'pdf'
+        >>> fig.canvas.download()
+
+        >>> # Download with custom DPI
+        >>> plt.rcParams['savefig.dpi'] = 300
+        >>> fig.canvas.download()
+        """
+        self._send_save_buffer()
+
+    def _send_save_buffer(self):
+        """Generate figure buffer respecting savefig rcParams and send to frontend."""
+        buf = io.BytesIO()
+
+        # Call savefig WITHOUT any parameters - fully respects all rcParams
+        self.figure.savefig(buf)
+
+        # Detect the format that was actually used
+        # Priority: explicitly set format, or rcParams, or default 'png'
+        fmt = rcParams.get('savefig.format', 'png')
+
+        # Validate format is supported by the frontend
+        supported_formats = {'png', 'jpg', 'jpeg', 'pdf', 'svg', 'eps', 'ps', 'tif', 'tiff'}
+        if fmt not in supported_formats:
+            warn(
+                f"Download format '{fmt}' is not supported by the ipympl frontend, "
+                f"falling back to PNG. Supported formats: {', '.join(sorted(supported_formats))}",
+                UserWarning,
+                stacklevel=3
+            )
+
+        # Get the buffer data
+        data = buf.getvalue()
+
+        # Send to frontend with format metadata
+        msg_data = {
+            "type": "save",
+            "format": fmt
+        }
+        self.send({'data': json.dumps(msg_data)}, buffers=[data])
 
     def new_timer(self, *args, **kwargs):
         return TimerTornado(*args, **kwargs)

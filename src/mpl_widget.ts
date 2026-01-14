@@ -148,13 +148,69 @@ export class MPLCanvasModel extends DOMWidgetModel {
         }
     }
 
-    handle_save() {
+    handle_save(msg?: any, buffers?: (ArrayBuffer | ArrayBufferView)[]) {
+        let blob_url: string;
+        let filename: string;
+        let should_revoke = false;
+
+        // If called with buffers, use the backend-generated buffer
+        if (buffers && buffers.length > 0) {
+            const url_creator = window.URL || window.webkitURL;
+
+            // Get format from message (already parsed by on_comm_message)
+            const format = msg.format || 'png';
+
+            // Map format to MIME type
+            const mimeTypes: { [key: string]: string } = {
+                'png': 'image/png',
+                'jpg': 'image/jpeg',
+                'jpeg': 'image/jpeg',
+                'pdf': 'application/pdf',
+                'svg': 'image/svg+xml',
+                'eps': 'application/postscript',
+                'ps': 'application/postscript',
+                'tif': 'image/tiff',
+                'tiff': 'image/tiff'
+            };
+
+            const mimeType = mimeTypes[format];
+
+            // If format is unknown, fall back to canvas toDataURL method
+            if (!mimeType) {
+                console.warn(`Unknown save format '${format}', falling back to PNG`);
+                blob_url = this.offscreen_canvas.toDataURL();
+                filename = this.get('_figure_label') + '.png';
+            } else {
+                // Convert buffer to Uint8Array
+                const buffer = new Uint8Array(
+                    ArrayBuffer.isView(buffers[0]) ? buffers[0].buffer : buffers[0]
+                );
+
+                // Create blob with correct MIME type
+                const blob = new Blob([buffer], { type: mimeType });
+                blob_url = url_creator.createObjectURL(blob);
+                filename = this.get('_figure_label') + '.' + format;
+                should_revoke = true;
+            }
+        } else {
+            // Fallback to old behavior (use canvas toDataURL)
+            blob_url = this.offscreen_canvas.toDataURL();
+            filename = this.get('_figure_label') + '.png';
+        }
+
+        // Trigger download
         const save = document.createElement('a');
-        save.href = this.offscreen_canvas.toDataURL();
-        save.download = this.get('_figure_label') + '.png';
+        save.href = blob_url;
+        save.download = filename;
         document.body.appendChild(save);
         save.click();
         document.body.removeChild(save);
+
+        // Clean up blob URL if needed
+        if (should_revoke) {
+            const url_creator = window.URL || window.webkitURL;
+            url_creator.revokeObjectURL(blob_url);
+        }
     }
 
     handle_resize(msg: { [index: string]: any }) {
