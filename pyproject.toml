@@ -65,6 +65,10 @@ docs = [
     "sphinx-togglebutton",
     "intersphinx_registry",
 ]
+test = [
+    "pytest>=9.0.2",
+    "nbval>=0.11.0",
+]
 
 [project.urls]
 Homepage = "http://matplotlib.org/ipympl"
@@ -151,6 +155,7 @@ ipympl = { path = ".", editable = true }
 [tool.pixi.environments]
 default = { solve-group = "default" }
 docs = { features = ["docs"], solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
 
 [tool.pixi.tasks]
 
