@@ -116,6 +116,7 @@ source = "code"
 
 [tool.pytest.ini_options]
 testpaths = [
+    "tests",
     "docs/examples",
 ]
 norecursedirs = [
