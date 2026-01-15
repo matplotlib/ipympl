@@ -191,12 +191,12 @@ def test_send_save_buffer_respects_transparent():
     plt.close(fig)
 
 
-def test_send_save_buffer_warns_on_unsupported_format():
-    """Test that _send_save_buffer warns about unsupported formats."""
+def test_send_save_buffer_with_pgf_format():
+    """Test that _send_save_buffer works with PGF format."""
     matplotlib.use('module://ipympl.backend_nbagg')
 
-    # Test with an unsupported format
-    plt.rcParams['savefig.format'] = 'webp'
+    # Test with PGF format (LaTeX graphics format)
+    plt.rcParams['savefig.format'] = 'pgf'
 
     fig, ax = plt.subplots()
     ax.plot([1, 2, 3], [1, 4, 2])
@@ -204,11 +204,15 @@ def test_send_save_buffer_warns_on_unsupported_format():
     canvas = fig.canvas
     canvas.send = MagicMock()
 
-    # Should issue a warning
-    with pytest.warns(UserWarning, match="Download format 'webp' is not supported"):
-        canvas._send_save_buffer()
+    # Should work without warnings
+    canvas._send_save_buffer()
 
-    # Should still send the buffer (frontend will fall back to PNG)
+    # Should send the buffer with format='pgf'
     assert canvas.send.called
+    call_args = canvas.send.call_args
+    assert 'data' in call_args[0][0]
+    import json
+    msg_data = json.loads(call_args[0][0]['data'])
+    assert msg_data['format'] == 'pgf'
 
     plt.close(fig)

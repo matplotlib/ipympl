@@ -160,38 +160,36 @@ export class MPLCanvasModel extends DOMWidgetModel {
             // Get format from message (already parsed by on_comm_message)
             const format = msg.format || 'png';
 
-            // Map format to MIME type
+            // Map format to MIME type - use known types where available
             const mimeTypes: { [key: string]: string } = {
                 'png': 'image/png',
                 'jpg': 'image/jpeg',
                 'jpeg': 'image/jpeg',
                 'pdf': 'application/pdf',
                 'svg': 'image/svg+xml',
+                'svgz': 'image/svg+xml',
                 'eps': 'application/postscript',
                 'ps': 'application/postscript',
                 'tif': 'image/tiff',
-                'tiff': 'image/tiff'
+                'tiff': 'image/tiff',
+                'pgf': 'application/x-latex',
+                'raw': 'application/octet-stream',
+                'rgba': 'application/octet-stream'
             };
 
-            const mimeType = mimeTypes[format];
+            // Use known MIME type or generic fallback
+            const mimeType = mimeTypes[format] || 'application/octet-stream';
 
-            // If format is unknown, fall back to canvas toDataURL method
-            if (!mimeType) {
-                console.warn(`Unknown save format '${format}', falling back to PNG`);
-                blob_url = this.offscreen_canvas.toDataURL();
-                filename = this.get('_figure_label') + '.png';
-            } else {
-                // Convert buffer to Uint8Array
-                const buffer = new Uint8Array(
-                    ArrayBuffer.isView(buffers[0]) ? buffers[0].buffer : buffers[0]
-                );
+            // Convert buffer to Uint8Array
+            const buffer = new Uint8Array(
+                ArrayBuffer.isView(buffers[0]) ? buffers[0].buffer : buffers[0]
+            );
 
-                // Create blob with correct MIME type
-                const blob = new Blob([buffer], { type: mimeType });
-                blob_url = url_creator.createObjectURL(blob);
-                filename = this.get('_figure_label') + '.' + format;
-                should_revoke = true;
-            }
+            // Create blob with MIME type
+            const blob = new Blob([buffer], { type: mimeType });
+            blob_url = url_creator.createObjectURL(blob);
+            filename = this.get('_figure_label') + '.' + format;
+            should_revoke = true;
         } else {
             // Fallback to old behavior (use canvas toDataURL)
             blob_url = this.offscreen_canvas.toDataURL();

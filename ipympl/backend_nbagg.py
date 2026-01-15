@@ -359,23 +359,13 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     def _send_save_buffer(self):
         """Generate figure buffer respecting savefig rcParams and send to frontend."""
-        # Get the format before calling savefig to properly warn about unsupported formats
-        fmt = rcParams.get('savefig.format', 'png')
-
-        # Validate format is supported by the frontend
-        supported_formats = {'png', 'jpg', 'jpeg', 'pdf', 'svg', 'eps', 'ps', 'tif', 'tiff'}
-        if fmt not in supported_formats:
-            warn(
-                f"Download format '{fmt}' is not supported by the ipympl frontend, "
-                f"falling back to PNG. Supported formats: {', '.join(sorted(supported_formats))}",
-                UserWarning,
-                stacklevel=3
-            )
-
         buf = io.BytesIO()
 
         # Call savefig WITHOUT any parameters - fully respects all rcParams
         self.figure.savefig(buf)
+
+        # Get the format that was used
+        fmt = rcParams.get('savefig.format', 'png')
 
         # Get the buffer data
         data = buf.getvalue()
