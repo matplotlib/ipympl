@@ -15,25 +15,13 @@ defaults:
 jobs:
   update-reference-screenshots:
     name: Update Galata References
-    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, 'update galata references') }}
     runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && contains(github.event.comment.body, 'please update snapshots')
 
     steps:
-      - name: React to the triggering comment
-        run: |
-          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions --raw-field 'content=+1'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: jupyterlab/maintainer-tools/.github/actions/update-snapshots-checkout@main
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Checkout the branch from the PR that triggered the job
-        run: gh pr checkout ${{ github.event.issue.number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v2
