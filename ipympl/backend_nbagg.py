@@ -359,13 +359,7 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
 
     def _send_save_buffer(self):
         """Generate figure buffer respecting savefig rcParams and send to frontend."""
-        buf = io.BytesIO()
-
-        # Call savefig WITHOUT any parameters - fully respects all rcParams
-        self.figure.savefig(buf)
-
-        # Detect the format that was actually used
-        # Priority: explicitly set format, or rcParams, or default 'png'
+        # Get the format before calling savefig to properly warn about unsupported formats
         fmt = rcParams.get('savefig.format', 'png')
 
         # Validate format is supported by the frontend
@@ -377,6 +371,11 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
                 UserWarning,
                 stacklevel=3
             )
+
+        buf = io.BytesIO()
+
+        # Call savefig WITHOUT any parameters - fully respects all rcParams
+        self.figure.savefig(buf)
 
         # Get the buffer data
         data = buf.getvalue()
