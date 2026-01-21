@@ -20,6 +20,8 @@ lib/
 ipympl/nbextension/index.*
 ipympl/nbextension/package.json
 ipympl/labextension/*.tgz
+.yarn/
+package-lock.json
 
 ui-tests/test-results
 ui-tests/playwright-report
@@ -36,3 +38,5 @@ ipympl/labextension
 
 # sphinx build dir
 docs/_build
+# pixi environments
+.pixi

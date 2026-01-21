@@ -11,7 +11,6 @@ Leveraging the Jupyter interactive widgets framework, `ipympl` enables the inter
 
 Besides, the figure `canvas` element is a proper Jupyter interactive widget which can be positioned in interactive widget layouts.
 
-
 ## Usage
 
 To enable the `ipympl` backend, simply use the `matplotlib` Jupyter
@@ -20,22 +19,26 @@ magic:
 ```
 %matplotlib ipympl
 ```
+
 ## Documentation
-See the documentation at: https://matplotlib.org/ipympl/
+
+See the documentation at: <https://matplotlib.org/ipympl/>
+
 ## Example
+
 See the [example notebook](https://github.com/matplotlib/ipympl/blob/main/docs/examples/full-example.ipynb) for more!
 
 ![matplotlib screencast](matplotlib.gif)
 
 ## Installation
 
-### With conda:
+### With conda
 
 ```bash
 conda install -c conda-forge ipympl
 ```
 
-### With pip:
+### With pip
 
 ```bash
 pip install ipympl
@@ -85,51 +88,61 @@ Versions lookup table:
 | 0.3.2    | 0.4.1                | >=1,<2       |              |
 | 0.3.1    | 0.4.0                | >=0<2        |              |
 
-### For a development installation (requires nodejs):
+### For a development installation
 
-Create a dev environment that has nodejs installed. The instructions here use
-[mamba](https://github.com/mamba-org/mamba#the-fast-cross-platform-package-manager) but you
-can also use conda.
+We recommend using [pixi](https://pixi.sh) for development as it handles both Python and Node.js dependencies (matplotlib has compiled dependencies).
+
+```bash
+# Install dependencies and set up environment
+pixi install
+
+# Install the Python package in editable mode
+pixi run pip install -e .
+
+# Install JavaScript dependencies and build
+pixi run jlpm install
+pixi run jlpm build
+
+# Set up JupyterLab extension in development mode
+pixi run jupyter labextension develop --overwrite .
+
+# Start development workflow (in separate terminals)
+pixi run npm run watch    # Terminal 1: Auto-rebuild on changes
+pixi run jupyter lab      # Terminal 2: Run JupyterLab
+```
+
+**Alternative: Using conda/mamba**
 
 ```bash
 mamba env create --file dev-environment.yml
 conda activate ipympl-dev
-```
 
-Install the Python Packge
-```bash
 pip install -e .
-```
-
-When developing your extensions, you need to manually enable your extensions with the
-notebook / lab frontend. For lab, this is done by the command:
-
-```bash
-jupyter labextension develop --overwrite .
+jlpm install
 jlpm build
-```
+jupyter labextension develop --overwrite .
 
-For classic notebook, you need to run:
-```bash
-jupyter nbextension install --py --symlink --sys-prefix --overwrite ipympl
-jupyter nbextension enable --py --sys-prefix ipympl
+# Start development workflow (in separate terminals)
+npm run watch    # Terminal 1: Auto-rebuild on changes
+jupyter lab      # Terminal 2: Run JupyterLab
 ```
 
 #### How to see your changes
 
-**Typescript**:
+**TypeScript/JavaScript:** After a change, the watch command will automatically rebuild. Wait for the build to finish, then refresh your browser and the changes should take effect.
 
-If you use JupyterLab to develop then you can watch the source directory and run JupyterLab at the same time in different terminals to watch for changes in the extension's source and automatically rebuild the widget.
+**Python:** If you make a change to the Python code, restart the notebook kernel to have it take effect.
+
+#### Classic Jupyter Notebook
+
+If you need to develop for classic Jupyter Notebook (not JupyterLab), also run:
 
 ```bash
-# Watch the source directory in one terminal, automatically rebuilding when needed
-jlpm watch
-# Run JupyterLab in another terminal
-jupyter lab
+# With pixi:
+pixi run jupyter nbextension install --py --symlink --sys-prefix --overwrite ipympl
+pixi run jupyter nbextension enable --py --sys-prefix ipympl
+
+# Or with conda/mamba:
+jupyter nbextension install --py --symlink --sys-prefix --overwrite ipympl
+jupyter nbextension enable --py --sys-prefix ipympl
 ```
-
-After a change wait for the build to finish and then refresh your browser and the changes should take effect.
-
-**Python:**
-
-If you make a change to the python code then you will need to restart the notebook kernel to have it take effect.
