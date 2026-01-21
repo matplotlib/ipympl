@@ -34,8 +34,9 @@ jobs:
 
     - name: Publish the NPM package
       run: |
-        jlpm install && jlpm build
-        npm publish
+        micromamba run -n ipympl-release jlpm install
+        micromamba run -n ipympl-release jlpm build
+        micromamba run -n ipympl-release npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         PRE_RELEASE: ${{ github.event.release.prerelease }}
