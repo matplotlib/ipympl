@@ -65,6 +65,10 @@ docs = [
     "sphinx-togglebutton",
     "intersphinx_registry",
 ]
+test = [
+    "pytest>=9.0.2",
+    "nbval>=0.11.0",
+]
 
 [project.urls]
 Homepage = "http://matplotlib.org/ipympl"
@@ -141,3 +145,22 @@ add_select = [
 
 [tool.black]
 skip-string-normalization = true
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tool.pixi.pypi-dependencies]
+ipympl = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+jupyterlab = ">=4.5.2,<5"
+yarn = ">=4.12.0,<5"
+nodejs = ">=25.2.1,<25.3"
