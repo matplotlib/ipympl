@@ -38,7 +38,7 @@ export class ToolbarView extends DOMWidgetView {
             'jupyter-widgets',
             'jupyter-matplotlib-toolbar',
             'widget-container',
-            'widget-box'
+            'widget-box',
         );
 
         // Fade-in/fade-out mode by default, the figure will decide
@@ -69,14 +69,14 @@ export class ToolbarView extends DOMWidgetView {
             button.classList.add(
                 'jupyter-matplotlib-button',
                 'jupyter-widgets',
-                'jupyter-button'
+                'jupyter-button',
             );
             button.setAttribute('href', '#');
             button.setAttribute('title', tooltip);
             button.style.outline = 'none';
             button.addEventListener(
                 'click',
-                this.toolbar_button_onclick(method_name)
+                this.toolbar_button_onclick(method_name),
             );
 
             const icon = document.createElement('i');
@@ -162,7 +162,7 @@ export class ToolbarView extends DOMWidgetView {
     }
 
     set_visibility(
-        value: 'visible' | 'hidden' | 'fade-in-fade-out' | boolean
+        value: 'visible' | 'hidden' | 'fade-in-fade-out' | boolean,
     ): void {
         // For backward compatibility with the old API
         if (typeof value === 'boolean') {
@@ -247,7 +247,7 @@ export class ToolbarView extends DOMWidgetView {
         this.model.on_some_change(
             ['button_style', '_current_action'],
             this.set_buttons_style,
-            this
+            this,
         );
     }
 }
