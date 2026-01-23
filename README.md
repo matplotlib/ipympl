@@ -5,6 +5,7 @@
 [![Latest conda-forge version](https://img.shields.io/conda/vn/conda-forge/ipympl?logo=conda-forge)](https://anaconda.org/conda-forge/ipympl)
 [![Latest npm version](https://img.shields.io/npm/v/jupyter-matplotlib?logo=npm)](https://www.npmjs.com/package/jupyter-matplotlib)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/matplotlib/ipympl/main?urlpath=notebooks/docs/examples/full-example.ipynb)
+[![notebook-link](https://img.shields.io/badge/notebook-link-e2d610?logo=jupyter&logoColor=white)](https://notebook.link/github/matplotlib/ipympl/?path=docs%2Fexamples%2Ffull-example.ipynb)
 [![Gitter](https://img.shields.io/badge/gitter-Join_chat-blue?logo=gitter)](https://gitter.im/jupyter-widgets/Lobby)
 
 Leveraging the Jupyter interactive widgets framework, `ipympl` enables the interactive features of matplotlib in the Jupyter notebook and in JupyterLab.
@@ -27,7 +28,7 @@ See the documentation at: <https://matplotlib.org/ipympl/>
 ## Try it now
 
 You can easily try `ipympl` without installing anything, by simply accessing the example Notebook from Notebook.link or MyBinder:
-- [Notebook.link](https://notebook.link/github/matplotlib/ipympl/?path=docs%2Fexamples%2Ffull-example.ipynb):
+- [Notebook.link](https://notebook.link/github/matplotlib/ipympl/?path=docs%2Fexamples%2Ffull-example.ipynb)
 - [MyBinder link](https://mybinder.org/v2/gh/matplotlib/ipympl/main?urlpath=notebooks/docs/examples/full-example.ipynb)
 
 ## Example
