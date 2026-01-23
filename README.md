@@ -24,6 +24,12 @@ magic:
 
 See the documentation at: <https://matplotlib.org/ipympl/>
 
+## Try it now
+
+You can easily try `ipympl` without installing anything, by simply accessing the example Notebook from Notebook.link or MyBinder:
+- [Notebook.link](https://notebook.link/github/matplotlib/ipympl/?path=docs%2Fexamples%2Ffull-example.ipynb):
+- [MyBinder link](https://mybinder.org/v2/gh/matplotlib/ipympl/main?urlpath=notebooks/docs/examples/full-example.ipynb)
+
 ## Example
 
 See the [example notebook](https://github.com/matplotlib/ipympl/blob/main/docs/examples/full-example.ipynb) for more!

@@ -1,0 +1,7 @@
+name: ipympl-nblink-environment
+channels:
+  - emscripten-forge
+  - conda-forge
+dependencies:
+  - xeus-python
+  - ipympl
