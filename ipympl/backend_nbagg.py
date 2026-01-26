@@ -122,10 +122,8 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
 
     _current_action = Enum(values=['pan', 'zoom', ''], default_value='').tag(sync=True)
 
-    def __init__(self, canvas, *args, **kwargs):
-        DOMWidget.__init__(self, *args, **kwargs)
-        NavigationToolbar2WebAgg.__init__(self, canvas, *args, **kwargs)
-
+    def __init__(self, canvas, **kwargs):
+        super().__init__(canvas=canvas, **kwargs)
         self.on_msg(self.canvas._handle_message)
 
     def save_figure(self, *args):
@@ -244,9 +242,8 @@ class Canvas(DOMWidget, FigureCanvasWebAggCore):
     # Static as it should be the same for all canvases
     current_dpi_ratio = 1.0
 
-    def __init__(self, figure, *args, **kwargs):
-        DOMWidget.__init__(self, *args, **kwargs)
-        FigureCanvasWebAggCore.__init__(self, figure, *args, **kwargs)
+    def __init__(self, figure, **kwargs):
+        super().__init__(figure=figure, **kwargs)
 
         self.on_msg(self._handle_message)
 
