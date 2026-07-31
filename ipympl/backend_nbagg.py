@@ -60,6 +60,30 @@ from traitlets import (
 
 from ._version import js_semver
 
+# Workaround for thread-safety issues in matplotlib's mathtext parser.
+# The _mathtext.Parser singleton has mutable state (_state_stack, etc.) that is
+# not protected against concurrent access from multiple threads. When ipympl is
+# used with ipykernel >= 7 (which introduces additional threads for message
+# routing), concurrent calls to the parser can corrupt this state, leading to
+# ParseException errors like 'Expected end of text, found "$"'.
+# See https://github.com/matplotlib/ipympl/issues/610
+try:
+    import functools
+
+    from matplotlib._mathtext import Parser as _MathTextInternalParser
+
+    _mathtext_parse_lock = Lock()
+    _original_mathtext_parse = _MathTextInternalParser.parse
+
+    @functools.wraps(_original_mathtext_parse)
+    def _thread_safe_mathtext_parse(self, *args, **kwargs):
+        with _mathtext_parse_lock:
+            return _original_mathtext_parse(self, *args, **kwargs)
+
+    _MathTextInternalParser.parse = _thread_safe_mathtext_parse
+except Exception:
+    pass
+
 cursors_str = {
     cursors.HAND: 'pointer',
     cursors.POINTER: 'default',
