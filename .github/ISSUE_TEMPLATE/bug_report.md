@@ -17,7 +17,7 @@ In general, please make sure you are using the latest versions of software when 
 Please include the result of the following command, which will print out the version of python, ipympl and the Jupyter ecosystem.
 
 ```bash
-python -c "import sys; print('\n',sys.version); import ipympl; print('ipympl version:', ipympl.__version__)" && jupyter --version && jupyter nbextension list && jupyter labextension list
+set -x ; python -c "import sys; print('\n',sys.version); import ipympl; print('ipympl version:', ipympl.__version__)" ; jupyter --version ; jupyter nbextension list ; jupyter labextension list
 ```
 -->
 ```
