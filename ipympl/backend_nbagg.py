@@ -119,7 +119,7 @@ def connection_info():
         return '\n'.join(result)
 
 
-class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
+class Toolbar(NavigationToolbar2WebAgg, DOMWidget):
 
     _model_module = Unicode('jupyter-matplotlib').tag(sync=True)
     _model_module_version = Unicode(js_semver).tag(sync=True)
@@ -147,8 +147,8 @@ class Toolbar(DOMWidget, NavigationToolbar2WebAgg):
     _current_action = Enum(values=['pan', 'zoom', ''], default_value='').tag(sync=True)
 
     def __init__(self, canvas, *args, **kwargs):
+        NavigationToolbar2WebAgg.__init__(self, canvas)
         DOMWidget.__init__(self, *args, **kwargs)
-        NavigationToolbar2WebAgg.__init__(self, canvas, *args, **kwargs)
 
         self.on_msg(self.canvas._handle_message)
 
